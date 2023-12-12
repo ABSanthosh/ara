@@ -3,9 +3,16 @@
   import Sidebar from "$components/Sidebar.svelte";
   import FlipClock from "$components/Clocks/FlipClock.svelte";
   import AnalogClock from "$components/Clocks/AnalogClock.svelte";
+  import options from "$stores/OptionStore";
 
-  $: isClosed = false;
+  $: isClosed = $options.sidebarIsClosed;
 </script>
+
+<svelte:head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>Unitab</title>
+</svelte:head>
 
 <main
   class="Home"
