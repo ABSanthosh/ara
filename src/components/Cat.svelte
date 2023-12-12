@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import BlurredSpinner from './BlurredSpinner.svelte';
+  import cats from '$stores/CatStore';
 
 	$: imgSrc = { url: '', title: '', sub: '', permalink: '' };
 
@@ -11,39 +12,8 @@
 		}, 2500);
 	});
 
-	async function getCat() {
-		const subs = [
-			'Catswithjobs',
-			'catpics',
-			'catpictures',
-			'catsinboxes',
-			'CatsInBusinessAttire',
-			'CatsInHats',
-			'funnycats'
-		];
-		const sub = subs[Math.floor(Math.random() * subs.length)];
-		const base = 'https://www.reddit.com/r/' + sub + '/random.json';
-
-		// https://stackoverflow.com/questions/29246444/fetch-how-do-you-make-a-non-cached-request
-		const res = await fetch(base, { cache: 'no-store' });
-		const json = await res.json();
-		const data = json[0].data.children[0].data;
-
-		if (data.gallery_data) {
-			const media_id = data.gallery_data.items[0].media_id;
-			return {
-				sub,
-				title: data.title,
-				url: `https://i.redd.it/${media_id}.jpg`,
-				permalink: data.permalink
-			};
-		}
-
-		return { sub, url: data.url, title: data.title, permalink: data.permalink };
-	}
-
 	onMount(async () => {
-		imgSrc = await getCat();
+		imgSrc = await $cats;
 	});
 </script>
 

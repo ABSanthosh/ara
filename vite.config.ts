@@ -2,12 +2,13 @@ import { defineConfig } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import webExtension from "vite-plugin-web-extension";
 import autoprefixer from "autoprefixer";
-import path from 'path'
+import path from "path";
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  build:{
+  build: {
     outDir: "build",
+    watch: {},
   },
   plugins: [svelte(), webExtension()],
   css: {
@@ -22,8 +23,8 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      $stores: path.resolve('./src/stores'),
-      $components: path.resolve('./src/components'),
-    }
+      $stores: path.resolve("./src/stores"),
+      $components: path.resolve("./src/components"),
+    },
   },
 });

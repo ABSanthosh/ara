@@ -1,4 +1,3 @@
-/// <reference types="chrome"/>
 import { writable } from "svelte/store";
 
 const defaultOptions = {

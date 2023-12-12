@@ -4,6 +4,7 @@
   import FlipClock from "$components/Clocks/FlipClock.svelte";
   import AnalogClock from "$components/Clocks/AnalogClock.svelte";
   import options from "$stores/OptionStore";
+  import Notes from "$components/Notes.svelte";
 
   $: isClosed = $options.sidebarIsClosed;
 </script>
@@ -24,9 +25,10 @@
       <div class="BlurBG" style="height: 147.5px; width: 147.5px" />
       <div class="BlurBG" style="height: 147.5px; width: 147.5px" />
     </div> -->
-    <FlipClock />
-    <AnalogClock />
-    <Cat />
+    <!-- <FlipClock /> -->
+    <!-- <AnalogClock /> -->
+    <!-- <Cat /> -->
+    <Notes/>
   </div>
 </main>
 
