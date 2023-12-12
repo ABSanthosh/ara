@@ -1,6 +1,7 @@
-import adapter from 'sveltekit-adapter-chrome-extension';
+// import adapter from 'sveltekit-adapter-chrome-extension';
 import autoprefixer from "autoprefixer";
 import preprocess from "svelte-preprocess";
+import adapter from "@sveltejs/adapter-static";
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {

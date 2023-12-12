@@ -4,7 +4,7 @@
 	"private": true,
 	"scripts": {
 		"dev": "vite dev --host",
-		"build": "vite build",
+		"build": "vite build && node inline.cjs",
 		"devext": "nodemon --watch src --watch static --exec \"vite build\" -e json,ts,css,scss,html,svelte",
 		"preview": "vite preview",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
@@ -13,6 +13,7 @@
 		"format": "prettier --write ."
 	},
 	"devDependencies": {
+		"@crxjs/vite-plugin": "^1.0.14",
 		"@sveltejs/adapter-static": "^2.0.3",
 		"@sveltejs/kit": "^1.27.4",
 		"@types/chrome": "^0.0.253",
@@ -39,6 +40,5 @@
 	"type": "module",
 	"peerDependencies": {
 		"postcss": "^8.4.28"
-	},
-	"dependencies": {}
+	}
 }
