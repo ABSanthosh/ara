@@ -1,5 +1,5 @@
 <script lang="ts">
-	import options from '$lib/OptionStore';
+	import options from '$stores/OptionStore';
 
 	$: tabGroups = [
 		{

@@ -28,8 +28,8 @@
 
 	let display = [
 		{
-			top: time.getHours().toString().padStart(2, '0'),
-			bottom: time.getHours().toString().padStart(2, '0'),
+			top: (time.getHours() % 12 || 12).toString().padStart(2, '0'),
+			bottom: (time.getHours() % 12 || 12).toString().padStart(2, '0'),
 			transition: false
 		},
 		{
@@ -48,7 +48,7 @@
 		const interval = setInterval(() => {
 			time = new Date();
 			const newData: string[] = [];
-			newData.push(time.getHours().toString().padStart(2, '0'));
+			newData.push((time.getHours() % 12 || 12).toString().padStart(2, '0'));
 			newData.push(time.getMinutes().toString().padStart(2, '0'));
 			newData.push(time.getSeconds().toString().padStart(2, '0'));
 			display = display.map(({ bottom }, i) => ({
