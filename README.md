@@ -7,13 +7,18 @@ A simple new tab page for Chrome.
 - [ ] Tab management
   - [ ] Tab ordering with ctrl+<number>
   - [ ] Horizontal tabs
-- [ ] notes
-- [ ] todo list
+- [x] notes
+  - [ ] todo list
 - [ ] weather
 - [ ] clock
+  - [x] Analog
+  - [x] Flip
+  - [ ] Digital
 - [ ] workspaces
 - [ ] bookmarks
-- [x] Cats!
+- [ ] Cats!
+  - [x] Random image from reddit
+  - [ ] neko in all pages?
 
 - [ ] iframe: [Driftmas](https://slowroads.io/driftmas/)
 - [ ] Neko in all the pages
