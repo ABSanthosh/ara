@@ -98,6 +98,6 @@ async function getCat(): Promise<Cat> {
 //   console.log("url", url);
 // });
 
-const cat = writable<Promise<Cat>>();
+const cat = writable<Promise<Cat>>(getCat());
 
 export default cat;

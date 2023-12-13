@@ -2,16 +2,12 @@
 // CodeMirror, copyright (c) by Marijn Haverbeke and others
 // Distributed under an MIT license: https://codemirror.net/5/LICENSE
 
-import CodeMirror from "./gfm";
-var urlRE =
-  /^((?:(?:aaas?|about|acap|adiumxtra|af[ps]|aim|apt|attachment|aw|beshare|bitcoin|bolo|callto|cap|chrome(?:-extension)?|cid|coap|com-eventbrite-attendee|content|crid|cvs|data|dav|dict|dlna-(?:playcontainer|playsingle)|dns|doi|dtn|dvb|ed2k|facetime|feed|file|finger|fish|ftp|geo|gg|git|gizmoproject|go|gopher|gtalk|h323|hcp|https?|iax|icap|icon|im|imap|info|ipn|ipp|irc[6s]?|iris(?:\.beep|\.lwz|\.xpc|\.xpcs)?|itms|jar|javascript|jms|keyparc|lastfm|ldaps?|magnet|mailto|maps|market|message|mid|mms|ms-help|msnim|msrps?|mtqp|mumble|mupdate|mvn|news|nfs|nih?|nntp|notes|oid|opaquelocktoken|palm|paparazzi|platform|pop|pres|proxy|psyc|query|res(?:ource)?|rmi|rsync|rtmp|rtsp|secondlife|service|session|sftp|sgn|shttp|sieve|sips?|skype|sm[bs]|snmp|soap\.beeps?|soldat|spotify|ssh|steam|svn|tag|teamspeak|tel(?:net)?|tftp|things|thismessage|tip|tn3270|tv|udp|unreal|urn|ut2004|vemmi|ventrilo|view-source|webcal|wss?|wtai|wyciwyg|xcon(?:-userid)?|xfire|xmlrpc\.beeps?|xmpp|xri|ymsgr|z39\.50[rs]?):(?:\/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}\/)(?:[^\s()<>]|\([^\s()<>]*\))+(?:\([^\s()<>]*\)|[^\s`*!()\[\]{};:'".,<>?«»“”‘’]))/i;
+import CodeMirror from "./codemirror";
 
 CodeMirror.defineMode(
   "markdown",
   function (cmCfg, modeCfg) {
-    var markdownConfig = {};
-    markdownConfig.name = "text/html";
-    var htmlMode = CodeMirror.getMode(cmCfg, markdownConfig);
+    var htmlMode = CodeMirror.getMode(cmCfg, "text/html");
     var htmlModeMissing = htmlMode.name == "null";
 
     function getMode(name) {
@@ -34,10 +30,10 @@ CodeMirror.defineMode(
       modeCfg.maxBlockquoteDepth = 0;
 
     // Turn on task lists? ("- [ ] " and "- [x] ")
-    if (modeCfg.taskLists === undefined) modeCfg.taskLists = true;
+    if (modeCfg.taskLists === undefined) modeCfg.taskLists = false;
 
     // Turn on strikethrough syntax
-    if (modeCfg.strikethrough === undefined) modeCfg.strikethrough = true;
+    if (modeCfg.strikethrough === undefined) modeCfg.strikethrough = false;
 
     if (modeCfg.emoji === undefined) modeCfg.emoji = false;
 
@@ -256,8 +252,8 @@ CodeMirror.defineMode(
         // Reset inline styles which shouldn't propagate across list items
         state.em = false;
         state.strong = false;
-        state.code = true;
-        state.strikethrough = true;
+        state.code = false;
+        state.strikethrough = false;
 
         if (modeCfg.taskLists && stream.match(taskListRE, false)) {
           state.taskList = true;
@@ -386,10 +382,10 @@ CodeMirror.defineMode(
           if (state.formatting[i] === "header") {
             styles.push(
               tokenTypes.formatting +
-                "-" +
-                state.formatting[i] +
-                "-" +
-                state.header
+              "-" +
+              state.formatting[i] +
+              "-" +
+              state.header
             );
           }
 
@@ -402,10 +398,10 @@ CodeMirror.defineMode(
             ) {
               styles.push(
                 tokenTypes.formatting +
-                  "-" +
-                  state.formatting[i] +
-                  "-" +
-                  state.quote
+                "-" +
+                state.formatting[i] +
+                "-" +
+                state.quote
               );
             } else {
               styles.push("error");
@@ -755,7 +751,6 @@ CodeMirror.defineMode(
             return getType(state);
           }
         } else if (ch === " ") {
-          console.log("match");
           if (stream.match("~~", true)) {
             // Probably surrounded by space
             if (stream.peek() === " ") {
@@ -923,18 +918,14 @@ CodeMirror.defineMode(
           setext: 0,
           hr: false,
           taskList: false,
-          list: true,
+          list: false,
           listStack: [],
           quote: 0,
           trailingSpace: 0,
           trailingSpaceNewLine: false,
-          strikethrough: true,
+          strikethrough: false,
           emoji: false,
           fencedEndRE: null,
-
-          // code: false,
-          codeBlock: false,
-          ateSpace: false,
         };
       },
 
@@ -977,17 +968,12 @@ CodeMirror.defineMode(
           trailingSpaceNewLine: s.trailingSpaceNewLine,
           md_inside: s.md_inside,
           fencedEndRE: s.fencedEndRE,
-
-          // code: s.code,
-          codeBlock: s.codeBlock,
-          ateSpace: s.ateSpace,
         };
       },
 
       token: function (stream, state) {
         // Reset state.formatting
         state.formatting = false;
-        state.combineTokens = null;
 
         if (stream != state.thisLine.stream) {
           state.header = 0;
@@ -1020,88 +1006,6 @@ CodeMirror.defineMode(
             }
           }
         }
-        if (state.codeBlock) {
-          if (stream.match(/^```+/)) {
-            state.codeBlock = false;
-            return null;
-          }
-          stream.skipToEnd();
-          return null;
-        }
-        if (stream.sol()) {
-          state.code = false;
-        }
-        if (stream.sol() && stream.match(/^```+/)) {
-          stream.skipToEnd();
-          state.codeBlock = true;
-          return null;
-        }
-        // If this block is changed, it may need to be updated in Markdown mode
-        if (stream.peek() === "`") {
-          stream.next();
-          var before = stream.pos;
-          stream.eatWhile("`");
-          var difference = 1 + stream.pos - before;
-          if (!state.code) {
-            codeDepth = difference;
-            state.code = true;
-          } else {
-            if (difference === codeDepth) {
-              // Must be exact
-              state.code = false;
-            }
-          }
-          return null;
-        } else if (state.code) {
-          stream.next();
-          return null;
-        }
-        // Check if space. If so, links can be formatted later on
-        if (stream.eatSpace()) {
-          state.ateSpace = true;
-          return null;
-        }
-        if (stream.sol() || state.ateSpace) {
-          state.ateSpace = false;
-          if (modeCfg.gitHubSpice !== false) {
-            if (
-              stream.match(
-                /^(?:[a-zA-Z0-9\-_]+\/)?(?:[a-zA-Z0-9\-_]+@)?(?=.{0,6}\d)(?:[a-f0-9]{7,40}\b)/
-              )
-            ) {
-              // User/Project@SHA
-              // User@SHA
-              // SHA
-              state.combineTokens = true;
-              return "link";
-            } else if (
-              stream.match(
-                /^(?:[a-zA-Z0-9\-_]+\/)?(?:[a-zA-Z0-9\-_]+)?#[0-9]+\b/
-              )
-            ) {
-              // User/Project#Num
-              // User#Num
-              // #Num
-              state.combineTokens = true;
-              return "link";
-            }
-          }
-        }
-        if (
-          stream.match(urlRE) &&
-          stream.string.slice(stream.start - 2, stream.start) != "](" &&
-          (stream.start == 0 ||
-            /\W/.test(stream.string.charAt(stream.start - 1)))
-        ) {
-          // URLs
-          // Taken from http://daringfireball.net/2010/07/improved_regex_for_matching_urls
-          // And then (issue #1160) simplified to make it not crash the Chrome Regexp engine
-          // And then limited url schemes to the CommonMark list, so foo:bar isn't matched as a URL
-          state.combineTokens = true;
-          return "link";
-        }
-        // stream.next();
-        // return null;
         return state.f(stream, state);
       },
 
@@ -1139,5 +1043,3 @@ CodeMirror.defineMIME("text/markdown", "markdown");
 CodeMirror.defineMIME("text/x-markdown", "markdown");
 
 export default CodeMirror;
-
-// });

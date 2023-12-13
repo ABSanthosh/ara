@@ -1,16 +1,20 @@
 /* BASICS */
+/* :root {
+} */
 
 .CodeMirror {
+  --border-color: #999;
   /* Set height, width, borders, and global font properties here */
   font-family: monospace;
-  height: 300px;
-  color: black;
+  /* color: black; */
+  max-height: 100%;
   direction: ltr;
-  border: 1px solid silver;
-  border-width: 1px 2px;
-
+  /* border: 1px solid silver; */
+  clip-path: none !important;
   height: 100%;
   width: 100%;
+  padding-right: 4px;
+  font-size: 15px;
 }
 
 .cm-header {
@@ -56,8 +60,8 @@
 /* GUTTER */
 
 .CodeMirror-gutters {
-  border-right: 1px solid #ddd;
-  background-color: #f7f7f7;
+  border-right: 1px solid var(--border-color);
+  /* background-color: #f7f7f7; */
   white-space: nowrap;
 }
 .CodeMirror-linenumbers {
@@ -80,7 +84,7 @@
 /* CURSOR */
 
 .CodeMirror-cursor {
-  border-left: 1px solid black;
+  border-left: 1px solid rgb(247, 247, 247);
   border-right: none;
   width: 0;
 }
@@ -155,7 +159,7 @@
   overflow: hidden;
 }
 .CodeMirror-ruler {
-  border-left: 1px solid #ccc;
+  border-left: 1px solid var(--border-color);
   top: 0;
   bottom: 0;
   position: absolute;
@@ -163,7 +167,7 @@
 
 /* DEFAULT THEME */
 
-.cm-s-default .cm-header {
+/* .cm-s-default .cm-header {
   color: blue;
 }
 .cm-s-default .cm-quote {
@@ -174,7 +178,7 @@
 }
 .cm-positive {
   color: #292;
-}
+} */
 .cm-header,
 .cm-strong {
   font-weight: bold;
@@ -188,7 +192,7 @@
 .cm-strikethrough {
   text-decoration: line-through;
 }
-
+/* 
 .cm-s-default .cm-keyword {
   color: #708;
 }
@@ -199,14 +203,14 @@
   color: #164;
 }
 .cm-s-default .cm-def {
-  color: #00f;
-}
+  color: #0000ff;
+} */
 .cm-s-default .cm-variable,
 .cm-s-default .cm-punctuation,
 .cm-s-default .cm-property,
 .cm-s-default .cm-operator {
 }
-.cm-s-default .cm-variable-2 {
+/* .cm-s-default .cm-variable-2 {
   color: #05a;
 }
 .cm-s-default .cm-variable-3,
@@ -252,7 +256,7 @@
 }
 .cm-invalidchar {
   color: #f00;
-}
+} */
 
 .CodeMirror-composing {
   border-bottom: 2px solid;
@@ -260,7 +264,7 @@
 
 /* Default styles for common addons */
 
-div.CodeMirror span.CodeMirror-matchingbracket {
+/* div.CodeMirror span.CodeMirror-matchingbracket {
   color: #0b0;
 }
 div.CodeMirror span.CodeMirror-nonmatchingbracket {
@@ -271,7 +275,7 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket {
 }
 .CodeMirror-activeline-background {
   background: #e8f2ff;
-}
+} */
 
 /* STOP */
 
@@ -281,7 +285,12 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket {
 .CodeMirror {
   position: relative;
   overflow: hidden;
-  background: white;
+  color: rgb(223, 223, 223);
+  background-color: transparent;
+  /* border-radius: 20px; */
+  /* backdrop-filter: blur(15px);
+  background: #000000b8;
+  box-shadow: 0 0 20px 1px #00000087; */
 }
 
 .CodeMirror-scroll {
@@ -474,7 +483,7 @@ div.CodeMirror-dragcursors {
   background: #d9d9d9;
 }
 .CodeMirror-focused .CodeMirror-selected {
-  background: #d7d4f0;
+  background: rgba(56, 139, 253, 0.4);
 }
 .CodeMirror-crosshair {
   cursor: crosshair;
@@ -482,12 +491,12 @@ div.CodeMirror-dragcursors {
 .CodeMirror-line::selection,
 .CodeMirror-line > span::selection,
 .CodeMirror-line > span > span::selection {
-  background: #d7d4f0;
+  background: rgba(56, 139, 253, 0.4);
 }
 .CodeMirror-line::-moz-selection,
 .CodeMirror-line > span::-moz-selection,
 .CodeMirror-line > span > span::-moz-selection {
-  background: #d7d4f0;
+  background: rgba(56, 139, 253, 0.4);
 }
 
 .cm-searching {
