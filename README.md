@@ -19,9 +19,7 @@ A simple new tab page for Chrome.
 - [ ] Cats!
   - [x] Random image from reddit
   - [ ] neko in all pages?
-
 - [ ] iframe: [Driftmas](https://slowroads.io/driftmas/)
-- [ ] Neko in all the pages
 
 
 ## Demo
