@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import draggable from "$actions/draggable";
 	let time = new Date();
 
 	$: hours = time.getHours();
@@ -17,7 +18,7 @@
 	});
 </script>
 
-<div class="AnalogClock BlurBG">
+<div class="AnalogClock BlurBG" use:draggable>
 	<svg viewBox="-50 -50 100 100">
 		<circle class="AnalogClock__face" r="48" />
 		{#each [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55] as minute}

@@ -9,6 +9,7 @@ export default defineConfig({
   build: {
     outDir: "build",
     watch: {},
+    minify: "terser"
   },
   plugins: [svelte(), webExtension()],
   css: {
@@ -26,6 +27,7 @@ export default defineConfig({
       $stores: path.resolve("./src/stores"),
       $components: path.resolve("./src/components"),
       $lib: path.resolve("./src/lib"),
+      $actions: path.resolve("./src/actions"),
     },
   },
 });

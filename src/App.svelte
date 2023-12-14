@@ -5,14 +5,15 @@
   import AnalogClock from "$components/Clocks/AnalogClock.svelte";
   import options from "$stores/OptionStore";
   import Notes from "$components/Notes.svelte";
+  import draggable from "$actions/draggable";
 
   $: isClosed = $options.sidebarIsClosed;
 </script>
 
 <svelte:head>
-	<meta charset="utf-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1" />
-	<title>Unitab</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Unitab</title>
 </svelte:head>
 
 <main
@@ -21,15 +22,19 @@
 >
   <Sidebar />
   <div class="Home__tiles">
-    <div style="display: flex; gap: 20px">
-      <div class="BlurBG" style="height: 147.5px; width: 147.5px" />
-      <div class="BlurBG" style="height: 147.5px; width: 147.5px" />
-    </div>
+    <Notes />
     <FlipClock />
     <AnalogClock />
     <Cat />
-    <Notes/>
+    <!-- <div
+      style="display: flex; gap: 20px; flex-wrap: wrap; width: 315px; height: fit-content"
+    > -->
+    <div class="BlurBG" style="height: 147.5px; width: 147.5px" use:draggable />
+    <div class="BlurBG" style="height: 147.5px; width: 147.5px" use:draggable />
+    <div class="BlurBG" style="height: 147.5px; width: 147.5px" use:draggable />
+    <div class="BlurBG" style="height: 147.5px; width: 147.5px" use:draggable />
   </div>
+  <!-- </div> -->
 </main>
 
 <style lang="scss">
@@ -38,16 +43,23 @@
     gap: 20px;
     display: grid;
     transition: all 0.3s ease;
+    max-width: 100%;
+    max-height: 100%;
 
     &__tiles {
       gap: 20px;
       @include box(auto);
-      max-width: 100%;
-      max-height: 100%;
-      overflow-y: hidden;
+      display: flex;
       flex-wrap: wrap;
-      align-content: flex-end;
-      @include make-flex($align: flex-end, $just: flex-end);
+      align-content: flex-start;
+      position: relative;
+      // max-height: inherit;
+      // max-width: inherit;
+      // // overflow-y: hidden;
+      // flex-wrap: wrap;
+      // align-content: flex-end;
+      // flex-flow: column;
+      // @include make-flex($align: flex-end, $just: flex-end);
     }
   }
 </style>

@@ -2,6 +2,7 @@
 	// Ref: https://github.com/ronanru/svelte-flip-clock/blob/main/src/lib/FlipClock.svelte
 	// Insp: https://gridfiti.com/wp-content/uploads/2021/08/Gridfiti_Blog_BestiPadWidgets_Clock.jpg
 	import { onMount } from 'svelte';
+	import draggable from "$actions/draggable";
 	let time = new Date();
 
 	const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -71,7 +72,7 @@
 	});
 </script>
 
-<div class="FlipClock BlurBG">
+<div class="FlipClock BlurBG" use:draggable>
 	<div class="FlipClock__box">
 		<div class="FlipClock__overlay">
 			{#each display as segment}
@@ -109,7 +110,7 @@
 
 <style lang="scss">
 	.FlipClock {
-		@include box(315px, auto);
+		@include box(315px, fit-content);
 		gap: 15px;
 		@include make-flex();
 		padding: 20px;

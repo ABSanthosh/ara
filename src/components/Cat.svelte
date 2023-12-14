@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import BlurredSpinner from './BlurredSpinner.svelte';
   import cats from '$stores/CatStore';
+	import draggable from "$actions/draggable";
 
 	$: imgSrc = { url: '', title: '', sub: '', permalink: '' };
 
@@ -17,7 +18,7 @@
 	});
 </script>
 
-<div class="CatBox" style="background-image: url({imgSrc.url})">
+<div class="CatBox" style="background-image: url({imgSrc.url})" use:draggable>
 	<BlurredSpinner zIndex={-2}>
 		{#if tooLong}
 			<h3 class="CatBox--tooLong">
@@ -75,7 +76,7 @@
 			&::after {
 				content: '';
 				position: absolute;
-				left: -30;
+				left: -30px;
 				z-index: -1;
 				bottom: -50px;
 				@include box(111%, 100%);
