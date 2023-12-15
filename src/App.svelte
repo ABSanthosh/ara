@@ -6,6 +6,8 @@
   import options from "$stores/OptionStore";
   import Notes from "$components/Notes.svelte";
   import draggable from "$actions/draggable";
+  import widgetStore from "$stores/WidgetStore";
+  import { get } from "svelte/store";
 
   $: isClosed = $options.sidebarIsClosed;
 </script>
@@ -22,19 +24,25 @@
 >
   <Sidebar />
   <div class="Home__tiles">
-    <Notes />
-    <FlipClock />
-    <AnalogClock />
-    <Cat />
-    <!-- <div
-      style="display: flex; gap: 20px; flex-wrap: wrap; width: 315px; height: fit-content"
-    > -->
-    <div class="BlurBG" style="height: 147.5px; width: 147.5px" use:draggable />
-    <div class="BlurBG" style="height: 147.5px; width: 147.5px" use:draggable />
-    <div class="BlurBG" style="height: 147.5px; width: 147.5px" use:draggable />
-    <div class="BlurBG" style="height: 147.5px; width: 147.5px" use:draggable />
+    {#each Object.keys(get(widgetStore).widgets) as widgetID}
+      {#if get(widgetStore).widgets[widgetID].name === "clock-analog"}
+        <AnalogClock id={widgetID} />
+      {:else if get(widgetStore).widgets[widgetID].name === "clock-flip"}
+        <FlipClock id={widgetID} />
+      {:else if get(widgetStore).widgets[widgetID].name === "notes"}
+        <Notes id={widgetID} />
+      {:else if get(widgetStore).widgets[widgetID].name === "cat-reddit"}
+        <Cat id={widgetID} />
+      {:else if get(widgetStore).widgets[widgetID].name === "empty"}
+        <div
+          id={widgetID}
+          class="BlurBG"
+          style="height: 147.5px; width: 147.5px"
+          use:draggable
+        />
+      {/if}
+    {/each}
   </div>
-  <!-- </div> -->
 </main>
 
 <style lang="scss">

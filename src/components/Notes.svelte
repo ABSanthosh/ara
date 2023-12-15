@@ -3,6 +3,7 @@
   import draggable from "$actions/draggable";
   import "$lib/codemirror/codemirror.css";
   let CME: any;
+  export let id: string;
 
   const editor = (node: HTMLElement) => {
     CME = Codemirror.fromTextArea(node, {
@@ -25,7 +26,7 @@
   $: value = `# Unitab Notes`;
 </script>
 
-<div class="Notes BlurBG" use:draggable>
+<div class="Notes BlurBG" use:draggable {id}>
   <textarea use:editor bind:value />
 </div>
 

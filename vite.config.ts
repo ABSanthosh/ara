@@ -28,6 +28,7 @@ export default defineConfig({
       $components: path.resolve("./src/components"),
       $lib: path.resolve("./src/lib"),
       $actions: path.resolve("./src/actions"),
+      $utils: path.resolve("./src/utils"),
     },
   },
 });

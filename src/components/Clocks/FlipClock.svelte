@@ -4,6 +4,7 @@
 	import { onMount } from 'svelte';
 	import draggable from "$actions/draggable";
 	let time = new Date();
+	export let id: string;
 
 	const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 	const months = [
@@ -72,7 +73,7 @@
 	});
 </script>
 
-<div class="FlipClock BlurBG" use:draggable>
+<div class="FlipClock BlurBG" use:draggable {id}>
 	<div class="FlipClock__box">
 		<div class="FlipClock__overlay">
 			{#each display as segment}
