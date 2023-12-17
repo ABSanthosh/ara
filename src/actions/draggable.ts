@@ -1,10 +1,10 @@
-import widgetStore from "$stores/WidgetStore";
+import settingStore from "$stores/SettingStore";
 import { get } from "svelte/store";
 
 export default function draggable(node: HTMLElement): void {
   let isDragging = false;
-  const isReordering = get(widgetStore).options.reordering;
-  const widgetData = get(widgetStore).widgets[node.id];
+  const isReordering = get(settingStore).options.reordering;
+  const widgetData = get(settingStore).widgets[node.id];
 
   let offsetX = widgetData.x || 0;
   let offsetY = widgetData.y || 0;
@@ -34,7 +34,7 @@ export default function draggable(node: HTMLElement): void {
     const x = event.clientX - startX;
     const y = event.clientY - startY;
 
-    const gridSize = 20; // Change this value to adjust the grid size
+    const gridSize = 1; // Change this value to adjust the grid size
     const parent = node.parentElement;
 
     if (parent) {
@@ -60,7 +60,7 @@ export default function draggable(node: HTMLElement): void {
       node.style.top = `${snappedY}px`;
 
       // Update the widget store
-      widgetStore.update((value) => {
+      settingStore.update((value) => {
         value.widgets[node.id].x = snappedX;
         value.widgets[node.id].y = snappedY;
         return value;

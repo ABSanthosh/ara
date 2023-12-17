@@ -7,6 +7,10 @@ const defaultOptions = {
 const initialValue =
   JSON.parse(window.localStorage.getItem("options")!) ?? defaultOptions;
 
+if (!window.localStorage.getItem("options")) {
+  window.localStorage.setItem("options", JSON.stringify(initialValue));
+}
+
 const options = writable<typeof defaultOptions>(
   initialValue as typeof defaultOptions
 );

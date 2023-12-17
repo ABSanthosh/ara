@@ -17,6 +17,7 @@
     "paths": {
       "$stores/*": ["src/stores/*"],
       "$components/*": ["src/components/*"],
+      "$pageComponents/*": ["src/pageComponents/*"],
       "$lib/*": ["src/lib/*"],
       "$actions/*": ["src/actions/*"],
       "$utils/*": ["src/utils/*"],
