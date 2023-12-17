@@ -50,17 +50,30 @@ const widgets = {
 }
 
 const defaultStore = {
-  settings: {},
   options: {
     reordering: true,
+    wallpaper: "/assets/wallpapers/ventura-d.jpg"
   },
+  wallpapers: [
+    "/assets/wallpapers/adwaita-d.jpg",
+    "/assets/wallpapers/adwaita-l.jpg",
+    "/assets/wallpapers/blobs-d.svg",
+    "/assets/wallpapers/blobs-l.svg",
+    "/assets/wallpapers/drool-d.svg",
+    "/assets/wallpapers/drool-l.svg",
+    "/assets/wallpapers/fold-d.jpg",
+    "/assets/wallpapers/fold-l.jpg",
+    "/assets/wallpapers/ventura-d.jpg",
+  ],
   widgets: widgets,
 };
 
 const settingStore = writable<{
   options: {
     reordering: boolean;
+    wallpaper: string;
   };
+  wallpapers: string[];
   widgets: {
     [key: string]: Widget;
   };

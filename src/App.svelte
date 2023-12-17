@@ -13,6 +13,10 @@
   let showSettings = true;
   $: isClosed = $options.sidebarIsClosed;
 
+  // set background
+  settingStore.subscribe((value) => {
+    document.body.style.backgroundImage = `url(${value.options.wallpaper})`;
+  });
 </script>
 
 <svelte:head>

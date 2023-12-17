@@ -63,7 +63,20 @@
         <ul class="Settings__appearance">
           <li>
             <h2>Background</h2>
-            <div class="Settings__appearance--image"></div>
+            <div>
+              {#each $settingStore.wallpapers as src}
+                <button
+                  class="Settings__appearance--preview"
+                  style={`background-image: url(${src})`}
+                  on:click={() => {
+                    settingStore.update((store) => {
+                      store.options.wallpaper = src;
+                      return store;
+                    });
+                  }}
+                />
+              {/each}
+            </div>
           </li>
         </ul>
       {/if}
@@ -248,10 +261,34 @@
       @include box();
       overflow-y: auto;
       list-style: none;
-      padding: 40px 20px 20px 20px;
+      padding: 30px 20px 20px 20px;
+
+      &--preview {
+        @include box($height: 150px);
+        border-radius: 8px;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        outline: none;
+        border: none;
+        &:hover {
+          transform: scale(1.02);
+        }
+      }
 
       & > li {
+        gap: 15px;
         @include box(100%, auto);
+        @include make-flex($align: flex-start);
+
+        & > div {
+          gap: 15px;
+          display: grid;
+          @include box(100%, auto);
+          grid-template-columns: 1fr 1fr;
+        }
       }
     }
   }
