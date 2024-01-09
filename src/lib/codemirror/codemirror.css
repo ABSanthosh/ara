@@ -4,6 +4,7 @@
 
 .CodeMirror {
   --border-color: #999;
+  /* --border-color: #99999900; */
   /* Set height, width, borders, and global font properties here */
   font-family: monospace;
   /* color: black; */

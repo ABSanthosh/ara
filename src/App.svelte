@@ -10,7 +10,7 @@
 
   import Settings from "$pageComponents/Settings.svelte";
 
-  let showSettings = true;
+  let showSettings = false;
   $: isClosed = $options.sidebarIsClosed;
 
   // set background
