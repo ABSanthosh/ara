@@ -1,5 +1,3 @@
-<svelte:options runes={true} />
-
 <script lang="ts">
   import { onMount } from "svelte";
   import {
@@ -10,9 +8,9 @@
     resizable,
     type ResizableOptions,
   } from "../../actions/resizable.svelte";
+  import { X } from "@lucide/svelte";
   import settingStore from "../../../lib/stores/settingStore";
   import type { ChecklistSpan, ChecklistItem } from "../../stores/settingStore";
-  import { X } from "@lucide/svelte";
 
   interface Props {
     id: string;
@@ -33,8 +31,8 @@
     pos = { row: 1, col: 1 },
     span = { x: 2, y: 2 },
     settings,
-    onDragEnd = (newRow: number, newCol: number) => {},
-    onResize = (newSpan: ChecklistSpan) => {},
+    onDragEnd = (_newRow: number, _newCol: number) => {},
+    onResize = (_newSpan: ChecklistSpan) => {},
   }: Props = $props();
 
   // Current position and size state
@@ -60,7 +58,7 @@
   }
 
   // Handle resize to update size (only 2x2 allowed)
-  function handleResize(newSpanX: number, newSpanY: number) {
+  function handleResize(_newSpanX: number, _newSpanY: number) {
     const newSpan = { x: 2, y: 2 } as ChecklistSpan; // Force 2x2
     currentSpanX = newSpan.x;
     currentSpanY = newSpan.y;
@@ -211,55 +209,52 @@
 
 <div
   {id}
-  class="checklist-widget BlurBG"
+  role="region"
+  class="Checklist BlurBG"
+  data-isolate-context="true"
   use:draggable={draggableOptions}
   use:resizable={resizableOptions}
-  class:draggable-widget={$settingStore.options.isDraggable}
-  style="grid-area: {currentGridRow} / {currentGridCol} / {currentGridRow +
-    currentSpanY} / {currentGridCol + currentSpanX};"
   oncontextmenu={(event: MouseEvent) => {
     event.preventDefault();
     showAddInput();
   }}
-  data-isolate-context="true"
-  role="region"
+  class:draggable-widget={$settingStore.options.isDraggable}
+  style="grid-area: {currentGridRow} / {currentGridCol} / {currentGridRow +
+    currentSpanY} / {currentGridCol + currentSpanX};"
 >
-  <div class="checklist-container">
+  <div class="Checklist__container">
     <!-- Input for new item -->
     {#if showInput}
-      <div class="input-container">
+      <div class="Checklist__input">
         <input
-          bind:this={inputElement}
-          bind:value={inputValue}
-          onkeydown={handleKeydown}
-          onblur={hideInput}
-          class="new-item-input"
-          placeholder="Enter new task..."
           type="text"
+          onblur={hideInput}
+          bind:value={inputValue}
+          bind:this={inputElement}
+          onkeydown={handleKeydown}
+          placeholder="Enter new task..."
         />
       </div>
     {/if}
 
     <!-- Items List -->
-    <div class="items-list">
+    <div class="Checklist__items">
       {#each items as item (item.id)}
-        <div class="checklist-item" class:completed={item.completed}>
+        <div class="Checklist__items--item" class:completed={item.completed}>
           <input
             type="checkbox"
             checked={item.completed}
             onchange={() => toggleItem(item.id)}
-            class="item-checkbox"
           />
 
           {#if editingItemId === item.id}
             <!-- Edit mode -->
             <input
-              bind:this={editInputElement}
-              bind:value={editValue}
-              onkeydown={handleEditKeydown}
-              onblur={saveEdit}
-              class="edit-item-input"
               type="text"
+              onblur={saveEdit}
+              bind:value={editValue}
+              bind:this={editInputElement}
+              onkeydown={handleEditKeydown}
             />
           {:else}
             <!-- Normal mode -->
@@ -297,7 +292,7 @@
 <style lang="scss">
   @use "../../../styles/mixins.scss" as *;
 
-  .checklist-widget {
+  .Checklist {
     background: rgba(255, 255, 255, 0.95);
     border-radius: 20px;
     backdrop-filter: blur(20px);
@@ -311,117 +306,116 @@
     & > * {
       user-select: none;
     }
-  }
 
-  .checklist-container {
-    padding: 10px;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    overflow: hidden;
-  }
-
-  .input-container {
-    flex-shrink: 0;
-  }
-
-  .new-item-input {
-    width: 100%;
-    padding: 8px 12px;
-    border: 2px solid #e5e7eb;
-    border-radius: 8px;
-    font-size: 14px;
-    background: white;
-    color: #374151;
-    outline: none;
-    transition: border-color 0.2s ease;
-
-    &:focus {
-      border-color: #10b981;
+    &__container {
+      padding: 10px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      overflow: hidden;
     }
 
-    &::placeholder {
-      color: #9ca3af;
-    }
-  }
+    &__input {
+      flex-shrink: 0;
+      & > input {
+        width: 100%;
+        padding: 8px 12px;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 14px;
+        background: white;
+        color: #374151;
+        outline: none;
+        transition: border-color 0.2s ease;
 
-  .items-list {
-    flex: 1;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 7px;
-    min-height: 0;
-    scrollbar-gutter: stable;
-    padding-right: 4px;
-    margin-right: -7px;
-    
-    /* Custom scrollbar */
-    &::-webkit-scrollbar {
-      width: 4px;
-    }
+        &:focus {
+          border-color: #10b981;
+        }
 
-    &::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    &::-webkit-scrollbar-thumb {
-      background: rgba(0, 0, 0, 0.2);
-      border-radius: 2px;
-    }
-
-    &::-webkit-scrollbar-thumb:hover {
-      background: rgba(0, 0, 0, 0.3);
-    }
-  }
-
-  .checklist-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 6px 8px;
-    border-radius: 8px;
-    transition: all 0.3s ease;
-    background: rgba(255, 255, 255, 0.5);
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    position: relative;
-
-    &:hover {
-      background: rgba(255, 255, 255, 0.8);
-
-      .delete-button {
-        opacity: 1;
-        visibility: visible;
+        &::placeholder {
+          color: #9ca3af;
+        }
       }
     }
 
-    &.completed {
-      opacity: 0.7;
-      transform: scale(0.98);
+    &__items {
+      flex: 1;
+      gap: 7px;
+      min-height: 0;
+      display: flex;
+      overflow-y: auto;
+      padding-right: 4px;
+      margin-right: -7px;
+      flex-direction: column;
+      scrollbar-gutter: stable;
 
-      .item-text {
-        text-decoration: line-through;
-        color: #6b7280;
+      /* Custom scrollbar */
+      &::-webkit-scrollbar {
+        width: 4px;
       }
 
-      .item-checkbox {
-        accent-color: #10b981;
+      &::-webkit-scrollbar-track {
+        background: transparent;
       }
 
-      .delete-button {
-        opacity: 0.5;
+      &::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 2px;
       }
-    }
-  }
 
-  .item-checkbox {
-    @include box(13px, 13px);
-    cursor: pointer;
-    accent-color: #10b981;
+      &::-webkit-scrollbar-thumb:hover {
+        background: rgba(0, 0, 0, 0.3);
+      }
 
-    &:hover {
-      transform: scale(1.1);
+      &--item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 6px 8px;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        background: rgba(255, 255, 255, 0.5);
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        position: relative;
+
+        &:hover {
+          background: rgba(255, 255, 255, 0.8);
+
+          .delete-button {
+            opacity: 1;
+            visibility: visible;
+          }
+        }
+
+        &.completed {
+          opacity: 0.7;
+          transform: scale(0.98);
+
+          .item-text {
+            text-decoration: line-through;
+            color: #6b7280;
+          }
+
+          .item-checkbox {
+            accent-color: #10b981;
+          }
+
+          .delete-button {
+            opacity: 0.5;
+          }
+        }
+
+        & > input[type="checkbox"] {
+          @include box(13px, 13px);
+          cursor: pointer;
+          accent-color: #10b981;
+
+          &:hover {
+            transform: scale(1.1);
+          }
+        }
+      }
     }
   }
 
