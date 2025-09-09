@@ -228,6 +228,130 @@ export function removeWidget(widgetId: string) {
   });
 }
 
+// Helper function to add a widget to the store
+export function addWidget(type: string, span: any) {
+  let storeValue: SettingStore;
+  const unsubscribe = settingStore.subscribe(value => {
+    storeValue = value;
+  });
+  unsubscribe();
+
+  const existingIds = Object.keys(storeValue!.widgets);
+  let counter = 1;
+  let id = `${type}-${counter}`;
+  
+  while (existingIds.includes(id)) {
+    counter++;
+    id = `${type}-${counter}`;
+  }
+
+  // Find available position on the grid
+  function findAvailablePosition(span: { x: number; y: number }): { row: number; col: number } {
+    const occupiedPositions = new Set<string>();
+    
+    // Mark all occupied positions
+    Object.values(storeValue!.widgets).forEach(widget => {
+      for (let r = widget.pos.row; r < widget.pos.row + widget.span.y; r++) {
+        for (let c = widget.pos.col; c < widget.pos.col + widget.span.x; c++) {
+          occupiedPositions.add(`${r}-${c}`);
+        }
+      }
+    });
+
+    // Find first available position
+    for (let row = 1; row <= 20; row++) {
+      for (let col = 1; col <= 20; col++) {
+        let canPlace = true;
+        
+        // Check if widget can be placed at this position
+        for (let r = row; r < row + span.y && canPlace; r++) {
+          for (let c = col; c < col + span.x && canPlace; c++) {
+            if (occupiedPositions.has(`${r}-${c}`)) {
+              canPlace = false;
+            }
+          }
+        }
+        
+        if (canPlace) {
+          return { row, col };
+        }
+      }
+    }
+    
+    // Fallback to bottom-right area if grid is full
+    return { row: 10, col: 10 };
+  }
+
+  const pos = findAvailablePosition(span);
+
+  settingStore.update((store) => {
+    const baseWidget = {
+      id,
+      pos,
+      span
+    };
+
+    switch (type) {
+      case "analog-clock":
+        store.widgets[id] = {
+          ...baseWidget,
+          type: "analog-clock",
+          settings: {
+            showNumbers: true,
+            showSecondsHand: span.x === 2 && span.y === 2
+          }
+        };
+        break;
+        
+      case "flip-clock":
+        store.widgets[id] = {
+          ...baseWidget,
+          type: "flip-clock",
+          settings: {
+            showSeconds: span.y === 2
+          }
+        };
+        break;
+        
+      case "calendar":
+        store.widgets[id] = {
+          ...baseWidget,
+          type: "calendar",
+          settings: {}
+        };
+        break;
+        
+      case "cat":
+        store.widgets[id] = {
+          ...baseWidget,
+          type: "cat",
+          settings: {}
+        };
+        break;
+        
+      case "checklist":
+        store.widgets[id] = {
+          ...baseWidget,
+          type: "checklist",
+          settings: {
+            items: [
+              {
+                id: "1",
+                text: "New task",
+                completed: false
+              }
+            ]
+          }
+        };
+        break;
+    }
+
+    return store;
+  });
+
+  return id;
+}
+
 export default settingStore;
 
 // Export span types for use in components

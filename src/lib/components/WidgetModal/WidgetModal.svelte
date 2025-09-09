@@ -1,6 +1,7 @@
 <script lang="ts">
   import { LayoutPanelLeft, Settings, Wallpaper, X } from "@lucide/svelte";
   import AppearancePane from "./AppearancePane.svelte";
+  import WidgetsPane from "./WidgetsPane.svelte";
 
   let {
     showModal = $bindable(),
@@ -27,15 +28,11 @@
     Appearance: { name: "Appearance", icon: Wallpaper },
     Widgets: { name: "Widgets", icon: LayoutPanelLeft },
   };
-  let selectedKey: ItemKey = $state("Appearance");
+  let selectedKey: ItemKey = $state("Widgets");
 </script>
 
 {#snippet GeneralPane()}
   <h2 class="Modal__pane--header">General</h2>
-{/snippet}
-
-{#snippet WidgetsPane()}
-  <h2 class="Modal__pane--header">Widgets</h2>
 {/snippet}
 
 {#if showModal}
@@ -84,7 +81,7 @@
           {:else if selectedKey === "General"}
             {@render GeneralPane()}
           {:else}
-            {@render WidgetsPane()}
+            <WidgetsPane />
           {/if}
         </div>
       </div>
@@ -249,7 +246,7 @@
       padding: 16px;
       overflow: auto;
     }
-  } 
+  }
 
   // Keyframes
   @keyframes modal-zoom {
