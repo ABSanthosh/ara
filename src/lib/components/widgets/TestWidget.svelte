@@ -36,7 +36,6 @@
 
   // Draggable options
   const draggableOptions: DraggableOptions = {
-    disabled: !isDraggable,
     onDragEnd: (row, col) => {
       currentGridRow = row;
       currentGridCol = col;
@@ -45,7 +44,6 @@
 
   // Resizable options
   const resizableOptions: ResizableOptions = {
-    disabled: !isResizable,
     allowedSizes,
     onResize: (spanX, spanY) => {
       currentSpanX = spanX;

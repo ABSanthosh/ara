@@ -5,6 +5,7 @@
   import FlipClock from "../../lib/components/widgets/clock/FlipClock.svelte";
   import AnalogClock from "@/lib/components/widgets/clock/AnalogClock.svelte";
   import Cat from "../../lib/components/widgets/Cat.svelte";
+  import Checklist from "../../lib/components/widgets/Checklist.svelte";
   import ContextMenu from "@/lib/components/ContextMenu.svelte";
   import WidgetModal from "@/lib/components/WidgetModal/WidgetModal.svelte";
   import {
@@ -159,6 +160,25 @@
       />
     {:else if widget.type === "cat"}
       <Cat
+        id={widget.id}
+        pos={widget.pos}
+        span={widget.span}
+        settings={widget.settings}
+        onDragEnd={(newRow, newCol) => {
+          settingStore.update((store) => {
+            store.widgets[widgetId].pos = { row: newRow, col: newCol };
+            return store;
+          });
+        }}
+        onResize={(newSpan) => {
+          settingStore.update((store) => {
+            store.widgets[widgetId].span = newSpan;
+            return store;
+          });
+        }}
+      />
+    {:else if widget.type === "checklist"}
+      <Checklist
         id={widget.id}
         pos={widget.pos}
         span={widget.span}

@@ -28,6 +28,16 @@ type CatSpan =
   | { x: 1; y: 1 } // Small cat widget
   | { x: 2; y: 2 }; // Large cat widget
 
+type ChecklistSpan =
+  | { x: 2; y: 2 }; // Only 2x2 size allowed
+
+// Checklist item interface
+interface ChecklistItem {
+  id: string;
+  text: string;
+  completed: boolean;
+}
+
 type AnalogClockWidget = Widget & {
   type: "analog-clock";
   span: AnalogClockSpan;
@@ -63,6 +73,14 @@ type CatWidget = Widget & {
   };
 };
 
+type ChecklistWidget = Widget & {
+  type: "checklist";
+  span: ChecklistSpan;
+  settings: {
+    items: ChecklistItem[];
+  };
+};
+
 type WallpaperTypes =
   | {
       type: "preset";
@@ -88,7 +106,7 @@ interface SettingStore {
   };
   widgets: Record<
     string,
-    AnalogClockWidget | FlipClockWidget | CalendarWidget | CatWidget
+    AnalogClockWidget | FlipClockWidget | CalendarWidget | CatWidget | ChecklistWidget
   >;
   wallpapers: {
     nasaAPIKey?: string; // Store NASA API key if user sets it
@@ -140,6 +158,26 @@ const defaultStore: SettingStore = {
       type: "cat",
       span: { x: 2, y: 2 },
       settings: {},
+    },
+    "checklist-1": {
+      id: "checklist-1",
+      pos: { row: 3, col: 3 },
+      type: "checklist",
+      span: { x: 2, y: 2 },
+      settings: {
+        items: [
+          {
+            id: "1",
+            text: "Welcome to your checklist!",
+            completed: false,
+          },
+          {
+            id: "2",
+            text: "Click the checkbox to complete tasks",
+            completed: false,
+          },
+        ],
+      },
     },
   },
   wallpapers: {
@@ -193,4 +231,4 @@ export function removeWidget(widgetId: string) {
 export default settingStore;
 
 // Export span types for use in components
-export type { AnalogClockSpan, FlipClockSpan, CalendarSpan, CatSpan };
+export type { AnalogClockSpan, FlipClockSpan, CalendarSpan, CatSpan, ChecklistSpan, ChecklistItem };
