@@ -12,7 +12,7 @@
   } from "../../actions/resizable.svelte";
   import settingStore from "../../../lib/stores/settingStore";
   import type { ChecklistSpan, ChecklistItem } from "../../stores/settingStore";
-  import { Plus, X } from "@lucide/svelte";
+  import { X } from "@lucide/svelte";
 
   interface Props {
     id: string;
@@ -217,21 +217,14 @@
   class:draggable-widget={$settingStore.options.isDraggable}
   style="grid-area: {currentGridRow} / {currentGridCol} / {currentGridRow +
     currentSpanY} / {currentGridCol + currentSpanX};"
+  oncontextmenu={(event: MouseEvent) => {
+    event.preventDefault();
+    showAddInput();
+  }}
+  data-isolate-context="true"
+  role="region"
 >
   <div class="checklist-container">
-    <!-- Header with Add Button -->
-    <div class="checklist-header">
-      <h3>Checklist</h3>
-      <button
-        class="add-button"
-        onclick={showAddInput}
-        disabled={showInput}
-        title="Add new item"
-      >
-        <Plus size="16" />
-      </button>
-    </div>
-
     <!-- Input for new item -->
     {#if showInput}
       <div class="input-container">
@@ -292,9 +285,9 @@
       {/each}
 
       {#if items.length === 0 && !showInput}
-        <div class="empty-state">
+        <div class="empty-state" data-isolate-context="true">
           <p>No tasks yet</p>
-          <p class="empty-hint">Click the + button to add one</p>
+          <p class="empty-hint">Right-click to add a new task</p>
         </div>
       {/if}
     </div>
@@ -321,54 +314,12 @@
   }
 
   .checklist-container {
-    padding: 16px;
+    padding: 10px;
     height: 100%;
     display: flex;
     flex-direction: column;
     gap: 12px;
     overflow: hidden;
-  }
-
-  .checklist-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-shrink: 0;
-
-    h3 {
-      margin: 0;
-      font-size: 18px;
-      font-weight: 600;
-      color: #374151;
-    }
-
-    .add-button {
-      background: #10b981;
-      border: none;
-      border-radius: 50%;
-      width: 32px;
-      height: 32px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      color: white;
-      transition: all 0.2s ease;
-
-      &:hover:not(:disabled) {
-        background: #059669;
-        transform: scale(1.1);
-      }
-
-      &:active:not(:disabled) {
-        transform: scale(0.95);
-      }
-
-      &:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
-    }
   }
 
   .input-container {
@@ -388,7 +339,6 @@
 
     &:focus {
       border-color: #10b981;
-      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
     }
 
     &::placeholder {
@@ -401,9 +351,12 @@
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 7px;
     min-height: 0;
-
+    scrollbar-gutter: stable;
+    padding-right: 4px;
+    margin-right: -7px;
+    
     /* Custom scrollbar */
     &::-webkit-scrollbar {
       width: 4px;
@@ -427,7 +380,7 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 8px;
+    padding: 6px 8px;
     border-radius: 8px;
     transition: all 0.3s ease;
     background: rgba(255, 255, 255, 0.5);
@@ -463,8 +416,7 @@
   }
 
   .item-checkbox {
-    width: 18px;
-    height: 18px;
+    @include box(13px, 13px);
     cursor: pointer;
     accent-color: #10b981;
 
@@ -490,25 +442,21 @@
   .edit-item-input {
     flex: 1;
     padding: 4px 8px;
-    border: 2px solid #10b981;
+    border: 1px solid #10b981;
     border-radius: 4px;
     font-size: 14px;
     background: white;
     color: #374151;
     outline: none;
     font-family: inherit;
-
-    &:focus {
-      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
-    }
+    @include box(100%, 100%);
   }
 
   .delete-button {
     background: #ef4444;
     border: none;
     border-radius: 4px;
-    width: 24px;
-    height: 24px;
+    @include box(18px, 18px);
     display: flex;
     align-items: center;
     justify-content: center;

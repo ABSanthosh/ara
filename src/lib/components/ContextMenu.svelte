@@ -35,6 +35,15 @@
 
 <svelte:window
   oncontextmenu={(event: MouseEvent) => {
+    // Check if the right-click is inside an element with data-isolate-context
+    const target = event.target as HTMLElement;
+    const isolatedElement = target.closest('[data-isolate-context]');
+    
+    if (isolatedElement) {
+      // Let the isolated element handle its own context menu
+      return;
+    }
+    
     event.preventDefault();
     event.stopPropagation();
     showMenu = true;
