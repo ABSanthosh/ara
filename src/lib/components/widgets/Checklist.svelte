@@ -8,6 +8,10 @@
     resizable,
     type ResizableOptions,
   } from "../../actions/resizable.svelte";
+  import {
+    dissolve,
+    type DissolveOptions,
+  } from "../../actions/dissolve.svelte";
   import { Minus, PenLine, X } from "@lucide/svelte";
   import settingStore from "../../../lib/stores/settingStore";
   import type { ChecklistSpan, ChecklistItem } from "../../stores/settingStore";
@@ -55,6 +59,7 @@
   let editingItemId = $state<string | null>(null);
   let editValue = $state("");
   let editInputElement = $state<HTMLInputElement>();
+  let shouldDissolve = $state(false);
 
   // Handle drag end to update position
   function handleDragEnd(newRow: number, newCol: number) {
@@ -81,6 +86,20 @@
     allowedSizes: ["2x2"],
     onResize: handleResize,
   };
+
+  // Dissolve options
+  const dissolveOptions = $derived({
+    trigger: shouldDissolve,
+    onComplete: () => {
+      onRemove?.();
+    },
+    duration: 300,
+  });
+
+  // Function to trigger dissolve effect
+  function triggerDissolve() {
+    shouldDissolve = true;
+  }
 
   // Show input for adding new item
   function showAddInput() {
@@ -220,6 +239,7 @@
   data-isolate-context="true"
   use:draggable={draggableOptions}
   use:resizable={resizableOptions}
+  use:dissolve={dissolveOptions}
   oncontextmenu={(event: MouseEvent) => {
     event.preventDefault();
     showAddInput();
@@ -298,7 +318,7 @@
     <div class="EditableOverlay BlurBG">
       <button
         class="remove-button BlurBG"
-        onclick={onRemove}
+        onclick={triggerDissolve}
         title="Remove widget"
         data-isolate-drag
       >

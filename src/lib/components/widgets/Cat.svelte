@@ -15,6 +15,10 @@
     resizable,
     type ResizableOptions,
   } from "../../actions/resizable.svelte";
+  import {
+    dissolve,
+    type DissolveOptions,
+  } from "../../actions/dissolve.svelte";
   import { Minus, Pen, PenLine } from "@lucide/svelte";
 
   interface Props {
@@ -74,6 +78,16 @@
 
   let tooLong = $state(false);
   let sizeType = $derived(span.x === 1 && span.y === 1 ? "small" : "large");
+  let shouldDissolve = $state(false);
+
+  // Dissolve options
+  const dissolveOptions = $derived({
+    trigger: shouldDissolve,
+    onComplete: () => {
+      onRemove?.();
+    },
+    duration: 300,
+  });
 
   // Function to refresh the cat image
   async function refreshImage() {
@@ -84,6 +98,11 @@
     } catch (error) {
       console.error("Failed to refresh cat image:", error);
     }
+  }
+
+  // Function to trigger dissolve effect
+  function triggerDissolve() {
+    shouldDissolve = true;
   }
 
   // Handle drag end
@@ -143,6 +162,7 @@
   class="CatBox BlurBG"
   use:draggable={draggableOptions}
   use:resizable={resizableOptions}
+  use:dissolve={dissolveOptions}
   class:draggable-widget={$settingStore.options.isDraggable}
   style="
     background-image: url({imgSrc.imageUrl});
@@ -169,7 +189,7 @@
     <div class="EditableOverlay BlurBG">
       <button
         class="remove-button BlurBG"
-        onclick={onRemove}
+        onclick={triggerDissolve}
         title="Remove widget"
         data-isolate-drag
       >

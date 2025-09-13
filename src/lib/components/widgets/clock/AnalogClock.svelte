@@ -2,6 +2,7 @@
   import { onMount } from "svelte";
   import { draggable } from "../../../actions/draggable.svelte";
   import { resizable } from "../../../actions/resizable.svelte";
+  import { dissolve } from "../../../actions/dissolve.svelte";
   import {
     getTimeForCity,
     getTimezoneOffset,
@@ -54,6 +55,7 @@
   let currentGridCol = $state(pos.col);
   let currentSpanX = $state(span.x);
   let currentSpanY = $state(span.y);
+  let shouldDissolve = $state(false);
 
   // Draggable options
   const draggableOptions = {
@@ -99,6 +101,20 @@
     onResize(newSpan);
   }
 
+  // Function to trigger dissolve effect
+  function triggerDissolve() {
+    shouldDissolve = true;
+  }
+
+  // Dissolve options
+  const dissolveOptions = $derived({
+    trigger: shouldDissolve,
+    onComplete: () => {
+      onRemove?.();
+    },
+    duration: 300,
+  });
+
   onMount(() => {
     const updateTime = () => {
       time = getTimeForCity(settings.city);
@@ -119,6 +135,7 @@
   {id}
   use:draggable={draggableOptions}
   use:resizable={resizableOptions}
+  use:dissolve={dissolveOptions}
   class="AnalogClock BlurBG"
   class:draggable-widget={$settingStore.options.isDraggable}
   style="grid-area: {currentGridRow} / {currentGridCol} / {currentGridRow +
@@ -197,7 +214,7 @@
     <div class="EditableOverlay BlurBG">
       <button
         class="remove-button BlurBG"
-        onclick={onRemove}
+        onclick={triggerDissolve}
         title="Remove widget"
         data-isolate-drag
       >

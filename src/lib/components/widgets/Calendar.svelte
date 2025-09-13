@@ -2,6 +2,7 @@
   import { onMount } from "svelte";
   import { draggable } from "../../actions/draggable.svelte";
   import { resizable } from "../../actions/resizable.svelte";
+  import { dissolve } from "../../actions/dissolve.svelte";
   import { ChevronLeft, ChevronRight, Minus, PenLine, RotateCcw } from "@lucide/svelte";
   import { getTimeForCity, type SupportedCityName } from "../../utils/timezone";
   import type { CalendarSpan } from "../../stores/settingStore";
@@ -47,6 +48,7 @@
   let currentMonth = $state(currentDate.getMonth());
   let currentYear = $state(currentDate.getFullYear());
   let today = $state(currentDate.getDate());
+  let shouldDissolve = $state(false);
 
   // Update calendar when timezone changes
   $effect(() => {
@@ -96,6 +98,20 @@
     currentSpanY = newSpan.y;
     onResize(newSpan);
   }
+
+  // Function to trigger dissolve effect
+  function triggerDissolve() {
+    shouldDissolve = true;
+  }
+
+  // Dissolve options
+  const dissolveOptions = $derived({
+    trigger: shouldDissolve,
+    onComplete: () => {
+      onRemove?.();
+    },
+    duration: 300,
+  });
   // Track if we're currently resizing to hide content
   let isResizing = $state(false);
   let resizeTimeout: ReturnType<typeof setTimeout>;
@@ -270,6 +286,7 @@
   class="calendar-widget"
   use:draggable={draggableOptions}
   use:resizable={resizableOptions}
+  use:dissolve={dissolveOptions}
   class:compact={shouldShowCompact}
   class:draggable-widget={$settingStore.options.isDraggable}
   style="grid-area: {currentGridRow} / {currentGridCol} / {currentGridRow +
@@ -335,7 +352,7 @@
     <div class="EditableOverlay BlurBG">
       <button
         class="remove-button BlurBG"
-        onclick={onRemove}
+        onclick={triggerDissolve}
         title="Remove widget"
         data-isolate-drag
       >

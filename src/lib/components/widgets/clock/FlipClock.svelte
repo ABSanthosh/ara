@@ -13,6 +13,10 @@
     type ResizableOptions,
   } from "../../../actions/resizable.svelte";
   import {
+    dissolve,
+    type DissolveOptions,
+  } from "../../../actions/dissolve.svelte";
+  import {
     getTimeForCity,
     getTimezoneOffset,
     getCityAbbreviation,
@@ -63,6 +67,7 @@
   let currentGridCol = $state(pos.col);
   let currentSpanX = $state(span.x);
   let currentSpanY = $state(span.y);
+  let shouldDissolve = $state(false);
 
   // Get timezone offset and create city abbreviation
   let timezoneOffset = $derived(getTimezoneOffset(settings.city));
@@ -97,6 +102,20 @@
     allowedSizes: ["2x1", "2x2"],
     onResize: handleResize,
   };
+
+  // Function to trigger dissolve effect
+  function triggerDissolve() {
+    shouldDissolve = true;
+  }
+
+  // Dissolve options
+  const dissolveOptions = $derived({
+    trigger: shouldDissolve,
+    onComplete: () => {
+      onRemove?.();
+    },
+    duration: 300,
+  });
 
   // I18n date formatting options
   const dateFormatOptions: Intl.DateTimeFormatOptions = {
@@ -232,6 +251,7 @@
   class:draggable-widget={$settingStore.options.isDraggable}
   use:draggable={draggableOptions}
   use:resizable={resizableOptions}
+  use:dissolve={dissolveOptions}
   style="
 		grid-area: {currentGridRow} / {currentGridCol} / {currentGridRow +
     currentSpanY} / {currentGridCol + currentSpanX};
@@ -300,7 +320,7 @@
     <div class="EditableOverlay BlurBG">
       <button
         class="remove-button BlurBG"
-        onclick={onRemove}
+        onclick={triggerDissolve}
         title="Remove widget"
         data-isolate-drag
       >
