@@ -21,6 +21,7 @@
   } from "../../../utils/timezone";
   import type { FlipClockSpan } from "../../../stores/settingStore";
   import settingStore from "../../../../lib/stores/settingStore";
+  import { Minus, PenLine } from "@lucide/svelte";
 
   interface Props {
     id: string;
@@ -37,9 +38,20 @@
     onResize: (newSpan: FlipClockSpan) => void;
     onDragEnd: (newRow: number, newCol: number) => void;
     onRemove?: () => void;
+    openSettings?: (widgetId: string) => void;
   }
 
-  let { id, pos, span, settings, onResize, onDragEnd, isEditable = false, onRemove }: Props = $props();
+  let {
+    id,
+    pos,
+    span,
+    settings,
+    onResize,
+    onDragEnd,
+    isEditable = false,
+    onRemove,
+    openSettings,
+  }: Props = $props();
 
   let time = $state(new Date());
   let clockContainer: HTMLDivElement;
@@ -285,14 +297,30 @@
   </p>
 
   {#if isEditable && onRemove}
-    <button class="remove-button" onclick={onRemove} title="Remove widget">
-      ×
-    </button>
+    <div class="EditableOverlay BlurBG">
+      <button
+        class="remove-button BlurBG"
+        onclick={onRemove}
+        title="Remove widget"
+        data-isolate-drag
+      >
+        <Minus size="18" />
+      </button>
+      <button
+        class="edit-button BlurBG"
+        onclick={() => openSettings?.(id)}
+        title="Edit widget"
+        data-isolate-drag
+      >
+        <PenLine size="13" />
+      </button>
+    </div>
   {/if}
 </div>
 
 <style lang="scss">
   .FlipClock {
+    position: relative;
     width: 100%;
     height: 100%;
     gap: calc(var(--base-size) * 0.5);

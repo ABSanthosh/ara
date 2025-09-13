@@ -350,6 +350,11 @@ export function draggable(
       return; // Let the resize action handle this
     }
 
+    // Check if the event is coming from an element with data-isolate-drag attribute
+    if (target.closest("[data-isolate-drag]")) {
+      return; // Don't trigger drag for isolated elements
+    }
+
     e.preventDefault();
     isDragging = true;
 

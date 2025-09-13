@@ -10,6 +10,7 @@
   } from "../../../utils/timezone";
   import settingStore from "../../../../lib/stores/settingStore";
   import type { AnalogClockSpan } from "../../../stores/settingStore";
+  import { Minus, PenLine } from "@lucide/svelte";
 
   let time = $state(new Date());
 
@@ -29,13 +30,24 @@
     onDragEnd: (newRow: number, newCol: number) => void;
     onResize: (newSpan: AnalogClockSpan) => void;
     onRemove?: () => void;
+    openSettings?: (widgetId: string) => void;
   }
 
   // settings
   // Show numbers
   // Show seconds hand
 
-  let { id, pos, span, onResize, settings, onDragEnd, isEditable = false, onRemove }: Props = $props();
+  let {
+    id,
+    pos,
+    span,
+    onResize,
+    settings,
+    onDragEnd,
+    isEditable = false,
+    onRemove,
+    openSettings,
+  }: Props = $props();
 
   // Current position and size state
   let currentGridRow = $state(pos.row);
@@ -182,9 +194,24 @@
   </svg>
 
   {#if isEditable && onRemove}
-    <button class="remove-button" onclick={onRemove} title="Remove widget">
-      ×
-    </button>
+    <div class="EditableOverlay BlurBG">
+      <button
+        class="remove-button BlurBG"
+        onclick={onRemove}
+        title="Remove widget"
+        data-isolate-drag
+      >
+        <Minus size="18" />
+      </button>
+      <button
+        class="edit-button BlurBG"
+        onclick={() => openSettings?.(id)}
+        title="Edit widget"
+        data-isolate-drag
+      >
+        <PenLine size="13" />
+      </button>
+    </div>
   {/if}
 </div>
 

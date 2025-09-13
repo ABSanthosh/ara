@@ -21,6 +21,11 @@
   });
 
   let showModal = $state(false);
+  let settingsModalWidgetId = $state<undefined | string>(undefined);
+  let settingsModal = $derived(
+    settingsModalWidgetId !== undefined ? true : false
+  );
+
   let showNASAWallpaperInfo = $state(false);
 
   // Derived value to determine if widgets are in editable mode
@@ -88,6 +93,14 @@
 
 <WidgetModal bind:showModal />
 
+<Modal
+  heading="Widget Settings"
+  bind:showModal={settingsModal}
+  onclose={() => (settingsModalWidgetId = undefined)}
+>
+  Settings for widget ID: {settingsModalWidgetId}
+</Modal>
+
 <WidgetGrid
   gridGap={10}
   gridPadding={40}
@@ -103,6 +116,7 @@
         span={widget.span}
         settings={widget.settings}
         {isEditable}
+        openSettings={(id) => (settingsModalWidgetId = id)}
         onDragEnd={(newRow, newCol) => {
           settingStore.update((store) => {
             store.widgets[widgetId].pos = { row: newRow, col: newCol };
@@ -126,6 +140,7 @@
         span={widget.span}
         settings={widget.settings}
         {isEditable}
+        openSettings={(id) => (settingsModalWidgetId = id)}
         onDragEnd={(newRow, newCol) => {
           settingStore.update((store) => {
             store.widgets[widgetId].pos = { row: newRow, col: newCol };
@@ -149,6 +164,7 @@
         span={widget.span}
         settings={widget.settings}
         {isEditable}
+        openSettings={(id) => (settingsModalWidgetId = id)}
         onDragEnd={(newRow, newCol) => {
           settingStore.update((store) => {
             store.widgets[widgetId].pos = { row: newRow, col: newCol };
@@ -172,6 +188,7 @@
         span={widget.span}
         settings={widget.settings}
         {isEditable}
+        openSettings={(id) => (settingsModalWidgetId = id)}
         onDragEnd={(newRow, newCol) => {
           settingStore.update((store) => {
             store.widgets[widgetId].pos = { row: newRow, col: newCol };
@@ -195,6 +212,7 @@
         span={widget.span}
         settings={widget.settings}
         {isEditable}
+        openSettings={(id) => (settingsModalWidgetId = id)}
         onDragEnd={(newRow, newCol) => {
           settingStore.update((store) => {
             store.widgets[widgetId].pos = { row: newRow, col: newCol };

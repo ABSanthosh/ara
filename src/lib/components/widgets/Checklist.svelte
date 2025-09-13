@@ -8,7 +8,7 @@
     resizable,
     type ResizableOptions,
   } from "../../actions/resizable.svelte";
-  import { X } from "@lucide/svelte";
+  import { Minus, PenLine, X } from "@lucide/svelte";
   import settingStore from "../../../lib/stores/settingStore";
   import type { ChecklistSpan, ChecklistItem } from "../../stores/settingStore";
 
@@ -26,6 +26,7 @@
     onDragEnd: (newRow: number, newCol: number) => void;
     onResize: (newSpan: ChecklistSpan) => void;
     onRemove?: () => void;
+    openSettings?: (widgetId: string) => void;
   }
 
   let {
@@ -37,6 +38,7 @@
     onDragEnd = (_newRow: number, _newCol: number) => {},
     onResize = (_newSpan: ChecklistSpan) => {},
     onRemove,
+    openSettings
   }: Props = $props();
 
   // Current position and size state
@@ -293,9 +295,24 @@
   </div>
 
   {#if isEditable && onRemove}
-    <button class="remove-button" onclick={onRemove} title="Remove widget">
-      ×
-    </button>
+    <div class="EditableOverlay BlurBG">
+      <button
+        class="remove-button BlurBG"
+        onclick={onRemove}
+        title="Remove widget"
+        data-isolate-drag
+      >
+        <Minus size="18" />
+      </button>
+      <button
+        class="edit-button BlurBG"
+        onclick={() => openSettings?.(id)}
+        title="Edit widget"
+        data-isolate-drag
+      >
+        <PenLine size="13" />
+      </button>
+    </div>
   {/if}
 </div>
 

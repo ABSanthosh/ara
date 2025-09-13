@@ -15,6 +15,7 @@
     resizable,
     type ResizableOptions,
   } from "../../actions/resizable.svelte";
+  import { Minus, Pen, PenLine } from "@lucide/svelte";
 
   interface Props {
     id: string;
@@ -28,9 +29,20 @@
     onResize: (newSpan: CatSpan) => void;
     onDragEnd: (newRow: number, newCol: number) => void;
     onRemove?: () => void;
+    openSettings?: (widgetId: string) => void;
   }
 
-  let { id, pos, span, settings, onResize, onDragEnd, isEditable = false, onRemove }: Props = $props();
+  let {
+    id,
+    pos,
+    span,
+    settings,
+    onResize,
+    onDragEnd,
+    isEditable = false,
+    onRemove,
+    openSettings,
+  }: Props = $props();
 
   let imgSrc = $state<CatImage>({
     imageUrl: "",
@@ -154,9 +166,24 @@
   {/if}
 
   {#if isEditable && onRemove}
-    <button class="remove-button" onclick={onRemove} title="Remove widget">
-      ×
-    </button>
+    <div class="EditableOverlay BlurBG">
+      <button
+        class="remove-button BlurBG"
+        onclick={onRemove}
+        title="Remove widget"
+        data-isolate-drag
+      >
+        <Minus size="18" />
+      </button>
+      <button
+        class="edit-button BlurBG"
+        onclick={() => openSettings?.(id)}
+        title="Edit widget"
+        data-isolate-drag
+      >
+        <PenLine size="13" />
+      </button>
+    </div>
   {/if}
 </div>
 
@@ -247,35 +274,5 @@
 
   .CatBox:hover {
     opacity: 1;
-  }
-
-  .remove-button {
-    position: absolute;
-    top: 4px;
-    right: 4px;
-    width: 20px;
-    height: 20px;
-    border: none;
-    border-radius: 50%;
-    background: rgba(255, 59, 48, 0.9);
-    color: white;
-    font-size: 14px;
-    font-weight: bold;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    line-height: 1;
-    transition: all 0.2s ease;
-    z-index: 10;
-
-    &:hover {
-      background: rgba(255, 59, 48, 1);
-      transform: scale(1.1);
-    }
-
-    &:active {
-      transform: scale(0.95);
-    }
   }
 </style>

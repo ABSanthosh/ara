@@ -6,10 +6,12 @@
     children,
     heading,
     showModal = $bindable(),
+    onclose,
   }: {
     heading: string;
     children: Snippet;
     showModal: boolean;
+    onclose?: () => void;
   } = $props();
 
   let dialog: HTMLDialogElement | undefined = $state();
@@ -34,6 +36,7 @@
         <button
           onclick={() => {
             showModal = false;
+            onclose?.();
             if (dialog) dialog.close();
           }}
         >

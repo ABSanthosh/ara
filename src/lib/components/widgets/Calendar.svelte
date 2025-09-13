@@ -2,7 +2,7 @@
   import { onMount } from "svelte";
   import { draggable } from "../../actions/draggable.svelte";
   import { resizable } from "../../actions/resizable.svelte";
-  import { ChevronLeft, ChevronRight, RotateCcw } from "@lucide/svelte";
+  import { ChevronLeft, ChevronRight, Minus, PenLine, RotateCcw } from "@lucide/svelte";
   import { getTimeForCity, type SupportedCityName } from "../../utils/timezone";
   import type { CalendarSpan } from "../../stores/settingStore";
   import settingStore from "../../../lib/stores/settingStore";
@@ -21,6 +21,7 @@
     onDragEnd: (newRow: number, newCol: number) => void;
     onResize: (newSpan: CalendarSpan) => void;
     onRemove?: () => void;
+    openSettings?: (widgetId: string) => void;
   }
 
   let {
@@ -29,9 +30,10 @@
     span = { x: 2, y: 2 },
     settings,
     isEditable = false,
-    onDragEnd = (newRow: number, newCol: number) => {},
-    onResize = (newSpan: CalendarSpan) => {},
+    onDragEnd = (_newRow: number, _newCol: number) => {},
+    onResize = (_newSpan: CalendarSpan) => {},
     onRemove,
+    openSettings
   }: Props = $props();
 
   // Current position and size state
@@ -330,9 +332,24 @@
   </div>
 
   {#if isEditable && onRemove}
-    <button class="remove-button" onclick={onRemove} title="Remove widget">
-      ×
-    </button>
+    <div class="EditableOverlay BlurBG">
+      <button
+        class="remove-button BlurBG"
+        onclick={onRemove}
+        title="Remove widget"
+        data-isolate-drag
+      >
+        <Minus size="18" />
+      </button>
+      <button
+        class="edit-button BlurBG"
+        onclick={() => openSettings?.(id)}
+        title="Edit widget"
+        data-isolate-drag
+      >
+        <PenLine size="13" />
+      </button>
+    </div>
   {/if}
 </div>
 
