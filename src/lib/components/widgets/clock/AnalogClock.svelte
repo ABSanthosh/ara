@@ -25,15 +25,17 @@
       city?: SupportedCityName;
       showSecondsHand: boolean;
     };
+    isEditable?: boolean;
     onDragEnd: (newRow: number, newCol: number) => void;
     onResize: (newSpan: AnalogClockSpan) => void;
+    onRemove?: () => void;
   }
 
   // settings
   // Show numbers
   // Show seconds hand
 
-  let { id, pos, span, onResize, settings, onDragEnd }: Props = $props();
+  let { id, pos, span, onResize, settings, onDragEnd, isEditable = false, onRemove }: Props = $props();
 
   // Current position and size state
   let currentGridRow = $state(pos.row);
@@ -178,6 +180,12 @@
     </g>
     <circle r="0.7" />
   </svg>
+
+  {#if isEditable && onRemove}
+    <button class="remove-button" onclick={onRemove} title="Remove widget">
+      ×
+    </button>
+  {/if}
 </div>
 
 <style lang="scss">
@@ -403,6 +411,36 @@
           font-size: 3px;
         }
       }
+    }
+  }
+
+  .remove-button {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 20px;
+    height: 20px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 59, 48, 0.9);
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    transition: all 0.2s ease;
+    z-index: 10;
+
+    &:hover {
+      background: rgba(255, 59, 48, 1);
+      transform: scale(1.1);
+    }
+
+    &:active {
+      transform: scale(0.95);
     }
   }
 </style>

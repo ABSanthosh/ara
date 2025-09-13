@@ -22,8 +22,10 @@
     settings: {
       items: ChecklistItem[];
     };
+    isEditable?: boolean;
     onDragEnd: (newRow: number, newCol: number) => void;
     onResize: (newSpan: ChecklistSpan) => void;
+    onRemove?: () => void;
   }
 
   let {
@@ -31,8 +33,10 @@
     pos = { row: 1, col: 1 },
     span = { x: 2, y: 2 },
     settings,
+    isEditable = false,
     onDragEnd = (_newRow: number, _newCol: number) => {},
     onResize = (_newSpan: ChecklistSpan) => {},
+    onRemove,
   }: Props = $props();
 
   // Current position and size state
@@ -287,6 +291,12 @@
       {/if}
     </div>
   </div>
+
+  {#if isEditable && onRemove}
+    <button class="remove-button" onclick={onRemove} title="Remove widget">
+      ×
+    </button>
+  {/if}
 </div>
 
 <style lang="scss">
@@ -493,6 +503,36 @@
         font-size: 12px;
         opacity: 0.7;
       }
+    }
+  }
+
+  .remove-button {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 20px;
+    height: 20px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 59, 48, 0.9);
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    transition: all 0.2s ease;
+    z-index: 10;
+
+    &:hover {
+      background: rgba(255, 59, 48, 1);
+      transform: scale(1.1);
+    }
+
+    &:active {
+      transform: scale(0.95);
     }
   }
 </style>

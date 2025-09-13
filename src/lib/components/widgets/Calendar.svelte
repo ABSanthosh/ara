@@ -17,8 +17,10 @@
     settings: {
       city?: SupportedCityName;
     };
+    isEditable?: boolean;
     onDragEnd: (newRow: number, newCol: number) => void;
     onResize: (newSpan: CalendarSpan) => void;
+    onRemove?: () => void;
   }
 
   let {
@@ -26,8 +28,10 @@
     pos = { row: 1, col: 1 },
     span = { x: 2, y: 2 },
     settings,
+    isEditable = false,
     onDragEnd = (newRow: number, newCol: number) => {},
     onResize = (newSpan: CalendarSpan) => {},
+    onRemove,
   }: Props = $props();
 
   // Current position and size state
@@ -291,13 +295,13 @@
           {localeData().shortMonthNames[currentMonth]}. {currentYear}
         </h2>
         <div class="month-controls">
-          <button class="prev-month" on:click={prevMonth}>
+          <button class="prev-month" onclick={prevMonth}>
             <ChevronLeft size="16" />
           </button>
-          <button class="reset-month" on:click={resetMonth}>
+          <button class="reset-month" onclick={resetMonth}>
             <RotateCcw size="16" />
           </button>
-          <button class="next-month" on:click={nextMonth}>
+          <button class="next-month" onclick={nextMonth}>
             <ChevronRight size="16" />
           </button>
         </div>
@@ -324,6 +328,12 @@
       </div>
     {/if}
   </div>
+
+  {#if isEditable && onRemove}
+    <button class="remove-button" onclick={onRemove} title="Remove widget">
+      ×
+    </button>
+  {/if}
 </div>
 
 <style lang="scss">
@@ -586,6 +596,36 @@
     .calendar-grid,
     .day-headers {
       gap: 3px;
+    }
+  }
+
+  .remove-button {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 20px;
+    height: 20px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 59, 48, 0.9);
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    transition: all 0.2s ease;
+    z-index: 10;
+
+    &:hover {
+      background: rgba(255, 59, 48, 1);
+      transform: scale(1.1);
+    }
+
+    &:active {
+      transform: scale(0.95);
     }
   }
 </style>

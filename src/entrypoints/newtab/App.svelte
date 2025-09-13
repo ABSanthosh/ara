@@ -14,6 +14,7 @@
   } from "../../lib/managers/wallpaperManager";
   import { onMount } from "svelte";
   import Modal from "@/lib/components/Modal.svelte";
+  import { removeWidget } from "../../lib/stores/settingStore";
 
   settingStore.subscribe((value) => {
     document.body.style.backgroundImage = `url(${value.options.wallpaper.url})`;
@@ -21,6 +22,11 @@
 
   let showModal = $state(false);
   let showNASAWallpaperInfo = $state(false);
+
+  // Derived value to determine if widgets are in editable mode
+  const isEditable = $derived(
+    $settingStore.options.isDraggable && $settingStore.options.isResizable
+  );
 
   onMount(() => {
     initializeWallpaper();
@@ -64,28 +70,17 @@
       displayText: $settingStore.options.showGrid ? "Hide Grid" : "Show Grid",
     },
     {
-      name: "Resize Widgets",
+      name: "Edit Widgets",
       onClick: () => {
         settingStore.update((store) => {
           store.options.isResizable = !store.options.isResizable;
-          return store;
-        });
-      },
-      displayText: $settingStore.options.isResizable
-        ? "Disable Resize"
-        : "Enable Resize",
-    },
-    {
-      name: "Drag Widgets",
-      onClick: () => {
-        settingStore.update((store) => {
           store.options.isDraggable = !store.options.isDraggable;
           return store;
         });
       },
-      displayText: $settingStore.options.isDraggable
-        ? "Disable Drag"
-        : "Enable Drag",
+      displayText: $settingStore.options.isResizable
+        ? "Stop Editing"
+        : "Edit Widgets",
     },
     ...NasaContextMenu,
   ]}
@@ -107,6 +102,7 @@
         pos={widget.pos}
         span={widget.span}
         settings={widget.settings}
+        {isEditable}
         onDragEnd={(newRow, newCol) => {
           settingStore.update((store) => {
             store.widgets[widgetId].pos = { row: newRow, col: newCol };
@@ -118,6 +114,9 @@
             store.widgets[widgetId].span = newSpan;
             return store;
           });
+        }}
+        onRemove={() => {
+          removeWidget(widgetId);
         }}
       />
     {:else if widget.type === "flip-clock"}
@@ -126,6 +125,7 @@
         pos={widget.pos}
         span={widget.span}
         settings={widget.settings}
+        {isEditable}
         onDragEnd={(newRow, newCol) => {
           settingStore.update((store) => {
             store.widgets[widgetId].pos = { row: newRow, col: newCol };
@@ -137,6 +137,9 @@
             store.widgets[widgetId].span = newSpan;
             return store;
           });
+        }}
+        onRemove={() => {
+          removeWidget(widgetId);
         }}
       />
     {:else if widget.type === "calendar"}
@@ -145,6 +148,7 @@
         pos={widget.pos}
         span={widget.span}
         settings={widget.settings}
+        {isEditable}
         onDragEnd={(newRow, newCol) => {
           settingStore.update((store) => {
             store.widgets[widgetId].pos = { row: newRow, col: newCol };
@@ -156,6 +160,9 @@
             store.widgets[widgetId].span = newSpan;
             return store;
           });
+        }}
+        onRemove={() => {
+          removeWidget(widgetId);
         }}
       />
     {:else if widget.type === "cat"}
@@ -164,6 +171,7 @@
         pos={widget.pos}
         span={widget.span}
         settings={widget.settings}
+        {isEditable}
         onDragEnd={(newRow, newCol) => {
           settingStore.update((store) => {
             store.widgets[widgetId].pos = { row: newRow, col: newCol };
@@ -175,6 +183,9 @@
             store.widgets[widgetId].span = newSpan;
             return store;
           });
+        }}
+        onRemove={() => {
+          removeWidget(widgetId);
         }}
       />
     {:else if widget.type === "checklist"}
@@ -183,6 +194,7 @@
         pos={widget.pos}
         span={widget.span}
         settings={widget.settings}
+        {isEditable}
         onDragEnd={(newRow, newCol) => {
           settingStore.update((store) => {
             store.widgets[widgetId].pos = { row: newRow, col: newCol };
@@ -194,6 +206,9 @@
             store.widgets[widgetId].span = newSpan;
             return store;
           });
+        }}
+        onRemove={() => {
+          removeWidget(widgetId);
         }}
       />
     {/if}

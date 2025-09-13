@@ -24,11 +24,13 @@
     };
     span: CatSpan;
     settings: Record<string, any>;
+    isEditable?: boolean;
     onResize: (newSpan: CatSpan) => void;
     onDragEnd: (newRow: number, newCol: number) => void;
+    onRemove?: () => void;
   }
 
-  let { id, pos, span, settings, onResize, onDragEnd }: Props = $props();
+  let { id, pos, span, settings, onResize, onDragEnd, isEditable = false, onRemove }: Props = $props();
 
   let imgSrc = $state<CatImage>({
     imageUrl: "",
@@ -150,6 +152,12 @@
       {/if}
     </BlurredSpinner>
   {/if}
+
+  {#if isEditable && onRemove}
+    <button class="remove-button" onclick={onRemove} title="Remove widget">
+      ×
+    </button>
+  {/if}
 </div>
 
 <style lang="scss">
@@ -239,5 +247,35 @@
 
   .CatBox:hover {
     opacity: 1;
+  }
+
+  .remove-button {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 20px;
+    height: 20px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 59, 48, 0.9);
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    transition: all 0.2s ease;
+    z-index: 10;
+
+    &:hover {
+      background: rgba(255, 59, 48, 1);
+      transform: scale(1.1);
+    }
+
+    &:active {
+      transform: scale(0.95);
+    }
   }
 </style>
