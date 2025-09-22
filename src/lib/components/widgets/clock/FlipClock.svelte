@@ -14,7 +14,6 @@
   } from "../../../actions/resizable.svelte";
   import {
     dissolve,
-    type DissolveOptions,
   } from "../../../actions/dissolve.svelte";
   import {
     getTimeForCity,
@@ -58,7 +57,6 @@
   }: Props = $props();
 
   let time = $state(new Date());
-  let clockContainer: HTMLDivElement;
   let containerWidth = $state(240);
   let interval: NodeJS.Timeout;
 
@@ -67,7 +65,17 @@
   let currentGridCol = $state(pos.col);
   let currentSpanX = $state(span.x);
   let currentSpanY = $state(span.y);
-  let shouldDissolve = $state(false);
+  
+  // Widget element reference for dissolve animation
+  let widgetElement: HTMLElement;
+  let clockContainer: HTMLDivElement;
+  
+  // Sync the two element references
+  $effect(() => {
+    if (widgetElement) {
+      clockContainer = widgetElement as HTMLDivElement;
+    }
+  });
 
   // Get timezone offset and create city abbreviation
   let timezoneOffset = $derived(getTimezoneOffset(settings.city));
@@ -104,18 +112,17 @@
   };
 
   // Function to trigger dissolve effect
-  function triggerDissolve() {
-    shouldDissolve = true;
+  async function triggerDissolve() {
+    if (widgetElement) {
+      await dissolve(widgetElement, {
+        duration: 300,
+        maintainPosition: true,
+        onComplete: () => {
+          onRemove?.();
+        }
+      });
+    }
   }
-
-  // Dissolve options
-  const dissolveOptions = $derived({
-    trigger: shouldDissolve,
-    onComplete: () => {
-      onRemove?.();
-    },
-    duration: 300,
-  });
 
   // I18n date formatting options
   const dateFormatOptions: Intl.DateTimeFormatOptions = {
@@ -246,12 +253,11 @@
 
 <div
   {id}
-  bind:this={clockContainer}
+  bind:this={widgetElement}
   class="FlipClock BlurBG"
   class:draggable-widget={$settingStore.options.isDraggable}
   use:draggable={draggableOptions}
   use:resizable={resizableOptions}
-  use:dissolve={dissolveOptions}
   style="
 		grid-area: {currentGridRow} / {currentGridCol} / {currentGridRow +
     currentSpanY} / {currentGridCol + currentSpanX};

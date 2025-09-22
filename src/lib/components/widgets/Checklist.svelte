@@ -10,7 +10,6 @@
   } from "../../actions/resizable.svelte";
   import {
     dissolve,
-    type DissolveOptions,
   } from "../../actions/dissolve.svelte";
   import { Minus, PenLine, X } from "@lucide/svelte";
   import settingStore from "../../../lib/stores/settingStore";
@@ -59,7 +58,9 @@
   let editingItemId = $state<string | null>(null);
   let editValue = $state("");
   let editInputElement = $state<HTMLInputElement>();
-  let shouldDissolve = $state(false);
+  
+  // Widget element reference for dissolve animation
+  let widgetElement: HTMLElement;
 
   // Handle drag end to update position
   function handleDragEnd(newRow: number, newCol: number) {
@@ -87,18 +88,17 @@
     onResize: handleResize,
   };
 
-  // Dissolve options
-  const dissolveOptions = $derived({
-    trigger: shouldDissolve,
-    onComplete: () => {
-      onRemove?.();
-    },
-    duration: 300,
-  });
-
   // Function to trigger dissolve effect
-  function triggerDissolve() {
-    shouldDissolve = true;
+  async function triggerDissolve() {
+    if (widgetElement) {
+      await dissolve(widgetElement, {
+        duration: 300,
+        maintainPosition: true,
+        onComplete: () => {
+          onRemove?.();
+        }
+      });
+    }
   }
 
   // Show input for adding new item
@@ -233,13 +233,13 @@
 </script>
 
 <div
+  bind:this={widgetElement}
   {id}
   role="region"
   class="Checklist BlurBG"
   data-isolate-context="true"
   use:draggable={draggableOptions}
   use:resizable={resizableOptions}
-  use:dissolve={dissolveOptions}
   oncontextmenu={(event: MouseEvent) => {
     event.preventDefault();
     showAddInput();

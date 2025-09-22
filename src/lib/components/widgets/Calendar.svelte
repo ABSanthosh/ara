@@ -48,7 +48,9 @@
   let currentMonth = $state(currentDate.getMonth());
   let currentYear = $state(currentDate.getFullYear());
   let today = $state(currentDate.getDate());
-  let shouldDissolve = $state(false);
+  
+  // Widget element reference for dissolve animation
+  let widgetElement: HTMLElement;
 
   // Update calendar when timezone changes
   $effect(() => {
@@ -100,18 +102,17 @@
   }
 
   // Function to trigger dissolve effect
-  function triggerDissolve() {
-    shouldDissolve = true;
+  async function triggerDissolve() {
+    if (widgetElement) {
+      await dissolve(widgetElement, {
+        duration: 300,
+        maintainPosition: true,
+        onComplete: () => {
+          onRemove?.();
+        }
+      });
+    }
   }
-
-  // Dissolve options
-  const dissolveOptions = $derived({
-    trigger: shouldDissolve,
-    onComplete: () => {
-      onRemove?.();
-    },
-    duration: 300,
-  });
   // Track if we're currently resizing to hide content
   let isResizing = $state(false);
   let resizeTimeout: ReturnType<typeof setTimeout>;
@@ -282,11 +283,11 @@
 </script>
 
 <div
+  bind:this={widgetElement}
   {id}
   class="calendar-widget"
   use:draggable={draggableOptions}
   use:resizable={resizableOptions}
-  use:dissolve={dissolveOptions}
   class:compact={shouldShowCompact}
   class:draggable-widget={$settingStore.options.isDraggable}
   style="grid-area: {currentGridRow} / {currentGridCol} / {currentGridRow +

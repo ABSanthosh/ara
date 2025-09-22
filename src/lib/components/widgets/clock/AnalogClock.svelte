@@ -55,7 +55,9 @@
   let currentGridCol = $state(pos.col);
   let currentSpanX = $state(span.x);
   let currentSpanY = $state(span.y);
-  let shouldDissolve = $state(false);
+  
+  // Widget element reference for dissolve animation
+  let widgetElement: HTMLElement;
 
   // Draggable options
   const draggableOptions = {
@@ -102,18 +104,17 @@
   }
 
   // Function to trigger dissolve effect
-  function triggerDissolve() {
-    shouldDissolve = true;
+  async function triggerDissolve() {
+    if (widgetElement) {
+      await dissolve(widgetElement, {
+        duration: 300,
+        maintainPosition: true,
+        onComplete: () => {
+          onRemove?.();
+        }
+      });
+    }
   }
-
-  // Dissolve options
-  const dissolveOptions = $derived({
-    trigger: shouldDissolve,
-    onComplete: () => {
-      onRemove?.();
-    },
-    duration: 300,
-  });
 
   onMount(() => {
     const updateTime = () => {
@@ -132,10 +133,10 @@
 </script>
 
 <div
+  bind:this={widgetElement}
   {id}
   use:draggable={draggableOptions}
   use:resizable={resizableOptions}
-  use:dissolve={dissolveOptions}
   class="AnalogClock BlurBG"
   class:draggable-widget={$settingStore.options.isDraggable}
   style="grid-area: {currentGridRow} / {currentGridCol} / {currentGridRow +

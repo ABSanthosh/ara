@@ -17,7 +17,6 @@
   } from "../../actions/resizable.svelte";
   import {
     dissolve,
-    type DissolveOptions,
   } from "../../actions/dissolve.svelte";
   import { Minus, Pen, PenLine } from "@lucide/svelte";
 
@@ -78,16 +77,9 @@
 
   let tooLong = $state(false);
   let sizeType = $derived(span.x === 1 && span.y === 1 ? "small" : "large");
-  let shouldDissolve = $state(false);
-
-  // Dissolve options
-  const dissolveOptions = $derived({
-    trigger: shouldDissolve,
-    onComplete: () => {
-      onRemove?.();
-    },
-    duration: 300,
-  });
+  
+  // Widget element reference for dissolve animation
+  let widgetElement: HTMLElement;
 
   // Function to refresh the cat image
   async function refreshImage() {
@@ -101,8 +93,16 @@
   }
 
   // Function to trigger dissolve effect
-  function triggerDissolve() {
-    shouldDissolve = true;
+  async function triggerDissolve() {
+    if (widgetElement) {
+      await dissolve(widgetElement, {
+        duration: 300,
+        maintainPosition: true,
+        onComplete: () => {
+          onRemove?.();
+        }
+      });
+    }
   }
 
   // Handle drag end
@@ -158,11 +158,11 @@
 </script>
 
 <div
+  bind:this={widgetElement}
   {id}
   class="CatBox BlurBG"
   use:draggable={draggableOptions}
   use:resizable={resizableOptions}
-  use:dissolve={dissolveOptions}
   class:draggable-widget={$settingStore.options.isDraggable}
   style="
     background-image: url({imgSrc.imageUrl});
