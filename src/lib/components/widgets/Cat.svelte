@@ -94,15 +94,15 @@
 
   // Function to trigger dissolve effect
   async function triggerDissolve() {
-    if (widgetElement) {
-      await dissolve(widgetElement, {
-        duration: 300,
-        maintainPosition: true,
-        onComplete: () => {
-          onRemove?.();
-        }
-      });
-    }
+    onRemove?.();
+    // if (widgetElement) {
+    //   await dissolve(widgetElement, {
+    //     duration: 300,
+    //     maintainPosition: true,
+    //     onComplete: () => {
+    //     }
+    //   });
+    // }
   }
 
   // Handle drag end

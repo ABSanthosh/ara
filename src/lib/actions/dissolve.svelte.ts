@@ -61,38 +61,14 @@ export function dissolve(
 
     // Lock all sibling widgets in their current positions
     function lockSiblingPositions() {
-      if (!maintainPosition) return;
-      
-      const container = element.closest('.widget-grid');
-      if (!container) return;
-      
-      const siblings = container.querySelectorAll('[style*="grid-area"]');
-      siblings.forEach((sibling) => {
-        if (sibling === element) return;
-        
-        const computedStyle = getComputedStyle(sibling as HTMLElement);
-        const gridArea = computedStyle.gridArea;
-        
-        if (gridArea && gridArea !== 'auto') {
-          (sibling as HTMLElement).style.gridArea = gridArea;
-          (sibling as HTMLElement).setAttribute('data-position-locked', 'true');
-        }
-      });
+      // Disabled - let CSS Grid handle natural reflow
+      return;
     }
 
     // Unlock sibling positions after removal is complete
     function unlockSiblingPositions() {
-      if (!maintainPosition) return;
-      
-      setTimeout(() => {
-        const container = document.querySelector('.widget-grid');
-        if (!container) return;
-        
-        const lockedElements = container.querySelectorAll('[data-position-locked="true"]');
-        lockedElements.forEach((element) => {
-          (element as HTMLElement).removeAttribute('data-position-locked');
-        });
-      }, 200);
+      // Disabled - let CSS Grid handle natural reflow
+      return;
     }
 
     // Cleanup function
@@ -141,7 +117,10 @@ export function dissolve(
         } else {
           setTimeout(() => {
             cleanup();
-            onComplete?.();
+            // Add a small delay before calling onComplete to ensure smooth transition
+            setTimeout(() => {
+              onComplete?.();
+            }, 50);
             resolve();
           }, 100);
         }
