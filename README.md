@@ -193,7 +193,8 @@ The extension uses WXT for cross-browser compatibility:
 
 - Settings page for adding and removing Widgets
 - Widgets
-  - Todo List
+  - ~Todo List~
+  - QR Code Generator: generate, copy qr etc
   - Quote of the Day
   - Weather Widget
   - More to come!
