@@ -61,10 +61,6 @@
     @include make-flex();
     background: transparent;
     @include box(100vw, 100vh);
-
-    &::backdrop {
-      backdrop-filter: blur(5px);
-    }
   }
 
   .Modal {

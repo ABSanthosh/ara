@@ -25,7 +25,7 @@ export default defineConfig({
   }),
 
   manifest: {
-    name: "Unitab",
+    name: process.env.NODE_ENV === "production" ? "Unitab" : "Unitab Dev",
     description: "A simple new tab page",
     version: "1.0.0",
     manifest_version: 3,
