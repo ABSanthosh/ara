@@ -195,6 +195,7 @@ The extension uses WXT for cross-browser compatibility:
 - Widgets
   - ~Todo List~
   - QR Code Generator: generate, copy qr etc
+  - Temp mail
   - Quote of the Day
   - Weather Widget
   - More to come!
@@ -203,3 +204,5 @@ The extension uses WXT for cross-browser compatibility:
 ---
 
 **UniTab** - Making every new tab a delightful experience! 🌟
+
+<!-- lpUfMQ3veXufq2YSdzOkbWcs2U1Z2cQldIhQs7FJ -->

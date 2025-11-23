@@ -1,212 +1,155 @@
 <script lang="ts">
-  import { onMount, onDestroy } from 'svelte';
+  import { onMount, onDestroy } from "svelte";
 
-  let visible = $state(false);
+  let dialogElement = $state<HTMLDialogElement | undefined>();
   let searchQuery = $state("");
   let inputElement = $state<HTMLInputElement | undefined>();
 
   // Watch for visibility changes to focus input
   $effect(() => {
-    if (visible && inputElement) {
+    if (dialogElement?.open && inputElement) {
       setTimeout(() => {
         inputElement?.focus();
       }, 100);
-    } else if (!visible) {
+    } else if (!dialogElement?.open) {
       searchQuery = "";
     }
   });
 
-  // Close when clicking outside
-  function handleBackdropClick(e: MouseEvent) {
-    if (e.target === e.currentTarget) {
-      visible = false;
-    }
-  }
-
-  // Handle escape key
+  // Handle keyboard shortcuts
   function handleKeydown(e: KeyboardEvent) {
-    if (e.key === "Escape" && visible) {
+    // Close on Escape
+    if (e.key === "Escape" && dialogElement?.open) {
       e.preventDefault();
-      visible = false;
+      dialogElement.close();
     }
   }
 
   // Listen for toggle event from content script
   function handleToggle() {
-    visible = !visible;
+    if (dialogElement) {
+      if (dialogElement.open) {
+        dialogElement.close();
+      } else {
+        dialogElement.showModal();
+      }
+    }
   }
 
   onMount(() => {
-    window.addEventListener('toggle-spotlight', handleToggle);
-    window.addEventListener('keydown', handleKeydown);
+    window.addEventListener("toggle-spotlight", handleToggle);
+    window.addEventListener("keydown", handleKeydown);
   });
 
   onDestroy(() => {
-    window.removeEventListener('toggle-spotlight', handleToggle);
-    window.removeEventListener('keydown', handleKeydown);
+    window.removeEventListener("toggle-spotlight", handleToggle);
+    window.removeEventListener("keydown", handleKeydown);
   });
 </script>
 
-{#if visible}
-  <div class="spotlight-backdrop" onclick={handleBackdropClick} role="presentation">
-    <div class="spotlight-container">
-      <div class="spotlight-search">
-        <svg
-          class="spotlight-icon"
-          width="20"
-          height="20"
-          viewBox="0 0 20 20"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M9 17A8 8 0 1 0 9 1a8 8 0 0 0 0 16zM18.5 18.5l-5-5"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>
-        <input
-          bind:this={inputElement}
-          type="text"
-          bind:value={searchQuery}
-          placeholder="Search..."
-          class="spotlight-input"
-        />
-      </div>
-
-      <div class="spotlight-results">
-        {#if searchQuery.trim() === ""}
-          <div class="spotlight-empty">Start typing to search...</div>
-        {:else}
-          <div class="spotlight-empty">No results for "{searchQuery}"</div>
-        {/if}
-      </div>
-    </div>
+<dialog
+  bind:this={dialogElement}
+  class="spotlight-dialog-container"
+  onclick={(e) => {
+    // if click is not inside spotlight div, close dialog
+    const spotlightDiv = dialogElement?.querySelector(".spotlight");
+    if (spotlightDiv && !spotlightDiv.contains(e.target as Node)) {
+      dialogElement?.close();
+    }
+  }}
+  onclose={() => {
+    searchQuery = "";
+  }}
+>
+  <div class="spotlight">
+    <!-- TODO: Change this to lucid icons -->
+    <svg
+      class="search-icon"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M21 21L16.65 16.65M19 11C19 15.4183 15.4183 19 11 19C6.58172 19 3 15.4183 3 11C3 6.58172 6.58172 3 11 3C15.4183 3 19 6.58172 19 11Z"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+    </svg>
+    <input
+      bind:this={inputElement}
+      bind:value={searchQuery}
+      type="text"
+      placeholder="Spotlight Search"
+      class="spotlight-input"
+    />
   </div>
-{/if}
+</dialog>
 
 <style lang="scss">
-  .spotlight-backdrop {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(8px);
-    z-index: 999999;
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    padding-top: 15vh;
-    animation: fadeIn 0.15s ease-out;
-  }
+  @use "../../styles/mixins" as *;
 
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
+  .spotlight-dialog-container {
+    padding: 0;
+    border: none;
+    @include box();
+    max-width: unset;
+    max-height: unset;
+    background: transparent;
+
+    &:not([open]) {
+      display: none;
     }
-    to {
-      opacity: 1;
+
+    &[open] {
+      @include make-flex($just: flex-start);
     }
   }
 
-  .spotlight-container {
-    width: 600px;
-    max-width: 90vw;
-    background: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    overflow: hidden;
-    animation: slideDown 0.2s ease-out;
-  }
+  .spotlight {
+    gap: 10px;
+    width: 100%;
+    max-height: 40px;
+    margin-top: 100px;
+    padding: 5px 10px;
+    max-width: 460px;
+    border-radius: 30px;
+    background: #0000007d;
+    @include make-flex(center, center);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    box-shadow: 0 0 20px 1px rgba(0, 0, 0, 0.529);
+    backdrop-filter: blur(5px) saturate(170%) brightness(1.04);
 
-  @media (prefers-color-scheme: dark) {
-    .spotlight-container {
-      background: #1e1e1e;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
-    }
-  }
-
-  @keyframes slideDown {
-    from {
-      transform: translateY(-20px);
-      opacity: 0;
-    }
-    to {
-      transform: translateY(0);
-      opacity: 1;
-    }
-  }
-
-  .spotlight-search {
-    display: flex;
-    align-items: center;
-    padding: 16px 20px;
-    border-bottom: 1px solid #e5e5e5;
-    gap: 12px;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    .spotlight-search {
-      border-bottom-color: #333;
-    }
-  }
-
-  .spotlight-icon {
-    color: #666;
-    flex-shrink: 0;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    .spotlight-icon {
-      color: #999;
+    & > .search-icon {
+      flex-shrink: 0;
+      fill: rgba(255, 255, 255, 0.9);
+      width: 25px;
+      height: 25px;
     }
   }
 
   .spotlight-input {
     flex: 1;
+    width: 100%;
+    height: 100%;
     border: none;
     outline: none;
-    font-size: 18px;
     background: transparent;
-    color: #000;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-      "Helvetica Neue", Arial, sans-serif;
+    font-size: 18px;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.95);
+    letter-spacing: 0.2px;
 
     &::placeholder {
-      color: #999;
+      color: rgba(255, 255, 255, 0.7);
+      font-weight: 400;
     }
-  }
 
-  @media (prefers-color-scheme: dark) {
-    .spotlight-input {
-      color: #fff;
-
-      &::placeholder {
-        color: #666;
-      }
-    }
-  }
-
-  .spotlight-results {
-    max-height: 400px;
-    overflow-y: auto;
-    padding: 8px;
-  }
-
-  .spotlight-empty {
-    padding: 40px 20px;
-    text-align: center;
-    color: #999;
-    font-size: 14px;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    .spotlight-empty {
-      color: #666;
+    &:focus::placeholder {
+      opacity: 0.6;
     }
   }
 </style>
