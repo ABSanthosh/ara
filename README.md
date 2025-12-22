@@ -193,8 +193,9 @@ The extension uses WXT for cross-browser compatibility:
 
 - Settings page for adding and removing Widgets
 - Widgets
-  - ~Todo List~
+  - ~~Todo List~~
   - QR Code Generator: generate, copy qr etc
+  - whimsical Website blocking: Something to plan what to do and not let you visit distracting websites till you finish your tasks, kinda like zen mode and pomodoro timer
   - Temp mail
   - Quote of the Day
   - Weather Widget
