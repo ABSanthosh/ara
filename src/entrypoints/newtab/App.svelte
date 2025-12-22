@@ -36,6 +36,15 @@
       $settingStore.options.wallpaper.metadata.mode === "static"
   );
 
+  // Derived value to check if current wallpaper is hearted
+  const isHearted = $derived(
+    $settingStore.options.wallpaper.type === "nasa" &&
+      $settingStore.options.wallpaper.metadata.date &&
+      ($settingStore.wallpapers.heartedDates || []).includes(
+        $settingStore.options.wallpaper.metadata.date
+      )
+  );
+
   // Derived value to determine if widgets are in editable mode
   const isEditable = $derived(
     $settingStore.options.isDraggable && $settingStore.options.isResizable
@@ -244,7 +253,13 @@
 
 {#if $settingStore.options.wallpaper.type === "nasa"}
   <div class="NasaTools">
-    <button class="WallpaperDetailsButton BlurBG" onclick={() => {}}>
+    <button
+      class="WallpaperDetailsButton BlurBG"
+      class:hearted={isHearted}
+      onclick={() => {
+        WallpaperManager.toggleHeartWallpaper();
+      }}
+    >
       <Heart size={15} />
     </button>
     <button

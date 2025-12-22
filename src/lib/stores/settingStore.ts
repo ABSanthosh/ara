@@ -111,6 +111,7 @@ interface SettingStore {
   wallpapers: {
     nasaAPIKey?: string; // Store NASA API key if user sets it
     presets: string[]; // Array of preset wallpaper URLs
+    heartedDates: string[]; // Array of hearted NASA APOD dates (ISO format)
   };
 }
 
@@ -193,6 +194,7 @@ const defaultStore: SettingStore = {
       "/assets/wallpapers/fold-l.jpg",
       "/assets/wallpapers/ventura-d.jpg",
     ],
+    heartedDates: [],
   },
 };
 

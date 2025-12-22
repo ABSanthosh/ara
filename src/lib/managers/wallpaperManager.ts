@@ -147,6 +147,57 @@ export class WallpaperManager {
     const currentSettings = get(settingStore);
     return currentSettings.options.wallpaper.type === "nasa";
   }
+
+  /**
+   * Heart/unheart the current NASA wallpaper by storing its date
+   */
+  static toggleHeartWallpaper(): boolean {
+    const currentSettings = get(settingStore);
+    
+    if (currentSettings.options.wallpaper.type !== "nasa") {
+      return false;
+    }
+
+    const wallpaperDate = currentSettings.options.wallpaper.metadata.date;
+    
+    if (!wallpaperDate) {
+      return false;
+    }
+
+    const heartedDates = currentSettings.wallpapers.heartedDates || [];
+    const isHearted = heartedDates.includes(wallpaperDate);
+
+    settingStore.update((store) => {
+      if (isHearted) {
+        // Unheart: remove date from array
+        store.wallpapers.heartedDates = heartedDates.filter(
+          (date) => date !== wallpaperDate
+        );
+      } else {
+        // Heart: add date to array
+        store.wallpapers.heartedDates = [...heartedDates, wallpaperDate];
+      }
+      return store;
+    });
+
+    return true;
+  }
+
+  /**
+   * Check if the current wallpaper is hearted
+   */
+  static isWallpaperHearted(): boolean {
+    const currentSettings = get(settingStore);
+    
+    if (currentSettings.options.wallpaper.type !== "nasa") {
+      return false;
+    }
+
+    const wallpaperDate = currentSettings.options.wallpaper.metadata.date;
+    const heartedDates = currentSettings.wallpapers.heartedDates || [];
+    
+    return wallpaperDate ? heartedDates.includes(wallpaperDate) : false;
+  }
 }
 
 // Set up auto-update for NASA wallpapers

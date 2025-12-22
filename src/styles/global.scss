@@ -228,6 +228,11 @@ body.resizing {
       color: #4a90e2;
       // background-color: #ffffff22;
     }
+
+    &.hearted > svg {
+      fill: #e74c3c;
+      color: #e74c3c;
+    }
   }
 }
 
