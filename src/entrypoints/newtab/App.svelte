@@ -11,11 +11,12 @@
   import {
     initializeWallpaper,
     WallpaperManager,
+    setDynamicWallpaper,
   } from "../../lib/managers/wallpaperManager";
   import { onMount } from "svelte";
   import Modal from "@/lib/components/Modal.svelte";
   import { removeWidget } from "../../lib/stores/settingStore";
-  import { Heart, Pin } from "@lucide/svelte";
+  import { Heart, Pin, PinOff } from "@lucide/svelte";
 
   settingStore.subscribe((value) => {
     document.body.style.backgroundImage = `url(${value.options.wallpaper.url})`;
@@ -28,6 +29,12 @@
   );
 
   let showNASAWallpaperInfo = $state(false);
+
+  // Derived value to check if wallpaper is pinned (static mode)
+  const isPinned = $derived(
+    $settingStore.options.wallpaper.type === "nasa" &&
+      $settingStore.options.wallpaper.metadata.mode === "static"
+  );
 
   // Derived value to determine if widgets are in editable mode
   const isEditable = $derived(
@@ -240,8 +247,27 @@
     <button class="WallpaperDetailsButton BlurBG" onclick={() => {}}>
       <Heart size={15} />
     </button>
-    <button class="WallpaperDetailsButton BlurBG" onclick={() => {}}>
-      <Pin size={15} />
+    <button
+      class="WallpaperDetailsButton BlurBG"
+      class:pinned={isPinned}
+      onclick={() => {
+        if (isPinned) {
+          // Unpin: switch to dynamic mode
+          setDynamicWallpaper("dynamic");
+        } else {
+          // Pin: switch to static mode with current image date
+          const currentDate =
+            $settingStore.options.wallpaper.metadata.date ||
+            new Date().toISOString().split("T")[0];
+          setDynamicWallpaper("static", currentDate);
+        }
+      }}
+    >
+      {#if isPinned}
+        <PinOff size={15} />
+      {:else}
+        <Pin size={15} />
+      {/if}
     </button>
     <button
       class="WallpaperDetailsButton BlurBG"

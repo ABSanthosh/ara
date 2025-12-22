@@ -216,11 +216,17 @@ body.resizing {
     right: 20px;
     bottom: 20px;
     border-radius: 8px;
-    transition: background-color 0.2s;
+    transition: background-color 0.2s, color 0.2s;
 
     &:hover {
       background-color: #ffffff22;
       color: rgb(211, 211, 211);
+    }
+
+    &.pinned > svg {
+      fill: #4a90e2;
+      color: #4a90e2;
+      // background-color: #ffffff22;
     }
   }
 }
