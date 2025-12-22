@@ -1,8 +1,6 @@
 import { mount } from "svelte";
 import App from "./App.svelte";
 import "../../styles/index.scss";
-import hotkeys from "hotkeys-js";
-import Spotlight from "@/lib/components/Spotlight.svelte";
 
 // Set wallpaper immediately from localStorage to prevent flash
 try {
@@ -23,23 +21,5 @@ try {
 const app = mount(App, {
   target: document.getElementById("app")!,
 });
-
-// Mount Spotlight into the newtab page so Alt+Space works here too
-try {
-  const spotlightContainer = document.createElement("div");
-  spotlightContainer.id = "unitab-spotlight-root";
-  document.body.appendChild(spotlightContainer);
-
-  // Mount the Spotlight component into our container
-  mount(Spotlight, { target: spotlightContainer });
-
-  hotkeys("alt+space", function (event) {
-    event.preventDefault();
-    window.dispatchEvent(new CustomEvent("toggle-spotlight"));
-  });
-} catch (err) {
-  // Fail silently - mounting Spotlight is optional for newtab
-  console.warn("Failed to mount Spotlight in newtab:", err);
-}
 
 export default app;
