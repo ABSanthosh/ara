@@ -175,15 +175,20 @@ body.resizing {
   border-radius: 10px 10px 0 0;
   @include make-flex($dir: column, $align: flex-start);
 
-  a {
-    color: #ccc;
-    text-decoration: underline;
-    font-size: 13px;
-    margin-left: auto;
-  }
-  a:hover {
-    color: white;
-    text-decoration: underline;
+  &--calltoaction {
+    gap: 10px;
+    @include box(100%, auto);
+    @include make-flex($dir: row, $just: flex-end);
+    a {
+      color: #ccc;
+      text-decoration: underline;
+      font-size: 13px;
+
+      &:hover {
+        color: white;
+        text-decoration: underline;
+      }
+    }
   }
   p {
     font-size: 15px;
@@ -191,20 +196,33 @@ body.resizing {
   }
 }
 
-.WallpaperDetailsButton {
-  border: none;
-  color: #fff;
-  cursor: pointer;
-  font-size: 15px;
-  padding: 5px;
-  @include box(30px, 30px);
-  @include make-flex();
-  border: 1px solid #ffffff55;
+.NasaTools {
+  gap: 8px;
   position: absolute;
-  right: 20px;
-  bottom: 20px;
-  border-radius: 8px;
-  transition: background-color 0.2s;
+  @include make-flex($dir: row);
+
+  bottom: 7px;
+  right: 10px;
+  z-index: 15;
+  .WallpaperDetailsButton {
+    border: none;
+    color: #9b9b9b;
+    cursor: pointer;
+    font-size: 15px;
+    padding: 5px;
+    @include box(30px, 30px);
+    @include make-flex();
+    border: 1px solid #ffffff55;
+    right: 20px;
+    bottom: 20px;
+    border-radius: 8px;
+    transition: background-color 0.2s;
+
+    &:hover {
+      background-color: #ffffff22;
+      color: rgb(211, 211, 211);
+    }
+  }
 }
 
 .EditableOverlay {

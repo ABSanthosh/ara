@@ -15,6 +15,7 @@
   import { onMount } from "svelte";
   import Modal from "@/lib/components/Modal.svelte";
   import { removeWidget } from "../../lib/stores/settingStore";
+  import { Heart, Pin } from "@lucide/svelte";
 
   settingStore.subscribe((value) => {
     document.body.style.backgroundImage = `url(${value.options.wallpaper.url})`;
@@ -35,6 +36,7 @@
 
   onMount(() => {
     initializeWallpaper();
+    console.log($settingStore.options.wallpaper);
   });
 
   const NasaContextMenu = $derived(
@@ -234,12 +236,20 @@
 </WidgetGrid>
 
 {#if $settingStore.options.wallpaper.type === "nasa"}
-  <button
-    class="WallpaperDetailsButton BlurBG"
-    onclick={() => (showNASAWallpaperInfo = true)}
-  >
-    ?
-  </button>
+  <div class="NasaTools">
+    <button class="WallpaperDetailsButton BlurBG" onclick={() => {}}>
+      <Heart size={15} />
+    </button>
+    <button class="WallpaperDetailsButton BlurBG" onclick={() => {}}>
+      <Pin size={15} />
+    </button>
+    <button
+      class="WallpaperDetailsButton BlurBG"
+      onclick={() => (showNASAWallpaperInfo = true)}
+    >
+      ?
+    </button>
+  </div>
 
   <Modal
     heading={$settingStore.options.wallpaper.metadata.title}
@@ -250,9 +260,17 @@
       {#if $settingStore.options.wallpaper.metadata.copyright}
         <p>© {$settingStore.options.wallpaper.metadata.copyright}</p>
       {/if}
-      <a href={$settingStore.options.wallpaper.metadata.url} target="_blank">
-        View full image
-      </a>
+      <div class="WallpaperDetails--calltoaction">
+        <a
+          href={$settingStore.options.wallpaper.metadata.page_url}
+          target="_blank"
+        >
+          Website
+        </a>
+        <a href={$settingStore.options.wallpaper.metadata.url} target="_blank">
+          View full image
+        </a>
+      </div>
     </div>
   </Modal>
 {/if}

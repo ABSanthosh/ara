@@ -8,6 +8,7 @@ export interface APODResponse {
   service_version: string;
   title: string;
   url: string;
+  page_url: string;
 }
 
 interface APODOptions {
@@ -19,6 +20,22 @@ interface APODOptions {
 }
 
 const APOD_BASE_URL = "https://api.nasa.gov/planetary/apod";
+
+/**
+ * Builds the APOD website page URL from a date string
+ * @param date - Date in YYYY-MM-DD format
+ * @returns The APOD page URL (e.g., https://apod.nasa.gov/apod/ap251203.html)
+ */
+export function buildAPODPageUrl(date: string): string {
+  // Parse the date string directly without timezone conversion
+  const [year, month, day] = date.split('-');
+
+  const yy = year.slice(-2);
+  const mm = month.padStart(2, '0');
+  const dd = day.padStart(2, '0');
+
+  return `https://apod.nasa.gov/apod/ap${yy}${mm}${dd}.html`;
+}
 
 /**
  * Fetches NASA's Astronomy Picture of the Day (APOD)
@@ -60,9 +77,15 @@ export async function fetchAPOD(
     }
 
     const data: APODResponse = await response.json();
+    
+    // Always set the page_url for all responses
+    data.page_url = buildAPODPageUrl(data.date);
+    
+    // For videos, use the thumbnail URL if available
     if (data.media_type === "video" && data.thumbnail_url) {
       data.url = data.thumbnail_url;
     }
+
     return data;
   } catch (error) {
     console.error("Error fetching NASA APOD:", error);

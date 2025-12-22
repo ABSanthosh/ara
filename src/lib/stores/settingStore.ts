@@ -116,9 +116,9 @@ interface SettingStore {
 
 const defaultStore: SettingStore = {
   options: {
-    showGrid: true,
-    isDraggable: true,
-    isResizable: true,
+    showGrid: false,
+    isDraggable: false,
+    isResizable: false,
     wallpaper: {
       type: "preset",
       url: "/assets/wallpapers/adwaita-d.jpg",
@@ -154,14 +154,14 @@ const defaultStore: SettingStore = {
     },
     "cat-1": {
       id: "cat-1",
-      pos: { row: 1, col: 5 },
+      pos: { row: 2, col: 3 },
       type: "cat",
       span: { x: 2, y: 2 },
       settings: {},
     },
     "checklist-1": {
       id: "checklist-1",
-      pos: { row: 3, col: 3 },
+      pos: { row: 4, col: 3 },
       type: "checklist",
       span: { x: 2, y: 2 },
       settings: {
