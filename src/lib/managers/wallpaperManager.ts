@@ -4,7 +4,7 @@ import {
   fetchTodaysAPOD,
   type APODResponse,
 } from "../utils/NasaWallpaper";
-import settingStore from "../stores/settingStore";
+import settingStore from "../stores/setting.store";
 import { get } from "svelte/store";
 
 /**

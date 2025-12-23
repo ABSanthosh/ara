@@ -1,4 +1,4 @@
-import settingStore from "../stores/settingStore";
+import settingStore from "../stores/setting.store";
 
 export interface DraggableOptions {
   onDragEnd?: (gridRow: number, gridCol: number) => void;

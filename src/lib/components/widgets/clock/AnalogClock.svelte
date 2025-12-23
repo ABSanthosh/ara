@@ -9,8 +9,8 @@
     getCityAbbreviation,
     type SupportedCityName,
   } from "../../../utils/timezone";
-  import settingStore from "../../../../lib/stores/settingStore";
-  import type { AnalogClockSpan } from "../../../stores/settingStore";
+  import settingStore from "../../../stores/setting.store";
+  import type { AnalogClockSpan } from "../../../stores/setting.store";
   import { Minus, PenLine } from "@lucide/svelte";
 
   let time = $state(new Date());

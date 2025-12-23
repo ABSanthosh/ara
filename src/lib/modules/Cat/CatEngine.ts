@@ -1,4 +1,4 @@
-import { Magazine, type ImageItem, type MagazineConfig } from "./Magazine";
+import { Magazine, type ImageItem, type MagazineConfig } from "../../utils/Magazine";
 
 export interface CatImage extends ImageItem {
   subreddit: string;

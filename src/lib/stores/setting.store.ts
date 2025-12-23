@@ -1,6 +1,6 @@
 import { writable } from "svelte/store";
 import { SupportedCityName } from "../utils/timezone";
-import { catStoreActions } from "./catStore";
+import { catStoreActions } from "../modules/Cat/cat.store";
 import { APODResponse } from "../utils/NasaWallpaper";
 
 type Widget = {
@@ -153,13 +153,13 @@ const defaultStore: SettingStore = {
       span: { x: 2, y: 2 },
       settings: {},
     },
-    "cat-1": {
-      id: "cat-1",
-      pos: { row: 2, col: 3 },
-      type: "cat",
-      span: { x: 2, y: 2 },
-      settings: {},
-    },
+    // "cat-1": {
+    //   id: "cat-1",
+    //   pos: { row: 2, col: 3 },
+    //   type: "cat",
+    //   span: { x: 2, y: 2 },
+    //   settings: {},
+    // },
     "checklist-1": {
       id: "checklist-1",
       pos: { row: 4, col: 3 },

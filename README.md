@@ -201,6 +201,14 @@ The extension uses WXT for cross-browser compatibility:
   - Weather Widget
   - More to come!
   - Notes Widget
+  - Progress widgets: https://prettyprogress.app/how-to-add-a-countdown-widget-on-your-mac
+  - Video recorder with/out webcam
+  - Audio recorder
+  - Custom wallpaper groups: You can either use nasa wallpapers to update daily, have slideshow of your selected wallpapers or have a slideshow of your liked nasa apod wallpapers, you can upload your custom time-shifting wallpapers.
+  - Art gallery widget: https://apps.apple.com/us/app/widget-art-gallery/id1541416743
+
+## ToDo
+- Add permissions api to request permissions on demand rather than all at once https://developer.chrome.com/docs/extensions/reference/api/permissions
 
 ---
 

@@ -12,8 +12,8 @@
     dissolve,
   } from "../../actions/dissolve.svelte";
   import { Minus, PenLine, X } from "@lucide/svelte";
-  import settingStore from "../../../lib/stores/settingStore";
-  import type { ChecklistSpan, ChecklistItem } from "../../stores/settingStore";
+  import settingStore from "../../stores/setting.store";
+  import type { ChecklistSpan, ChecklistItem } from "../../stores/setting.store";
 
   interface Props {
     id: string;

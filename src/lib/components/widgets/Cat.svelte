@@ -2,11 +2,11 @@
 
 <script lang="ts">
   import { onMount } from "svelte";
-  import type { CatImage } from "@/lib/utils/CatEngine";
+  import type { CatImage } from "@/lib/modules/Cat/CatEngine";
   import BlurredSpinner from "../BlurredSpinner.svelte";
-  import type { CatSpan } from "../../stores/settingStore";
-  import settingStore from "../../../lib/stores/settingStore";
-  import { catStoreActions, catImageStates } from "../../stores/catStore";
+  import type { CatSpan } from "../../stores/setting.store";
+  import settingStore from "../../stores/setting.store";
+  import { catStoreActions, catImageStates } from "../../modules/Cat/cat.store";
   import {
     draggable,
     type DraggableOptions,

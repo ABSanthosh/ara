@@ -1,5 +1,5 @@
 <script lang="ts">
-  import settingStore from "../../lib/stores/settingStore";
+  import settingStore from "../../lib/stores/setting.store";
   import WidgetGrid from "../../lib/components/WidgetGrid.svelte";
   import Calendar from "../../lib/components/widgets/Calendar.svelte";
   import FlipClock from "../../lib/components/widgets/clock/FlipClock.svelte";
@@ -15,7 +15,7 @@
   } from "../../lib/managers/wallpaperManager";
   import { onMount } from "svelte";
   import Modal from "@/lib/components/Modal.svelte";
-  import { removeWidget } from "../../lib/stores/settingStore";
+  import { removeWidget } from "../../lib/stores/setting.store";
   import { Heart, Pin, PinOff } from "@lucide/svelte";
 
   settingStore.subscribe((value) => {

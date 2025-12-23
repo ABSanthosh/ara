@@ -1,6 +1,6 @@
 <script lang="ts">
   import { setDynamicWallpaper } from "@/lib/managers/wallpaperManager";
-  import settingStore from "../../stores/settingStore";
+  import settingStore from "../../stores/setting.store";
   import { fetchTodaysAPOD } from "../../utils/NasaWallpaper";
   import NasaLogo from "~/assets/nasa.png";
 

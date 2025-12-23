@@ -1,6 +1,5 @@
 import { writable, derived } from "svelte/store";
-import { catEngine, type CatImage } from "../utils/CatEngine";
-import { Magazine, type MagazineConfig } from "../utils/Magazine";
+import { catEngine, type CatImage } from "./CatEngine";
 
 interface CatImageCache {
   [widgetId: string]: {

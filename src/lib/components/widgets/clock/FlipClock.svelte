@@ -22,8 +22,8 @@
     SUPPORTED_CITIES,
     type SupportedCityName,
   } from "../../../utils/timezone";
-  import type { FlipClockSpan } from "../../../stores/settingStore";
-  import settingStore from "../../../../lib/stores/settingStore";
+  import type { FlipClockSpan } from "../../../stores/setting.store";
+  import settingStore from "../../../stores/setting.store";
   import { Minus, PenLine } from "@lucide/svelte";
 
   interface Props {

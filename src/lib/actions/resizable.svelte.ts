@@ -1,4 +1,4 @@
-import settingStore from "../stores/settingStore";
+import settingStore from "../stores/setting.store";
 
 export interface ResizableOptions {
   onResize?: (spanX: number, spanY: number) => void;

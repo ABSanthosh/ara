@@ -1,14 +1,14 @@
 <script lang="ts">
   import settingStore, {
     addWidget as addWidgetToStore,
-  } from "../../stores/settingStore";
+  } from "../../stores/setting.store";
   import type {
     AnalogClockSpan,
     FlipClockSpan,
     CalendarSpan,
     CatSpan,
     ChecklistSpan,
-  } from "../../stores/settingStore";
+  } from "../../stores/setting.store";
   import { Clock, Calendar, Cat, CheckSquare, Clock4 } from "@lucide/svelte";
 
   // Import actual widget components for previews

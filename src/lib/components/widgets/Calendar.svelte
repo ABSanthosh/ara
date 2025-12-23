@@ -5,8 +5,8 @@
   import { dissolve } from "../../actions/dissolve.svelte";
   import { ChevronLeft, ChevronRight, Minus, PenLine, RotateCcw } from "@lucide/svelte";
   import { getTimeForCity, type SupportedCityName } from "../../utils/timezone";
-  import type { CalendarSpan } from "../../stores/settingStore";
-  import settingStore from "../../../lib/stores/settingStore";
+  import type { CalendarSpan } from "../../stores/setting.store";
+  import settingStore from "../../stores/setting.store";
 
   interface Props {
     id: string;
