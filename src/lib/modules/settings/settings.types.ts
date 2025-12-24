@@ -1,11 +1,20 @@
 import { APODResponse } from "../wallpaper/nasa/nasa.types";
+import { Widgets } from "../widgets/widgets.types";
 
 export type TSettingStore = {
+  internal: {
+    grid: {
+      rows: number;
+      cols: number;
+      cellSize: number;
+    }
+  };
   options: {
     isDraggable: boolean;
     isResizable: boolean;
     showGrid: boolean;
   };
+  widgets: Record<string, Widgets>;
   wallpaper: {
     activePlugin: "preset" | "nasa";
     url: string;

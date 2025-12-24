@@ -7,9 +7,8 @@ import { NASAEngine } from "./nasa/nasa.engine";
  * Wallpaper manager will take different 
  */
 export class WallpaperManagerImpl {
-  private settings = SettingStore;
   constructor() {
-    this.settings.stateValue.subscribe((settings) => {
+    SettingStore.subscribe((settings) => {
       document.body.style.backgroundImage = `url(${settings.wallpaper.url})`;
     })
   }
@@ -41,7 +40,7 @@ export class WallpaperManagerImpl {
   }) {
     if (type === "preset") {
       const presetUrl = options.url;
-      this.settings.update((state) => {
+      SettingStore.update((state) => {
         state.wallpaper.activePlugin = "preset";
         state.wallpaper.url = presetUrl;
         return state;
@@ -49,7 +48,7 @@ export class WallpaperManagerImpl {
     } else if (type === "nasa") {
       if (options.mode === "dynamic") {
         const wallpaper = await NASAEngine.getAPOD();
-        this.settings.update((state) => {
+        SettingStore.update((state) => {
           state.wallpaper.activePlugin = "nasa";
           state.wallpaper.url = wallpaper.url;
           state.wallpaper.plugins.nasa.metadata = wallpaper;
@@ -62,7 +61,7 @@ export class WallpaperManagerImpl {
       } else if (options.mode === "static") {
         const dateStr = options.date.toISOString().split('T')[0];
         const wallpaper = await NASAEngine.getAPOD({ date: dateStr });
-        this.settings.update((state) => {
+        SettingStore.update((state) => {
           state.wallpaper.activePlugin = "nasa";
           state.wallpaper.url = wallpaper.url;
           state.wallpaper.plugins.nasa.metadata = wallpaper;
@@ -81,7 +80,7 @@ export class WallpaperManagerImpl {
    * @param date Date of the APOD to favorite
    */
   public addNasaFavorite(date: string) {
-    this.settings.update((state) => {
+    SettingStore.update((state) => {
       const favs = state.wallpaper.plugins.nasa.favorites;
       if (!favs.find(d => d === date)) {
         favs.push(date);
@@ -95,7 +94,7 @@ export class WallpaperManagerImpl {
    * @param date Date string to remove from favorites
    */
   public removeNasaFavorite(date: string) {
-    this.settings.update((state) => {
+    SettingStore.update((state) => {
       state.wallpaper.plugins.nasa.favorites = state.wallpaper.plugins.nasa.favorites.filter(d => d !== date);
       return state;
     });
@@ -107,7 +106,7 @@ export class WallpaperManagerImpl {
    * By pinning, the mode will be changed to static with current APOD date.
    */
   public pinCurrentNasaAPOD() {
-    this.settings.update((state) => {
+    SettingStore.update((state) => {
       if (state.wallpaper.activePlugin === "nasa" && state.wallpaper.plugins.nasa.mode === "dynamic") {
         const currentDate = state.wallpaper.plugins.nasa.lastUpdate;
         state.wallpaper.plugins.nasa.mode = "static";
@@ -122,7 +121,7 @@ export class WallpaperManagerImpl {
    * By unpinning, the mode will be changed back to dynamic to get daily updates.
    */
   public unpinCurrentNasaAPOD() {
-    this.settings.update((state) => {
+    SettingStore.update((state) => {
       if (state.wallpaper.activePlugin === "nasa" && state.wallpaper.plugins.nasa.mode === "static") {
         state.wallpaper.plugins.nasa.mode = "dynamic";
         delete state.wallpaper.plugins.nasa.staticDate;

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { type Snippet } from "svelte";
+  import { SettingStore } from "../modules/settings/settings.store";
 
   interface Props {
     gridGap?: number;
@@ -46,6 +47,13 @@
 
     // Ensure the cell size does not go below the minimum widget size
     cellSize = Math.max(cellSize, minWidgetSize);
+
+    SettingStore.update((store) => {
+      store.internal.grid.rows = gridRows;
+      store.internal.grid.cols = gridCols;
+      store.internal.grid.cellSize = cellSize;
+      return store;
+    });
   }
 
   onMount(() => {
@@ -114,6 +122,8 @@
     grid-template-columns: repeat(var(--grid-cols), var(--cell-size));
 
     .grid-cell {
+      z-index: 0;
+      user-select: none;
       border-radius: 20px;
       @include make-flex();
       width: var(--cell-size);

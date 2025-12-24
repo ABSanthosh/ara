@@ -1,0 +1,91 @@
+// Using Widget type somewhere where I don't want to pass id but it is mandatory in Widgets
+export type Widget = {
+  id?: string;
+  pos: {
+    row: number;
+    col: number;
+  };
+};
+
+// Define valid span combinations for each widget type
+export type AnalogClockSpan =
+  | { x: 1; y: 1 } // Small widget
+  | { x: 2; y: 2 }; // Large widget
+
+export type FlipClockSpan =
+  | { x: 2; y: 1 } // Compact widget
+  | { x: 2; y: 2 }; // Large widget
+
+export type CalendarSpan =
+  | { x: 1; y: 1 } // Compact widget
+  | { x: 2; y: 2 }; // Large widget
+
+export type CatSpan =
+  | { x: 1; y: 1 } // Small cat widget
+  | { x: 2; y: 2 }; // Large cat widget
+
+export type ChecklistSpan =
+  | { x: 2; y: 2 }; // Only 2x2 size allowed
+
+export type TestWidgetSpan =
+  | { x: 1; y: 1 }
+  | { x: 2; y: 2 }
+  | { x: 3; y: 3 }
+  | { x: 1; y: 2 }
+  | { x: 2; y: 1 };
+
+export type AnalogClockWidget = Widget & {
+  type: "analog-clock";
+  span: AnalogClockSpan;
+  settings: {
+    showNumbers: boolean;
+    showSecondsHand: boolean;
+    // city?: SupportedCityName;
+  };
+};
+
+export type FlipClockWidget = Widget & {
+  type: "flip-clock";
+  span: FlipClockSpan;
+  settings: {
+    showSeconds: boolean;
+    // city?: SupportedCityName;
+  };
+};
+
+export type CalendarWidget = Widget & {
+  type: "calendar";
+  span: CalendarSpan;
+  settings: {
+    // city?: SupportedCityName;
+  };
+};
+
+export type CatWidget = Widget & {
+  type: "cat";
+  span: CatSpan;
+  settings: {
+    // No specific settings for cat widget currently
+  };
+};
+
+export type ChecklistWidget = Widget & {
+  type: "checklist";
+  span: ChecklistSpan;
+  settings: {
+    items: {
+      id: string;
+      text: string;
+      completed: boolean;
+    }[];
+  };
+};
+
+export type TestWidget = Widget & {
+  type: "test-widget";
+  span: TestWidgetSpan;
+  settings: {};
+};
+
+export type Widgets = AnalogClockWidget | FlipClockWidget | CalendarWidget | CatWidget | ChecklistWidget | TestWidget;
+export type WidgetTypes = Widgets["type"];

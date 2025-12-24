@@ -2,11 +2,19 @@ import { writable, type Writable } from "svelte/store";
 import { TSettingStore } from "./settings.types";
 
 const defaultStore: TSettingStore = {
+  internal: {
+    grid: {
+      rows: -1,
+      cols: -1,
+      cellSize: -1,
+    }
+  },
   options: {
     showGrid: false,
     isDraggable: false,
     isResizable: false,
   },
+  widgets: {},
   wallpaper: {
     activePlugin: "preset",
     url: "/assets/wallpapers/adwaita-d.jpg",
@@ -35,13 +43,11 @@ const defaultStore: TSettingStore = {
 };
 
 class SettingStoreImpl {
-  private state = writable<TSettingStore>(this.loadFromLocalStorage());
+  public state = writable<TSettingStore>(this.loadFromLocalStorage());
   private saveTimer: NodeJS.Timeout | null = null;
 
-  get stateValue(): Writable<TSettingStore> {
-    return this.state
-  }
-
+  public subscribe: Writable<TSettingStore>["subscribe"] = (...args) => this.state.subscribe(...args);
+  public set: Writable<TSettingStore>["set"] = (...args) => this.state.set(...args);
   public update: Writable<TSettingStore>["update"] = (...args) => this.state.update(...args);
 
   constructor() {
