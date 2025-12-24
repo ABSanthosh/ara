@@ -1,1 +1,40 @@
-@use "./mixins" as *;
+@forward "./home.scss";
+
+$scrollbarWidth: 4px;
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  transition: color 0.1s ease-in-out;
+
+  font-style: normal;
+  font-optical-sizing: auto;
+  font-family: "Inter", sans-serif;
+}
+
+html {
+  overflow-y: auto;
+  font-size: 15.5px;
+  overflow-x: hidden;
+  @include box(100vw, auto);
+  @include make-flex($just: flex-start);
+}
+
+::-webkit-scrollbar {
+  background: transparent;
+  @include box($scrollbarWidth, $scrollbarWidth);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d3d1cb;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::selection {
+  background: #2daadb4d;
+}
