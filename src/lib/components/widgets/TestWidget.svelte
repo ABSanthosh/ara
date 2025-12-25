@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { WidgetEngine } from "@/lib/modules/widgets/widgets.engine";
   import { draggable } from "../../modules/widgets/utils/draggable.svelte";
 
   interface Props {
@@ -32,10 +33,14 @@
   "
 >
   <div class="widget-content">
-    <h3>{title}</h3>
     <p>ID: {widgetId}</p>
     <p>Position: {gridRow}, {gridCol}</p>
     <p>Size: {gridSpanX} × {gridSpanY}</p>
+    <button
+      onclick={() => {
+        WidgetEngine.removeWidget(widgetId);
+      }}>Remove</button
+    >
   </div>
 </div>
 
@@ -47,18 +52,15 @@
     padding: 10px;
     border: 2px solid transparent;
     transition: border-color 0.2s ease;
-    cursor: grab;
-    user-select: none;
     border-color: var(--widget-color);
-
-    &:active {
-      cursor: grabbing;
-    }
+    border-radius: 20px;
+    background: rgba(0, 0, 0, 0.49);
+    box-shadow: 0 0 20px 1px #00000087;
+    backdrop-filter: blur(26px) saturate(170%) brightness(1.04);
 
     .widget-content {
-      text-align: center;
       color: white;
-      pointer-events: none;
+      text-align: center;
 
       h3 {
         margin: 0 0 10px 0;
