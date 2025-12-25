@@ -1,5 +1,6 @@
 import { get } from "svelte/store";
 import { SettingStore } from "../../settings/settings.store";
+import { WidgetEngine } from "../widgets.engine";
 
 /**
  * Mental model:
@@ -17,29 +18,71 @@ function createDragShadow() {
   return el;
 }
 
+function makeRemoveButton(widgetId: string) {
+  const btn = document.createElement("button");
+  btn.textContent = "-";
+  btn.className = "widget-remove";
+  btn.setAttribute("data-drag-ignore", "true");
+  btn.onclick = () => {
+    WidgetEngine.removeWidget(widgetId);
+  };
+  return btn;
+}
+
 const occupiedCells = new Set<string>();
 
 type DragState =
   | { type: "idle" }
   | {
-    type: "dragging";
-    offsetX: number;
-    offsetY: number;
-  };
+      type: "dragging";
+      offsetX: number;
+      offsetY: number;
+    };
 
 export function draggable(draggedWidget: HTMLElement, widgetId: string) {
   /* ---------------------------------- */
   /* Store + derived state               */
   /* ---------------------------------- */
 
+  const removeButton = makeRemoveButton(widgetId);
+
+  function attachRemoveButton() {
+    if (!draggedWidget.contains(removeButton)) {
+      draggedWidget.appendChild(removeButton);
+    }
+    draggedWidget.classList.add("dragging-pane");
+  }
+
+  function detachRemoveButton() {
+    removeButton.remove();
+    draggedWidget.classList.remove("dragging-pane");
+  }
+
   let settings = get(SettingStore);
-  const unsubscribe = SettingStore.subscribe((v) => (settings = v));
+  const unsubscribe = SettingStore.subscribe((v) => {
+    const wasDraggable = settings.options.isDraggable;
+    settings = v;
+
+    if (v.options.isDraggable) {
+      attachRemoveButton();
+    } else {
+      detachRemoveButton();
+    }
+
+    if (
+      wasDraggable &&
+      !v.options.isDraggable &&
+      dragState.type === "dragging"
+    ) {
+      cancelDrag();
+    }
+  });
 
   const getWidget = () => settings.widgets[widgetId];
   const getGrid = () => settings.internal.grid;
 
   /* ---------------------------------- */
-  /* Drag state                          */
+  /* Drag state                         */
   /* ---------------------------------- */
 
   let dragState: DragState = $state({ type: "idle" });
@@ -47,7 +90,6 @@ export function draggable(draggedWidget: HTMLElement, widgetId: string) {
   let shadow = $state(createDragShadow());
   let shadowPos = $state({ row: 1, col: 1 });
   let isDragging = $state(false);
-  let isDraggable = $derived(settings.options.isDraggable);
 
   let lastUpdateX = $state(0);
   let lastUpdateY = $state(0);
@@ -57,7 +99,7 @@ export function draggable(draggedWidget: HTMLElement, widgetId: string) {
   let pendingEvent: MouseEvent | null = $state(null);
 
   /* ---------------------------------- */
-  /* Grid helpers                        */
+  /* Grid helpers                       */
   /* ---------------------------------- */
 
   function updateOccupiedCells() {
@@ -76,12 +118,7 @@ export function draggable(draggedWidget: HTMLElement, widgetId: string) {
 
   function isValid(row: number, col: number, sx: number, sy: number) {
     const g = getGrid();
-    if (
-      row < 1 ||
-      col < 1 ||
-      row + sy - 1 > g.rows ||
-      col + sx - 1 > g.cols
-    )
+    if (row < 1 || col < 1 || row + sy - 1 > g.rows || col + sx - 1 > g.cols)
       return false;
 
     for (let r = row; r < row + sy; r++) {
@@ -111,17 +148,11 @@ export function draggable(draggedWidget: HTMLElement, widgetId: string) {
     return {
       row: Math.max(
         1,
-        Math.min(
-          Math.floor((y - rect.top) / (g.cellSize + g.gap)) + 1,
-          g.rows
-        )
+        Math.min(Math.floor((y - rect.top) / (g.cellSize + g.gap)) + 1, g.rows)
       ),
       col: Math.max(
         1,
-        Math.min(
-          Math.floor((x - rect.left) / (g.cellSize + g.gap)) + 1,
-          g.cols
-        )
+        Math.min(Math.floor((x - rect.left) / (g.cellSize + g.gap)) + 1, g.cols)
       ),
     };
   }
@@ -209,15 +240,9 @@ export function draggable(draggedWidget: HTMLElement, widgetId: string) {
     draggedWidget.style.left = `${x}px`;
     draggedWidget.style.top = `${y}px`;
 
-    if (
-      Math.abs(x - lastUpdateX) > 8 ||
-      Math.abs(y - lastUpdateY) > 8
-    ) {
+    if (Math.abs(x - lastUpdateX) > 8 || Math.abs(y - lastUpdateY) > 8) {
       const snap = getBestSnap(x, y);
-      if (
-        snap.row !== shadowPos.row ||
-        snap.col !== shadowPos.col
-      ) {
+      if (snap.row !== shadowPos.row || snap.col !== shadowPos.col) {
         updateShadow(snap.row, snap.col);
         lastUpdateX = x;
         lastUpdateY = y;
@@ -232,8 +257,11 @@ export function draggable(draggedWidget: HTMLElement, widgetId: string) {
   /* ---------------------------------- */
 
   function startDrag(e: MouseEvent) {
-    if (!isDraggable) return;
+    if (!settings.options.isDraggable) return;
     if (e.button !== 0 || dragState.type !== "idle") return;
+
+    const target = e.target as HTMLElement;
+    if (target.closest("[data-drag-ignore]")) return;
 
     const rect = draggedWidget.getBoundingClientRect();
 
@@ -249,15 +277,17 @@ export function draggable(draggedWidget: HTMLElement, widgetId: string) {
     shadow = createDragShadow();
     updateShadow(getWidget().pos.row, getWidget().pos.col);
 
+    draggedWidget.classList.add("dragging");
     draggedWidget.style.position = "fixed";
     draggedWidget.style.left = `${rect.left}px`;
     draggedWidget.style.top = `${rect.top}px`;
     draggedWidget.style.width = `${rect.width}px`;
     draggedWidget.style.height = `${rect.height}px`;
     draggedWidget.style.zIndex = "1001";
-    draggedWidget.style.cursor = "grabbing";
     draggedWidget.style.pointerEvents = "none";
-    draggedWidget.style.transform = "scale(1.05)";
+    // draggedWidget.style.transform = "scale(1.05)";
+
+    document.body.classList.add("dragging-in-progress");
 
     document.addEventListener("mousemove", onMouseMove);
     document.addEventListener("mouseup", onMouseUp);
@@ -280,6 +310,7 @@ export function draggable(draggedWidget: HTMLElement, widgetId: string) {
     draggedWidget.style.transform = "scale(1)";
 
     setTimeout(() => {
+      draggedWidget.classList.remove("dragging");
       draggedWidget.style.transition = "";
       draggedWidget.style.position = "";
       draggedWidget.style.left = "";
@@ -290,8 +321,9 @@ export function draggable(draggedWidget: HTMLElement, widgetId: string) {
       draggedWidget.style.pointerEvents = "";
       draggedWidget.style.transform = "";
 
-      draggedWidget.style.gridArea = `${final.row} / ${final.col} / ${final.row + w.span.y
-        } / ${final.col + w.span.x}`;
+      draggedWidget.style.gridArea = `${final.row} / ${final.col} / ${
+        final.row + w.span.y
+      } / ${final.col + w.span.x}`;
 
       SettingStore.update((s) => {
         s.widgets[widgetId].pos = final;
@@ -305,6 +337,23 @@ export function draggable(draggedWidget: HTMLElement, widgetId: string) {
     cleanup();
   }
 
+  function cancelDrag() {
+    if (dragState.type !== "dragging") return;
+
+    draggedWidget.style.transition = "";
+    draggedWidget.style.position = "";
+    draggedWidget.style.left = "";
+    draggedWidget.style.top = "";
+    draggedWidget.style.width = "";
+    draggedWidget.style.height = "";
+    draggedWidget.style.zIndex = "";
+    draggedWidget.style.pointerEvents = "";
+    draggedWidget.style.transform = "";
+
+    shadow?.remove();
+    cleanup();
+  }
+
   function cleanup() {
     dragState = { type: "idle" };
     isDragging = false;
@@ -313,11 +362,20 @@ export function draggable(draggedWidget: HTMLElement, widgetId: string) {
     rafId = null;
     pendingEvent = null;
 
+    document.body.classList.remove("dragging-in-progress");
     document.removeEventListener("mousemove", onMouseMove);
     document.removeEventListener("mouseup", onMouseUp);
   }
 
   draggedWidget.addEventListener("mousedown", startDrag);
+
+  const r = (min: number, max: number) => Math.random() * (max - min) + min;
+
+  draggedWidget.style.setProperty("--rot", `${r(0.4, 0.7)}deg`);
+  draggedWidget.style.setProperty("--dx", `${r(-0.6, 0.6)}px`);
+  draggedWidget.style.setProperty("--dy", `${r(-0.6, 0.6)}px`);
+  draggedWidget.style.animationDuration = `${r(0.32, 0.38)}s`;
+  draggedWidget.style.animationDelay = `${-r(0, 0.3)}s`;
 
   return {
     destroy() {

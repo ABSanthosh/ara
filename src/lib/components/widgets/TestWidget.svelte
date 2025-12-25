@@ -32,16 +32,9 @@
     --widget-color: {color};
   "
 >
-  <div class="widget-content">
-    <p>ID: {widgetId}</p>
-    <p>Position: {gridRow}, {gridCol}</p>
-    <p>Size: {gridSpanX} × {gridSpanY}</p>
-    <button
-      onclick={() => {
-        WidgetEngine.removeWidget(widgetId);
-      }}>Remove</button
-    >
-  </div>
+  <p>ID: {widgetId}</p>
+  <p>Position: {gridRow}, {gridCol}</p>
+  <p>Size: {gridSpanX} × {gridSpanY}</p>
 </div>
 
 <style lang="scss">
@@ -58,28 +51,23 @@
     box-shadow: 0 0 20px 1px #00000087;
     backdrop-filter: blur(26px) saturate(170%) brightness(1.04);
 
-    .widget-content {
-      color: white;
-      text-align: center;
+    color: white;
+    @include box();
+    @include make-flex();
+    text-align: center;
 
-      h3 {
-        margin: 0 0 10px 0;
-        font-size: 18px;
-        font-weight: 600;
-        color: var(--widget-color);
-      }
-
-      p {
-        margin: 5px 0;
-        font-size: 12px;
-        opacity: 0.8;
-        font-family: "JetBrains Mono", monospace;
-      }
+    h3 {
+      margin: 0 0 10px 0;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--widget-color);
     }
-  }
 
-  :global(body.dragging) {
-    cursor: grabbing;
-    user-select: none;
+    p {
+      margin: 5px 0;
+      font-size: 12px;
+      opacity: 0.8;
+      font-family: "JetBrains Mono", monospace;
+    }
   }
 </style>
