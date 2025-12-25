@@ -46,7 +46,7 @@
     border: 2px solid transparent;
     transition: border-color 0.2s ease;
     border-color: var(--widget-color);
-    border-radius: 20px;
+    border-radius: 25px;
     background: rgba(0, 0, 0, 0.49);
     box-shadow: 0 0 20px 1px #00000087;
     backdrop-filter: blur(26px) saturate(170%) brightness(1.04);

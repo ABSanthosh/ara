@@ -5,11 +5,16 @@
   import TestWidget from "@/lib/components/widgets/TestWidget.svelte";
   import { SettingStore } from "@/lib/modules/settings/settings.store";
   import { WidgetEngine } from "@/lib/modules/widgets/widgets.engine";
+  import WidgetModal from "@/lib/components/WidgetModal.svelte";
 
   // Init modules
   const wallpaperManager = new WallpaperManagerImpl();
   const settingState = $derived(SettingStore.state);
+
+  let showSettingModal = $state(true);
 </script>
+
+<WidgetModal bind:showModal={showSettingModal} />
 
 <Grid>
   {#each Object.keys($settingState.widgets) as widgetId}
