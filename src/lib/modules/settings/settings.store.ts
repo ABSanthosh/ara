@@ -7,11 +7,13 @@ const defaultStore: TSettingStore = {
       rows: -1,
       cols: -1,
       cellSize: -1,
+      gap: -1,
+      element: document.createElement("div"),
     }
   },
   options: {
     showGrid: false,
-    isDraggable: false,
+    isDraggable: true,
     isResizable: false,
   },
   widgets: {},

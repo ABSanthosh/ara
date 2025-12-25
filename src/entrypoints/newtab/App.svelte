@@ -14,10 +14,9 @@
 <Grid>
   {#each Object.keys($settingState.widgets) as widgetId}
     {@const widget = $settingState.widgets[widgetId]}
-    <!-- {$inspect(widget)} -->
     {#if widget.type === "test-widget"}
       <TestWidget
-        id={widgetId}
+        {widgetId}
         gridCol={widget.pos.col}
         gridRow={widget.pos.row}
         gridSpanX={widget.span.x}
@@ -48,4 +47,28 @@
 </button>
 
 <style lang="scss">
+  button {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 12px 24px;
+    background: rgba(99, 102, 241, 0.9);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    backdrop-filter: blur(10px);
+    transition: all 0.2s ease;
+    z-index: 1000;
+
+    &:hover {
+      background: rgba(99, 102, 241, 1);
+      transform: scale(1.05);
+    }
+
+    &:active {
+      transform: scale(0.95);
+    }
+  }
 </style>

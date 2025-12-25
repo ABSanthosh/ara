@@ -12,19 +12,20 @@
 
   let {
     gridGap = 10,
-    showGrid = false,
+    showGrid = true,
     gridPadding = 40,
     minWidgetSize = 110,
     children,
   }: Props = $props();
 
+  let gridContainer: HTMLElement;
   let grid: HTMLElement;
   let gridCols = $state(6);
   let gridRows = $state(4);
   let cellSize = $state(110);
 
   function calculateGrid() {
-    if (!grid) return;
+    if (!gridContainer) return;
 
     // Calculate the available viewport size minus padding
     const viewportWidth = window.innerWidth - gridPadding * 2;
@@ -51,7 +52,10 @@
     SettingStore.update((store) => {
       store.internal.grid.rows = gridRows;
       store.internal.grid.cols = gridCols;
+      store.internal.grid.gap = gridGap;
       store.internal.grid.cellSize = cellSize;
+      store.internal.grid.element = grid;
+
       return store;
     });
   }
@@ -66,9 +70,10 @@
   });
 </script>
 
-<main class="grid-container" bind:this={grid}>
+<main class="grid-container" bind:this={gridContainer}>
   <div
     class="grid"
+    bind:this={grid}
     style="
     --grid-cols: {gridCols};
     --grid-rows: {gridRows};
@@ -122,9 +127,10 @@
     grid-template-columns: repeat(var(--grid-cols), var(--cell-size));
 
     .grid-cell {
-      z-index: 0;
+      z-index: -10;
       user-select: none;
       border-radius: 20px;
+      pointer-events: none;
       @include make-flex();
       width: var(--cell-size);
       height: var(--cell-size);

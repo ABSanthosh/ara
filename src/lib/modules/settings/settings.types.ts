@@ -6,7 +6,9 @@ export type TSettingStore = {
     grid: {
       rows: number;
       cols: number;
+      gap: number;
       cellSize: number;
+      element: HTMLElement
     }
   };
   options: {
