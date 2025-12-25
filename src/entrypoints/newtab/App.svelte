@@ -27,6 +27,7 @@
 </Grid>
 
 <button
+  style="right: 200px"
   onclick={() => {
     const combos = [
       { x: 1, y: 1 },
@@ -46,11 +47,22 @@
   Add Widget
 </button>
 
+<button
+  style="right: 20px"
+  onclick={() => {
+    SettingStore.update((store) => {
+      store.options.isDraggable = !store.options.isDraggable;
+      return store;
+    });
+  }}
+>
+  {$settingState.options.isDraggable ? "Disable" : "Enable"} Dragging
+</button>
+
 <style lang="scss">
   button {
     position: fixed;
     bottom: 20px;
-    right: 20px;
     padding: 12px 24px;
     background: rgba(99, 102, 241, 0.9);
     color: white;
