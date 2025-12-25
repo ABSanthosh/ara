@@ -11,8 +11,8 @@
   }
 
   let {
-    gridGap = 10,
-    showGrid = true,
+    gridGap = 15,
+    showGrid = false,
     gridPadding = 40,
     minWidgetSize = 110,
     children,
