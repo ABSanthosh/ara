@@ -183,7 +183,7 @@ export function draggable(draggedWidget: HTMLElement, widgetId: string) {
 
     const center = mouseToGrid(x + widgetW / 2, y + widgetH / 2);
 
-    let best = center;
+    let best: { row: number; col: number } | null = null;
     let bestOverlap = 0;
 
     const radius = Math.max(w.span.x, w.span.y) + 1;
@@ -194,14 +194,12 @@ export function draggable(draggedWidget: HTMLElement, widgetId: string) {
 
         const cell = gridRect(r, c, w.span.x, w.span.y);
 
-        const overlapX = Math.max(
-          0,
-          Math.min(x + widgetW, cell.x + cell.width) - Math.max(x, cell.x)
-        );
-        const overlapY = Math.max(
-          0,
-          Math.min(y + widgetH, cell.y + cell.height) - Math.max(y, cell.y)
-        );
+        const overlapX =
+          Math.min(x + widgetW, cell.x + cell.width) - Math.max(x, cell.x);
+        const overlapY =
+          Math.min(y + widgetH, cell.y + cell.height) - Math.max(y, cell.y);
+
+        if (overlapX <= 0 || overlapY <= 0) continue;
 
         const area = overlapX * overlapY;
         if (area > bestOverlap) {
@@ -211,7 +209,11 @@ export function draggable(draggedWidget: HTMLElement, widgetId: string) {
       }
     }
 
-    return best;
+    // NEVER return an invalid cell
+    if (best) return best;
+
+    // fallback: keep previous valid shadow position
+    return shadowPos;
   }
 
   /* ---------------------------------- */
@@ -244,9 +246,9 @@ export function draggable(draggedWidget: HTMLElement, widgetId: string) {
       const snap = getBestSnap(x, y);
       if (snap.row !== shadowPos.row || snap.col !== shadowPos.col) {
         updateShadow(snap.row, snap.col);
-        lastUpdateX = x;
-        lastUpdateY = y;
       }
+      lastUpdateX = x;
+      lastUpdateY = y;
     }
 
     rafId = null;
@@ -301,7 +303,12 @@ export function draggable(draggedWidget: HTMLElement, widgetId: string) {
     if (dragState.type !== "dragging") return;
 
     const w = getWidget();
-    const final = shadowPos;
+    let final = shadowPos;
+
+    if (!isValid(final.row, final.col, w.span.x, w.span.y)) {
+      final = w.pos;
+    }
+
     const rect = gridRect(final.row, final.col, w.span.x, w.span.y);
 
     draggedWidget.style.transition = "all 0.3s ease";
