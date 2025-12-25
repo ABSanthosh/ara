@@ -47,6 +47,7 @@ export function draggable(draggedWidget: HTMLElement, widgetId: string) {
   let shadow = $state(createDragShadow());
   let shadowPos = $state({ row: 1, col: 1 });
   let isDragging = $state(false);
+  let isDraggable = $derived(settings.options.isDraggable);
 
   let lastUpdateX = $state(0);
   let lastUpdateY = $state(0);
@@ -231,6 +232,7 @@ export function draggable(draggedWidget: HTMLElement, widgetId: string) {
   /* ---------------------------------- */
 
   function startDrag(e: MouseEvent) {
+    if (!isDraggable) return;
     if (e.button !== 0 || dragState.type !== "idle") return;
 
     const rect = draggedWidget.getBoundingClientRect();
@@ -253,6 +255,7 @@ export function draggable(draggedWidget: HTMLElement, widgetId: string) {
     draggedWidget.style.width = `${rect.width}px`;
     draggedWidget.style.height = `${rect.height}px`;
     draggedWidget.style.zIndex = "1001";
+    draggedWidget.style.cursor = "grabbing";
     draggedWidget.style.pointerEvents = "none";
     draggedWidget.style.transform = "scale(1.05)";
 
