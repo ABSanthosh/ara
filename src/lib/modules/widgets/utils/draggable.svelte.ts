@@ -1,252 +1,244 @@
 import { get } from "svelte/store";
 import { SettingStore } from "../../settings/settings.store";
-import { Widgets } from "../widgets.types";
 
-function WidgetDragShadow() {
-  const shadow = document.createElement("div");
-  shadow.className = "widget-drag-shadow";
-  document.body.appendChild(shadow);
-  return shadow;
+function createDragShadow() {
+  const el = document.createElement("div");
+  el.className = "widget-drag-shadow";
+  el.style.opacity = "0";
+  document.body.appendChild(el);
+  return el;
 }
 
 const occupiedCells = new Set<string>();
 
-export function draggable(draggedWidget: HTMLElement, widgetId: string) {
-  let localSettingsCopy = $state(get(SettingStore));
-  SettingStore.subscribe((settings) => {
-    localSettingsCopy = settings;
-  });
+type DragState =
+  | { type: "idle" }
+  | {
+    type: "dragging";
+    offsetX: number;
+    offsetY: number;
+  };
 
-  let currentWidget = $derived(localSettingsCopy.widgets[widgetId]);
-  let gridInfo = $derived(localSettingsCopy.internal.grid);
-  let shadow: HTMLElement = $state(WidgetDragShadow());
+export function draggable(draggedWidget: HTMLElement, widgetId: string) {
+  /* ---------------------------------- */
+  /* Store + derived state               */
+  /* ---------------------------------- */
+
+  let settings = get(SettingStore);
+  const unsubscribe = SettingStore.subscribe((v) => (settings = v));
+
+  const getWidget = () => settings.widgets[widgetId];
+  const getGrid = () => settings.internal.grid;
+
+  /* ---------------------------------- */
+  /* Drag state                          */
+  /* ---------------------------------- */
+
+  let dragState: DragState = $state({ type: "idle" });
+
+  let shadow = $state(createDragShadow());
   let shadowPos = $state({ row: 1, col: 1 });
-  const isDraggable = $derived(localSettingsCopy.options.isDraggable);
   let isDragging = $state(false);
 
-  $inspect(isDragging);
-
-  let lastMouseGrid = $state({ row: -1, col: -1 });
-  let offsetX = $state(0);
-  let offsetY = $state(0);
   let lastUpdateX = $state(0);
   let lastUpdateY = $state(0);
 
+  /* RAF debouncing */
+  let rafId: number | null = $state(null);
+  let pendingEvent: MouseEvent | null = $state(null);
+
+  /* ---------------------------------- */
+  /* Grid helpers                        */
+  /* ---------------------------------- */
+
   function updateOccupiedCells() {
     occupiedCells.clear();
-    const widgets = localSettingsCopy.widgets;
 
-    // Add all cells occupied by widgets
-    Object.values(widgets).forEach((w) => {
+    Object.values(settings.widgets).forEach((w) => {
       if (w.id === widgetId) return;
 
-      for (let row = w.pos.row; row < w.pos.row + w.span.y; row++) {
-        for (let col = w.pos.col; col < w.pos.col + w.span.x; col++) {
-          occupiedCells.add(`${row}-${col}`);
+      for (let r = w.pos.row; r < w.pos.row + w.span.y; r++) {
+        for (let c = w.pos.col; c < w.pos.col + w.span.x; c++) {
+          occupiedCells.add(`${r}-${c}`);
         }
       }
     });
   }
 
-  function getMouseGridPosition(mouseX: number, mouseY: number) {
-    const rect = gridInfo.element.getBoundingClientRect();
-    const relativeX = mouseX - rect.left;
-    const relativeY = mouseY - rect.top;
-
-    const col = Math.floor(relativeX / (gridInfo.cellSize + gridInfo.gap)) + 1;
-    const row = Math.floor(relativeY / (gridInfo.cellSize + gridInfo.gap)) + 1;
-
-    return {
-      row: Math.max(1, Math.min(row, gridInfo.rows)),
-      col: Math.max(1, Math.min(col, gridInfo.cols)),
-    };
-  }
-
-  function gridPositionToRect(
-    row: number,
-    col: number,
-    spanX: number,
-    spanY: number
-  ) {
-    const gridRect = gridInfo.element.getBoundingClientRect();
-    const x = gridRect.left + (col - 1) * (gridInfo.cellSize + gridInfo.gap);
-    const y = gridRect.top + (row - 1) * (gridInfo.cellSize + gridInfo.gap);
-    const width = spanX * gridInfo.cellSize + (spanX - 1) * gridInfo.gap;
-    const height = spanY * gridInfo.cellSize + (spanY - 1) * gridInfo.gap;
-
-    return { x, y, width, height };
-  }
-
-  function updateShadowPosition(
-    row: number,
-    col: number,
-    spanX: number,
-    spanY: number
-  ) {
-    const rect = gridPositionToRect(row, col, spanX, spanY);
-    shadow.style.left = `${rect.x}px`;
-    shadow.style.top = `${rect.y}px`;
-    shadow.style.width = `${rect.width}px`;
-    shadow.style.height = `${rect.height}px`;
-    shadow.style.opacity = "1";
-
-    shadowPos = { row, col };
-  }
-
-  function isValidPosition(
-    row: number,
-    col: number,
-    spanX: number,
-    spanY: number
-  ) {
+  function isValid(row: number, col: number, sx: number, sy: number) {
+    const g = getGrid();
     if (
       row < 1 ||
       col < 1 ||
-      row + spanY - 1 > gridInfo.rows ||
-      col + spanX - 1 > gridInfo.cols
+      row + sy - 1 > g.rows ||
+      col + sx - 1 > g.cols
     )
       return false;
 
-    for (let r = row; r < row + spanY; r++) {
-      for (let c = col; c < col + spanX; c++) {
+    for (let r = row; r < row + sy; r++) {
+      for (let c = col; c < col + sx; c++) {
         if (occupiedCells.has(`${r}-${c}`)) return false;
       }
     }
     return true;
   }
 
-  function findNearestValidPosition(
-    targetRow: number,
-    targetCol: number,
-    spanX: number,
-    spanY: number
-  ) {
-    const maxRadius = Math.max(gridInfo.rows, gridInfo.cols);
+  function gridRect(row: number, col: number, sx: number, sy: number) {
+    const g = getGrid();
+    const rect = g.element.getBoundingClientRect();
 
-    for (let radius = 1; radius <= maxRadius; radius++) {
-      for (let dr = -radius; dr <= radius; dr++) {
-        for (let dc of [-radius, radius]) {
-          const row = targetRow + dr;
-          const col = targetCol + dc;
-          if (isValidPosition(row, col, spanX, spanY)) {
-            return { row, col };
-          }
-        }
-      }
-
-      for (let dc = -radius + 1; dc <= radius - 1; dc++) {
-        for (let dr of [-radius, radius]) {
-          const row = targetRow + dr;
-          const col = targetCol + dc;
-          if (isValidPosition(row, col, spanX, spanY)) {
-            return { row, col };
-          }
-        }
-      }
-    }
-
-    return { row: targetRow, col: targetCol };
+    return {
+      x: rect.left + (col - 1) * (g.cellSize + g.gap),
+      y: rect.top + (row - 1) * (g.cellSize + g.gap),
+      width: sx * g.cellSize + (sx - 1) * g.gap,
+      height: sy * g.cellSize + (sy - 1) * g.gap,
+    };
   }
 
-  function getBestSnapPosition(
-    widgetX: number,
-    widgetY: number,
-    spanX: number,
-    spanY: number
-  ) {
-    // const gridRect = gridInfo.element.getBoundingClientRect();
+  function mouseToGrid(x: number, y: number) {
+    const g = getGrid();
+    const rect = g.element.getBoundingClientRect();
 
-    const widgetWidth =
-      spanX * gridInfo.cellSize + (spanX - 1) * gridInfo.gap;
-    const widgetHeight =
-      spanY * gridInfo.cellSize + (spanY - 1) * gridInfo.gap;
+    return {
+      row: Math.max(
+        1,
+        Math.min(
+          Math.floor((y - rect.top) / (g.cellSize + g.gap)) + 1,
+          g.rows
+        )
+      ),
+      col: Math.max(
+        1,
+        Math.min(
+          Math.floor((x - rect.left) / (g.cellSize + g.gap)) + 1,
+          g.cols
+        )
+      ),
+    };
+  }
 
-    const widgetCenterX = widgetX + widgetWidth / 2;
-    const widgetCenterY = widgetY + widgetHeight / 2;
+  function updateShadow(row: number, col: number) {
+    const w = getWidget();
+    const r = gridRect(row, col, w.span.x, w.span.y);
 
-    const centerGrid = getMouseGridPosition(widgetCenterX, widgetCenterY);
+    shadow.style.left = `${r.x}px`;
+    shadow.style.top = `${r.y}px`;
+    shadow.style.width = `${r.width}px`;
+    shadow.style.height = `${r.height}px`;
+    shadow.style.opacity = "1";
 
-    let bestPos = { row: centerGrid.row, col: centerGrid.col };
+    shadowPos = { row, col };
+  }
+
+  /* ---------------------------------- */
+  /* Snapping logic                     */
+  /* ---------------------------------- */
+
+  function getBestSnap(x: number, y: number) {
+    const w = getWidget();
+    const g = getGrid();
+
+    const widgetW = w.span.x * g.cellSize + (w.span.x - 1) * g.gap;
+    const widgetH = w.span.y * g.cellSize + (w.span.y - 1) * g.gap;
+
+    const center = mouseToGrid(x + widgetW / 2, y + widgetH / 2);
+
+    let best = center;
     let bestOverlap = 0;
 
-    const searchRadius = Math.max(spanX, spanY) + 1;
+    const radius = Math.max(w.span.x, w.span.y) + 1;
 
-    const minRow = Math.max(1, centerGrid.row - searchRadius);
-    const maxRow = Math.min(
-      gridInfo.rows - spanY + 1,
-      centerGrid.row + searchRadius
-    );
-    const minCol = Math.max(1, centerGrid.col - searchRadius);
-    const maxCol = Math.min(
-      gridInfo.cols - spanX + 1,
-      centerGrid.col + searchRadius
-    );
+    for (let r = center.row - radius; r <= center.row + radius; r++) {
+      for (let c = center.col - radius; c <= center.col + radius; c++) {
+        if (!isValid(r, c, w.span.x, w.span.y)) continue;
 
-    for (let row = minRow; row <= maxRow; row++) {
-      for (let col = minCol; col <= maxCol; col++) {
-        if (!isValidPosition(row, col, spanX, spanY)) continue;
+        const cell = gridRect(r, c, w.span.x, w.span.y);
 
-        const cell = gridPositionToRect(row, col, spanX, spanY);
-
-        const overlapLeft = Math.max(widgetX, cell.x);
-        const overlapTop = Math.max(widgetY, cell.y);
-        const overlapRight = Math.min(widgetX + widgetWidth, cell.x + cell.width);
-        const overlapBottom = Math.min(
-          widgetY + widgetHeight,
-          cell.y + cell.height
+        const overlapX = Math.max(
+          0,
+          Math.min(x + widgetW, cell.x + cell.width) - Math.max(x, cell.x)
+        );
+        const overlapY = Math.max(
+          0,
+          Math.min(y + widgetH, cell.y + cell.height) - Math.max(y, cell.y)
         );
 
-        const overlapWidth = Math.max(0, overlapRight - overlapLeft);
-        const overlapHeight = Math.max(0, overlapBottom - overlapTop);
-        const overlapArea = overlapWidth * overlapHeight;
-
-        if (overlapArea > bestOverlap) {
-          bestOverlap = overlapArea;
-          bestPos = { row, col };
+        const area = overlapX * overlapY;
+        if (area > bestOverlap) {
+          bestOverlap = area;
+          best = { row: r, col: c };
         }
       }
     }
 
-    const widgetArea = widgetWidth * widgetHeight;
-    if (bestOverlap / widgetArea > 0.4) {
-      return bestPos;
-    }
-
-    return findNearestValidPosition(
-      centerGrid.row,
-      centerGrid.col,
-      spanX,
-      spanY
-    );
+    return best;
   }
 
-  function onMouseDown(event: MouseEvent) {
-    if (!isDraggable || event.button !== 0) return;
+  /* ---------------------------------- */
+  /* RAF mouse handling                 */
+  /* ---------------------------------- */
 
-    event.preventDefault();
-    isDragging = true;
+  function queueMove(e: MouseEvent) {
+    pendingEvent = e;
+    if (rafId === null) {
+      rafId = requestAnimationFrame(processMove);
+    }
+  }
+
+  function processMove() {
+    if (!pendingEvent || dragState.type !== "dragging") {
+      rafId = null;
+      return;
+    }
+
+    const e = pendingEvent;
+    pendingEvent = null;
+
+    const x = e.clientX - dragState.offsetX;
+    const y = e.clientY - dragState.offsetY;
+
+    draggedWidget.style.left = `${x}px`;
+    draggedWidget.style.top = `${y}px`;
+
+    if (
+      Math.abs(x - lastUpdateX) > 8 ||
+      Math.abs(y - lastUpdateY) > 8
+    ) {
+      const snap = getBestSnap(x, y);
+      if (
+        snap.row !== shadowPos.row ||
+        snap.col !== shadowPos.col
+      ) {
+        updateShadow(snap.row, snap.col);
+        lastUpdateX = x;
+        lastUpdateY = y;
+      }
+    }
+
+    rafId = null;
+  }
+
+  /* ---------------------------------- */
+  /* Lifecycle                          */
+  /* ---------------------------------- */
+
+  function startDrag(e: MouseEvent) {
+    if (e.button !== 0 || dragState.type !== "idle") return;
 
     const rect = draggedWidget.getBoundingClientRect();
 
-    offsetX = event.clientX - rect.left;
-    offsetY = event.clientY - rect.top;
+    dragState = {
+      type: "dragging",
+      offsetX: e.clientX - rect.left,
+      offsetY: e.clientY - rect.top,
+    };
 
-    lastUpdateX = rect.left;
-    lastUpdateY = rect.top;
-
+    isDragging = true;
     updateOccupiedCells();
 
-    // Initialize shadow at current widget position
-    shadow = WidgetDragShadow();
-    shadowPos = { ...currentWidget.pos };
-    updateShadowPosition(
-      currentWidget.pos.row,
-      currentWidget.pos.col,
-      currentWidget.span.x,
-      currentWidget.span.y
-    );
+    shadow = createDragShadow();
+    updateShadow(getWidget().pos.row, getWidget().pos.col);
 
-    // Style dragged widget
     draggedWidget.style.position = "fixed";
     draggedWidget.style.left = `${rect.left}px`;
     draggedWidget.style.top = `${rect.top}px`;
@@ -255,78 +247,29 @@ export function draggable(draggedWidget: HTMLElement, widgetId: string) {
     draggedWidget.style.zIndex = "1001";
     draggedWidget.style.pointerEvents = "none";
     draggedWidget.style.transform = "scale(1.05)";
-    draggedWidget.style.boxShadow = "0 20px 40px rgba(0,0,0,0.3)";
-    draggedWidget.style.transition = "transform 0.2s ease";
 
     document.addEventListener("mousemove", onMouseMove);
     document.addEventListener("mouseup", onMouseUp);
-    window.addEventListener("resize", onWindowResize);
-    document.body.classList.add("dragging-in-progress");
   }
 
-  function onMouseMove(event: MouseEvent) {
-    if (!isDragging) return;
-    event.preventDefault();
-
-    const widgetX = event.clientX - offsetX;
-    const widgetY = event.clientY - offsetY;
-
-    draggedWidget.style.left = `${widgetX}px`;
-    draggedWidget.style.top = `${widgetY}px`;
-
-    const deltaX = Math.abs(widgetX - lastUpdateX);
-    const deltaY = Math.abs(widgetY - lastUpdateY);
-
-    const threshold = 8;
-    if (deltaX < threshold && deltaY < threshold) return;
-
-    const bestPos = getBestSnapPosition(
-      widgetX,
-      widgetY,
-      currentWidget.span.x,
-      currentWidget.span.y
-    );
-
-    if (
-      bestPos.row !== shadowPos.row ||
-      bestPos.col !== shadowPos.col
-    ) {
-      updateShadowPosition(
-        bestPos.row,
-        bestPos.col,
-        currentWidget.span.x,
-        currentWidget.span.y
-      );
-      lastUpdateX = widgetX;
-      lastUpdateY = widgetY;
-    }
+  function onMouseMove(e: MouseEvent) {
+    if (dragState.type === "dragging") queueMove(e);
   }
 
-  function onMouseUp(event: MouseEvent) {
-    if (!isDragging) return;
-    event.preventDefault();
+  function onMouseUp() {
+    if (dragState.type !== "dragging") return;
 
-    const finalRow = shadowPos.row;
-    const finalCol = shadowPos.col;
+    const w = getWidget();
+    const final = shadowPos;
+    const rect = gridRect(final.row, final.col, w.span.x, w.span.y);
 
-    const rect = gridPositionToRect(
-      finalRow,
-      finalCol,
-      currentWidget.span.x,
-      currentWidget.span.y
-    );
-
-    // Animate widget into place
-    draggedWidget.style.transition =
-      "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)";
+    draggedWidget.style.transition = "all 0.3s ease";
     draggedWidget.style.left = `${rect.x}px`;
     draggedWidget.style.top = `${rect.y}px`;
     draggedWidget.style.transform = "scale(1)";
-    draggedWidget.style.boxShadow = "none";
 
-    // Commit grid position AFTER animation
     setTimeout(() => {
-      // Reset inline drag styles
+      draggedWidget.style.transition = "";
       draggedWidget.style.position = "";
       draggedWidget.style.left = "";
       draggedWidget.style.top = "";
@@ -335,53 +278,41 @@ export function draggable(draggedWidget: HTMLElement, widgetId: string) {
       draggedWidget.style.zIndex = "";
       draggedWidget.style.pointerEvents = "";
       draggedWidget.style.transform = "";
-      draggedWidget.style.transition = "";
-      draggedWidget.style.boxShadow = "";
 
-      // Apply final grid placement
-      draggedWidget.style.gridArea = `${finalRow} / ${finalCol} / ${finalRow + currentWidget.span.y
-        } / ${finalCol + currentWidget.span.x}`;
-
+      draggedWidget.style.gridArea = `${final.row} / ${final.col} / ${final.row + w.span.y
+        } / ${final.col + w.span.x}`;
 
       SettingStore.update((s) => {
-        s.widgets[widgetId].pos = { row: finalRow, col: finalCol };
+        s.widgets[widgetId].pos = final;
         return s;
       });
     }, 300);
 
-    // Fade out shadow
     shadow.style.opacity = "0";
     setTimeout(() => shadow.remove(), 200);
 
-    // Cleanup listeners
+    cleanup();
+  }
+
+  function cleanup() {
+    dragState = { type: "idle" };
+    isDragging = false;
+
+    if (rafId !== null) cancelAnimationFrame(rafId);
+    rafId = null;
+    pendingEvent = null;
+
     document.removeEventListener("mousemove", onMouseMove);
     document.removeEventListener("mouseup", onMouseUp);
-    window.removeEventListener("resize", onWindowResize);
-    document.body.classList.remove("dragging-in-progress");
-
-    isDragging = false;
   }
 
-
-  function onWindowResize() {
-    if (!isDragging) return;
-
-    updateShadowPosition(
-      shadowPos.row,
-      shadowPos.col,
-      currentWidget.span.x,
-      currentWidget.span.y
-    );
-  }
-
-  draggedWidget.addEventListener("mousedown", onMouseDown);
+  draggedWidget.addEventListener("mousedown", startDrag);
 
   return {
     destroy() {
-      draggedWidget.removeEventListener("mousedown", onMouseDown);
-      document.removeEventListener("mousemove", onMouseMove);
-      document.removeEventListener("mouseup", onMouseUp);
-      window.removeEventListener("resize", onWindowResize);
+      cleanup();
+      unsubscribe();
+      draggedWidget.removeEventListener("mousedown", startDrag);
       shadow.remove();
     },
   };
