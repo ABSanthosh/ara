@@ -1,0 +1,208 @@
+@use "../mixins" as *;
+
+.CrispInput {
+  /* ─────────────────────────────
+   VisionOS Material Tokens
+  ───────────────────────────── */
+  --crp-input-radius: 12px;
+
+  --crp-input-bg: var(--views-thin);
+  --crp-input-bg-hover: var(--views-recessed-material-view);
+  --crp-input-bg-disabled: rgba(255, 255, 255, 0.03);
+
+  --crp-input-border: 1px solid rgba(255, 255, 255, 0.12);
+  --crp-input-border-hover: 1px solid rgba(255, 255, 255, 0.22);
+  --crp-input-border-error: 1px solid var(--colors-red);
+
+  --crp-input-color: var(--labels-primary);
+  --crp-input-color-placeholder: #f3f0f0ad;
+  --crp-input-color-disabled: var(--labels-tertiary);
+
+  --crp-input-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -0.5px 0 rgba(0, 0, 0, 0.35), 0 12px 30px rgba(0, 0, 0, 0.35);
+
+  --crp-input-font-size: 16px;
+  --crp-input-width: 100%;
+
+  /* ─────────────────────────────
+   Layout
+  ───────────────────────────── */
+  &:not([data-type="text-area"]) {
+    --crp-input-padding: 8px 12px;
+    --crp-input-height: 32px;
+  }
+
+  &[data-type="text-area"] {
+    resize: vertical;
+    --crp-input-padding: 12px;
+    --crp-input-height: auto;
+    min-height: 44px;
+    max-height: 240px;
+  }
+
+  /* ─────────────────────────────
+   Base Style
+  ───────────────────────────── */
+  outline: none;
+  border: var(--crp-input-border);
+  background: var(--crp-input-bg);
+  backdrop-filter: blur(30px) saturate(120%) brightness(1.04);
+
+  color: var(--crp-input-color);
+  font-size: var(--crp-input-font-size);
+  padding: var(--crp-input-padding);
+  // box-shadow: var(--crp-input-shadow);
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+
+  @include box(var(--crp-input-width), var(--crp-input-height));
+
+  /* ─────────────────────────────
+   Squircle / Continuous Corners
+  ───────────────────────────── */
+  border-radius: var(--crp-input-radius);
+
+  @supports (corner-shape: squircle) {
+    border-radius: calc(var(--crp-input-radius) + 15px);
+    corner-shape: squircle;
+  }
+
+  &::placeholder {
+    color: var(--crp-input-color-placeholder);
+  }
+
+  /* ─────────────────────────────
+   Hover / Focus
+  ───────────────────────────── */
+  @media (any-hover: hover) {
+    &:hover:not(:disabled),
+    &:focus-visible:not(:disabled) {
+      background: var(--crp-input-bg-hover);
+      border: var(--crp-input-border-hover);
+      // box-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.45),
+      //   0 18px 40px rgba(0, 0, 0, 0.45);
+    }
+  }
+
+  /* ─────────────────────────────
+   Disabled
+  ───────────────────────────── */
+  &:disabled {
+    background: var(--crp-input-bg-disabled);
+    color: var(--crp-input-color-disabled);
+    border-color: rgba(255, 255, 255, 0.06);
+    cursor: not-allowed;
+
+    &::placeholder {
+      color: var(--labels-tertiary);
+    }
+  }
+
+  /* ─────────────────────────────
+   Error State
+  ───────────────────────────── */
+  &[data-error] {
+    border: var(--crp-input-border-error);
+    // box-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.35),
+    //   0 0 0 1px rgba(255, 66, 69, 0.35), 0 16px 36px rgba(0, 0, 0, 0.45);
+  }
+
+  /* ─────────────────────────────
+   Number Input Cleanup
+  ───────────────────────────── */
+  &[type="number"] {
+    appearance: textfield;
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+      appearance: none;
+      margin: 0;
+    }
+  }
+
+  /* ─────────────────────────────
+   Date / Time Inputs
+  ───────────────────────────── */
+  &[type="date"],
+  &[type="time"] {
+    position: relative;
+    background-repeat: no-repeat;
+    background-size: 18px 18px;
+    background-position: right 10px center;
+
+    &::-webkit-calendar-picker-indicator {
+      top: 0;
+      left: 0;
+      @include box();
+      cursor: pointer;
+      position: absolute;
+      color: transparent;
+      background: transparent;
+      border-radius: inherit;
+    }
+  }
+
+  /* ─────────────────────────────
+   Checkbox (also squircle)
+  ───────────────────────────── */
+  &[type="checkbox"] {
+    --crp-input-width: 18px;
+    --crp-input-height: 18px;
+    --crp-input-padding: 0;
+
+    appearance: none;
+    cursor: pointer;
+    background: var(--views-thin);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    // box-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.4),
+    //   0 6px 14px rgba(0, 0, 0, 0.35);
+
+    border-radius: 6px;
+
+    @supports (corner-shape: squircle) {
+      border-radius: 6px;
+      corner-shape: squircle;
+    }
+
+    &:checked {
+      background: var(--colors-green);
+      border-color: transparent;
+      background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: 12px 12px;
+    }
+
+    &:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+  }
+
+  &[type="radio"] {
+    appearance: none;
+    cursor: pointer;
+    background: var(--views-thin);
+    padding: 6px;
+    corner-shape: round;
+    @include box(18px, 18px);
+    
+    &:checked {
+      border-color: var(--colors-blue);
+      background: var(--colors-blue);
+      transition: none;
+      background-image: radial-gradient(circle at center, white 40%, transparent 45%);
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: 8px 8px;
+    }
+
+    &:hover:not(:disabled),
+    &:focus-visible:not(:disabled) {
+      border-color: rgba(255, 255, 255, 0.35);
+    }
+
+    &:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+  }
+}

@@ -1,16 +1,36 @@
+import { get } from "svelte/store";
 import { SettingStore } from "../settings/settings.store";
-import { NASAEngine } from "./nasa/nasa.engine";
+import { NASAEngineImpl } from "./nasa/nasa.engine";
 
 /**
  * This is the class that manages different types of wallpapers.
  * For now, there are 2 types: preset and NASA APOD.
- * Wallpaper manager will take different 
+ * Wallpaper manager will take different
  */
 export class WallpaperManagerImpl {
+  private unsubscribe: () => void;
+  private _nasaEngine = new NASAEngineImpl("DEMO_KEY");
+
   constructor() {
-    SettingStore.subscribe((settings) => {
+    this.unsubscribe = SettingStore.subscribe((settings) => {
       document.body.style.backgroundImage = `url(${settings.wallpaper.url})`;
-    })
+    });
+
+    // Load NASA API key from settings store if available
+    const savedApiKey =
+      get(SettingStore).wallpaper.plugins.nasa.nasaAPIKey || "DEMO_KEY";
+    this._nasaEngine = new NASAEngineImpl(savedApiKey);
+  }
+
+  get NASAEngine() {
+    return this._nasaEngine;
+  }
+
+  /**
+   * Clean up subscriptions. Call this when destroying the instance.
+   */
+  public destroy() {
+    this.unsubscribe();
   }
 
   /**
@@ -24,46 +44,54 @@ export class WallpaperManagerImpl {
   public async setWallpaper({
     type,
     options,
-  }: {
-    type: "preset",
-    options: { url: string }
-  } | {
-    type: "nasa",
-    options: {
-      mode: "dynamic",
-      category: "apod",
-    } | {
-      mode: "static",
-      category: "apod",
-      date: Date,
-    }
-  }) {
+  }:
+    | {
+        type: "preset";
+        options: { url: string };
+      }
+    | {
+        type: "nasa";
+        options:
+          | {
+              mode: "dynamic";
+              category: "apod";
+            }
+          | {
+              mode: "static";
+              category: "apod";
+              date: Date;
+            };
+      }) {
     if (type === "preset") {
       const presetUrl = options.url;
       SettingStore.update((state) => {
         state.wallpaper.activePlugin = "preset";
         state.wallpaper.url = presetUrl;
         return state;
-      })
+      });
     } else if (type === "nasa") {
       if (options.mode === "dynamic") {
-        const wallpaper = await NASAEngine.getAPOD();
+        const wallpaper = await this._nasaEngine.getAPOD();
         SettingStore.update((state) => {
           state.wallpaper.activePlugin = "nasa";
-          state.wallpaper.url = wallpaper.url;
+
+          // if the hdurl exists, use that else use url
+          state.wallpaper.url = wallpaper.hdurl || wallpaper.url;
           state.wallpaper.plugins.nasa.metadata = wallpaper;
           state.wallpaper.plugins.nasa.mode = "dynamic";
           state.wallpaper.plugins.nasa.category = "apod";
-          state.wallpaper.plugins.nasa.lastUpdate = new Date(new Date().setHours(0, 0, 0, 0));
+          state.wallpaper.plugins.nasa.lastUpdate = new Date(
+            new Date().setHours(0, 0, 0, 0)
+          );
 
           return state;
         });
       } else if (options.mode === "static") {
-        const dateStr = options.date.toISOString().split('T')[0];
-        const wallpaper = await NASAEngine.getAPOD({ date: dateStr });
+        const dateStr = options.date.toISOString().split("T")[0];
+        const wallpaper = await this._nasaEngine.getAPOD({ date: dateStr });
         SettingStore.update((state) => {
           state.wallpaper.activePlugin = "nasa";
-          state.wallpaper.url = wallpaper.url;
+          state.wallpaper.url = wallpaper.hdurl || wallpaper.url;
           state.wallpaper.plugins.nasa.metadata = wallpaper;
           state.wallpaper.plugins.nasa.mode = "static";
           state.wallpaper.plugins.nasa.category = "apod";
@@ -76,58 +104,23 @@ export class WallpaperManagerImpl {
   }
 
   /**
-   * Add current NASA APOD to favorites
-   * @param date Date of the APOD to favorite
+   * Get wallpaper data
    */
-  public addNasaFavorite(date: string) {
-    SettingStore.update((state) => {
-      const favs = state.wallpaper.plugins.nasa.favorites;
-      if (!favs.find(d => d === date)) {
-        favs.push(date);
-      }
-      return state;
-    });
-  }
-
-  /**
-   * Remove a date from NASA APOD favorites
-   * @param date Date string to remove from favorites
-   */
-  public removeNasaFavorite(date: string) {
-    SettingStore.update((state) => {
-      state.wallpaper.plugins.nasa.favorites = state.wallpaper.plugins.nasa.favorites.filter(d => d !== date);
-      return state;
-    });
-  }
-
-  /**
-   * Pin current NASA APOD. 
-   * Pinning can be used only when in dynamic mode to fix the wallpaper to current APOD.
-   * By pinning, the mode will be changed to static with current APOD date.
-   */
-  public pinCurrentNasaAPOD() {
-    SettingStore.update((state) => {
-      if (state.wallpaper.activePlugin === "nasa" && state.wallpaper.plugins.nasa.mode === "dynamic") {
-        const currentDate = state.wallpaper.plugins.nasa.lastUpdate;
-        state.wallpaper.plugins.nasa.mode = "static";
-        state.wallpaper.plugins.nasa.staticDate = currentDate;
-      }
-      return state;
-    });
-  }
-
-  /**
-   * Unpin current NASA APOD.
-   * By unpinning, the mode will be changed back to dynamic to get daily updates.
-   */
-  public unpinCurrentNasaAPOD() {
-    SettingStore.update((state) => {
-      if (state.wallpaper.activePlugin === "nasa" && state.wallpaper.plugins.nasa.mode === "static") {
-        state.wallpaper.plugins.nasa.mode = "dynamic";
-        delete state.wallpaper.plugins.nasa.staticDate;
-      }
-      return state;
-    });
+  public getWallpaper() {
+    const settings = get(SettingStore);
+    //  if type is preset return url else return nasa metadata
+    if (settings.wallpaper.activePlugin === "preset") {
+      return {
+        type: "preset" as const,
+        url: settings.wallpaper.url,
+      };
+    } else if (settings.wallpaper.activePlugin === "nasa") {
+      return {
+        type: "nasa" as const,
+        metadata: settings.wallpaper.plugins.nasa,
+      };
+    }
   }
 }
 
+export const WallpaperManager = new WallpaperManagerImpl();

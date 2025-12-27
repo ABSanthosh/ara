@@ -1,0 +1,155 @@
+@use "../mixins" as *;
+
+.CrispButton {
+  /* ─────────────────────────────
+   Tokens (visionOS-style)
+  ───────────────────────────── */
+  --crp-button-radius: 12px;
+  --crp-button-corner-shape: squircle;
+  --crp-button-height: 32px;
+  --crp-button-font-size: 15px;
+  --crp-button-gap: 8px;
+
+  --crp-button-bg: var(--views-thin);
+  --crp-button-bg-hover: var(--views-regular);
+  --crp-button-bg-pressed: rgba(255, 255, 255, 0.18);
+  --crp-button-bg-disabled: rgba(255, 255, 255, 0.04);
+
+  --crp-button-border: 1px solid rgba(255, 255, 255, 0.18);
+  --crp-button-border-hover: 1px solid rgba(255, 255, 255, 0.3);
+
+  --crp-button-color: var(--labels-primary);
+  --crp-button-color-disabled: rgba(255, 255, 255, 0.505);
+
+  --crp-button-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -0.5px 0 rgba(0, 0, 0, 0.35), 0 12px 30px rgba(0, 0, 0, 0.4);
+
+  /* Padding (Apple prefers vertical balance) */
+  --crp-button-padding-y: 8px;
+  --crp-button-padding-x: 14px;
+
+  /* ─────────────────────────────
+   Base Style
+  ───────────────────────────── */
+  appearance: none;
+  outline: none;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  text-decoration: none;
+
+  font-size: var(--crp-button-font-size);
+  color: var(--crp-button-color);
+
+  background: var(--crp-button-bg);
+  border: var(--crp-button-border);
+  // box-shadow: var(--crp-button-shadow);
+  backdrop-filter: blur(30px) saturate(120%) brightness(1.04);
+
+  padding: var(--crp-button-padding-y) var(--crp-button-padding-x);
+  gap: var(--crp-button-gap);
+
+  @include make-flex(row);
+  @include box(auto, var(--crp-button-height));
+
+  /* ─────────────────────────────
+   Squircle Corners
+  ───────────────────────────── */
+  border-radius: var(--crp-button-radius);
+
+  @supports (corner-shape: squircle) {
+    @if var(--crp-button-corner-shape) == squircle {
+      border-radius: calc(var(--crp-button-radius) + 15px);
+      corner-shape: squircle;
+    }
+  }
+
+  transition: background 0.25s ease, box-shadow 0.25s ease, transform 0.12s ease,
+    border-color 0.25s ease;
+
+  /* ─────────────────────────────
+   Hover / Focus
+  ───────────────────────────── */
+  @media (any-hover: hover) {
+    &:hover:not(:disabled),
+    &:focus-visible:not(:disabled) {
+      background: var(--crp-button-bg-hover);
+      border: var(--crp-button-border-hover);
+      // box-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.55),
+      //   0 18px 40px rgba(0, 0, 0, 0.45);
+    }
+  }
+
+  /* ─────────────────────────────
+   Pressed (Depth Collapse)
+  ───────────────────────────── */
+  &:active:not(:disabled) {
+    background: var(--crp-button-bg-pressed);
+    transform: translateY(0.5px);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.35);
+  }
+
+  /* ─────────────────────────────
+   Disabled
+  ───────────────────────────── */
+  &:disabled {
+    cursor: not-allowed;
+    background: var(--crp-button-bg-disabled);
+    color: var(--crp-button-color-disabled);
+    border-color: rgba(255, 255, 255, 0.06);
+    box-shadow: none;
+    backdrop-filter: blur(20px);
+  }
+
+  /* ─────────────────────────────
+   Button Variants (visionOS-aligned)
+  ───────────────────────────── */
+
+  /* Primary / Emphasized */
+  &[data-type="primary"] {
+    --crp-button-bg: var(--colors-blue);
+    --crp-button-bg-hover: #2aa4ff;
+    --crp-button-border: 1px solid transparent;
+    --crp-button-color: #ffffff;
+
+    --crp-button-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.45),
+      0 18px 40px rgba(0, 0, 0, 0.45);
+  }
+
+  /* Destructive */
+  &[data-type="danger"] {
+    --crp-button-bg: rgba(234, 57, 60, 0.85);
+    --crp-button-bg-hover: #d75350;
+    --crp-button-border: 1px solid transparent;
+    --crp-button-color: #ffffff;
+  }
+
+  &[data-type="inverse-danger"] {
+    --crp-button-bg: transparent;
+    --crp-button-bg-hover: #d75350;
+    // --crp-button-border: 1px solid rgba(234, 57, 60, 0.85);
+    --crp-button-color: var(--colors-red);
+  }
+
+  /* Success */
+  &[data-type="success"] {
+    --crp-button-bg: rgba(48, 209, 88, 0.85);
+    --crp-button-bg-hover: #3ecf8e;
+    --crp-button-border: 1px solid transparent;
+    --crp-button-color: #ffffff;
+  }
+
+  /* Ghost / Toolbar Button */
+  &[data-type="ghost"] {
+    --crp-button-bg: transparent;
+    --crp-button-bg-hover: var(--controls-hover);
+    --crp-button-border: 1px solid transparent;
+    --crp-button-shadow: none;
+  }
+
+  /* Borderless Icon Button */
+  &[data-border="false"] {
+    --crp-button-border: none;
+    --crp-button-shadow: none;
+  }
+}

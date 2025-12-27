@@ -6,10 +6,11 @@ import { get } from "svelte/store";
 
 class WidgetEngineImpl {
   private widgets: Record<string, Widgets> = {};
-  private internalState: TSettingStore["internal"] = get(SettingStore).internal
+  private internalState: TSettingStore["internal"] = get(SettingStore).internal;
+  private unsubscribe: () => void;
 
   constructor() {
-    SettingStore.subscribe((settings) => {
+    this.unsubscribe = SettingStore.subscribe((settings) => {
       this.widgets = settings.widgets;
       this.internalState = settings.internal;
     });

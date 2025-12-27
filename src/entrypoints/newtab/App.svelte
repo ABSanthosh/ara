@@ -1,20 +1,28 @@
 <script lang="ts">
-  import { WallpaperManagerImpl } from "@/lib/modules/wallpaper/wallpaper.manager";
+  import { onDestroy } from "svelte";
+  import {
+    WallpaperManager,
+    WallpaperManagerImpl,
+  } from "@/lib/modules/wallpaper/wallpaper.manager";
   import "../../styles/index.scss";
   import Grid from "@/lib/components/Grid.svelte";
   import TestWidget from "@/lib/components/widgets/TestWidget.svelte";
   import { SettingStore } from "@/lib/modules/settings/settings.store";
   import { WidgetEngine } from "@/lib/modules/widgets/widgets.engine";
-  import WidgetModal from "@/lib/components/WidgetModal.svelte";
+  import Settings from "@/lib/components/Settings/Settings.svelte";
 
   // Init modules
-  const wallpaperManager = new WallpaperManagerImpl();
   const settingState = $derived(SettingStore.state);
 
   let showSettingModal = $state(true);
+
+  onDestroy(() => {
+    SettingStore.destroy();
+    WallpaperManager.destroy();
+  });
 </script>
 
-<WidgetModal bind:showModal={showSettingModal} />
+<Settings bind:showModal={showSettingModal} />
 
 <Grid>
   {#each Object.keys($settingState.widgets) as widgetId}
@@ -52,7 +60,7 @@
   Add Widget
 </button>
 
-<button
+<!-- <button
   style="right: 20px"
   onclick={() => {
     SettingStore.update((store) => {
@@ -62,6 +70,15 @@
   }}
 >
   {$settingState.options.isDraggable ? "Disable" : "Enable"} Dragging
+</button> -->
+
+<button
+  style="right: 20px"
+  onclick={() => {
+    showSettingModal = true;
+  }}
+>
+  Open Settings
 </button>
 
 <style lang="scss">
@@ -77,7 +94,7 @@
     font-weight: 600;
     backdrop-filter: blur(10px);
     transition: all 0.2s ease;
-    z-index: 1000;
+    z-index: 900;
 
     &:hover {
       background: rgba(99, 102, 241, 1);

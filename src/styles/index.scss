@@ -1,5 +1,7 @@
 @forward "./home.scss";
+@forward "./theme.scss";
 @forward "./pseudo.scss";
+@forward "./Crisp/index.scss";
 
 $scrollbarWidth: 4px;
 
@@ -12,6 +14,7 @@ $scrollbarWidth: 4px;
   font-style: normal;
   font-optical-sizing: auto;
   font-family: "Inter", sans-serif;
+  color: var(--vibrant-labels-primary);
 }
 
 html {
