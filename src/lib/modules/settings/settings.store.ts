@@ -9,7 +9,7 @@ const defaultStore: TSettingStore = {
       cellSize: -1,
       gap: -1,
       element: document.createElement("div"),
-    }
+    },
   },
   options: {
     showGrid: false,
@@ -19,7 +19,7 @@ const defaultStore: TSettingStore = {
   widgets: {},
   wallpaper: {
     activePlugin: "preset",
-    url: "/assets/wallpapers/adwaita-d.jpg",
+    url: "/assets/wallpapers/fold-d.jpg",
     plugins: {
       nasa: {
         favorites: [],
@@ -40,27 +40,35 @@ const defaultStore: TSettingStore = {
         "/assets/wallpapers/fold-l.jpg",
         "/assets/wallpapers/ventura-d.jpg",
       ],
-    }
+    },
   },
 };
 
 class SettingStoreImpl {
   public state = writable<TSettingStore>(this.loadFromLocalStorage());
   private saveTimer: NodeJS.Timeout | null = null;
+  private unsubscribe: () => void = () => {};
 
-  public subscribe: Writable<TSettingStore>["subscribe"] = (...args) => this.state.subscribe(...args);
-  public set: Writable<TSettingStore>["set"] = (...args) => this.state.set(...args);
-  public update: Writable<TSettingStore>["update"] = (...args) => this.state.update(...args);
+  public subscribe: Writable<TSettingStore>["subscribe"] = (...args) =>
+    this.state.subscribe(...args);
+  public set: Writable<TSettingStore>["set"] = (...args) =>
+    this.state.set(...args);
+  public update: Writable<TSettingStore>["update"] = (...args) =>
+    this.state.update(...args);
 
   constructor() {
-    this.state.subscribe((value) => {
+    this.unsubscribe = this.state.subscribe((value) => {
       if (this.saveTimer) {
         clearTimeout(this.saveTimer);
       }
       this.saveTimer = setTimeout(() => {
         window.localStorage.setItem("settingStore", JSON.stringify(value));
       }, 1000);
-    })
+    });
+  }
+
+  public destroy() {
+    this.unsubscribe();
   }
 
   private loadFromLocalStorage(): TSettingStore {
