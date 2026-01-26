@@ -5,73 +5,73 @@
   let {
     children,
     heading,
-    showModal = $bindable(),
+    showContainer = $bindable(),
     onclose,
   }: {
     heading: string;
     children: Snippet;
-    showModal: boolean;
+    showContainer: boolean;
     onclose?: () => void;
   } = $props();
 
-  let dialog: HTMLDialogElement | undefined = $state();
-
-  $effect(() => {
-    if (dialog && showModal) dialog.showModal();
-  });
+  let containerWrapper: HTMLDivElement | undefined = $state();
+  let container: HTMLDivElement | undefined = $state();
 </script>
 
-{#if showModal}
-  <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions -->
-  <dialog
+{#if showContainer}
+  <div
+    class="ContainerWrapper"
+    bind:this={containerWrapper}
     use:clickOutside
-    bind:this={dialog}
-    class="ModalWrapper"
-    onclose={() => (showModal = false)}
-    onOutClick={() => (showModal = false)}
+    onOutClick={() => {
+      showContainer = false;
+      onclose?.();
+    }}
   >
-    <div class="Modal">
-      <h2 class="Modal__header">
+    <div class="Container" bind:this={container}>
+      <h2 class="Container__header">
         {heading}
         <button
           onclick={() => {
-            showModal = false;
+            showContainer = false;
             onclose?.();
-            if (dialog) dialog.close();
           }}
         >
           ✕
         </button>
       </h2>
-      <div class="Modal__content">
+      <div class="Container__content">
         {@render children?.()}
       </div>
     </div>
-  </dialog>
+  </div>
 {/if}
 
 <style lang="scss">
-  .ModalWrapper {
-    padding: 0;
-    border: none;
-    color: inherit;
+  .ContainerWrapper {
     position: fixed;
-    @include make-flex();
-    background: transparent;
-    @include box(100vw, 100vh);
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(4px);
+    animation: backdropFadeIn 0.35s ease forwards;
   }
 
-  .Modal {
+  .Container {
     width: 90%;
     color: #fff;
     max-width: 600px;
-    animation: fadeInScale 0.3s ease forwards;
 
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 20px;
     background: rgba(0, 0, 0, 0.49);
     box-shadow: 0 0 20px 1px #00000087;
     backdrop-filter: blur(26px) saturate(170%) brightness(1.04);
+
+    animation: morphIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 
     &__header {
       display: flex;
@@ -81,6 +81,8 @@
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
       font-size: 1.5rem;
       font-weight: bold;
+      opacity: 0;
+      animation: fadeIn 0.2s 0.2s ease forwards;
 
       & > button {
         color: white;
@@ -89,16 +91,16 @@
         outline: none;
         cursor: pointer;
         border-radius: 6px;
-        @include make-flex();
-        @include box(25px, 25px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 25px;
+        height: 25px;
         transition: all 0.3s ease;
         background-color: transparent;
+
         &:hover {
           background-color: #ec6e6e;
-
-          &::before {
-            color: #fff;
-          }
         }
       }
     }
@@ -107,17 +109,41 @@
       padding: 10px 20px 20px 20px;
       max-height: 70vh;
       overflow-y: auto;
+      opacity: 0;
+      animation: fadeIn 0.3s 0.25s ease forwards;
     }
   }
 
-  @keyframes fadeInScale {
+  @keyframes backdropFadeIn {
     from {
-      opacity: 0;
-      transform: scale(0.95);
+      background: rgba(0, 0, 0, 0);
+      backdrop-filter: blur(0px);
+    }
+    to {
+      background: rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(4px);
+    }
+  }
+
+  @keyframes morphIn {
+    from {
+      opacity: 0.5;
+      border-radius: 50%;
+      transform: scale(0.05);
     }
     to {
       opacity: 1;
+      border-radius: 20px;
       transform: scale(1);
+    }
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
     }
   }
 </style>

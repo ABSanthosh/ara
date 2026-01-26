@@ -1,8 +1,10 @@
+import { get } from "svelte/store";
 import { SettingStore } from "../../settings/settings.store";
 import { APODOptions, APODResponse } from "./nasa.types";
 
 export class NASAEngineImpl {
   private APOD_BASE_URL = "https://api.nasa.gov/planetary/apod";
+  private RETRY_LIMIT = 3;
   private _apiKey: string;
 
   constructor(apiKey: string) {
@@ -11,6 +13,10 @@ export class NASAEngineImpl {
 
   set apiKey(key: string) {
     this._apiKey = key;
+  }
+
+  set retryLimit(limit: number) {
+    this.RETRY_LIMIT = limit;
   }
 
   get apiKey(): string {
@@ -40,7 +46,8 @@ export class NASAEngineImpl {
    */
   public async getAPOD(
     options: APODOptions = {},
-    apiKey: string = this._apiKey
+    apiKey: string = this._apiKey,
+    retries: number = 0,
   ): Promise<APODResponse> {
     try {
       const url = new URL(this.APOD_BASE_URL);
@@ -53,18 +60,18 @@ export class NASAEngineImpl {
         }
       });
 
-      const response: APODResponse = await fetch(url.toString()).then((res) => {
+      let response: APODResponse = await fetch(url.toString()).then((res) => {
         if (!res.ok) {
           throw new Error(
-            `NASA APOD API error: ${res.status} ${res.statusText}`
+            `NASA APOD API error: ${res.status} ${res.statusText}`,
           );
         }
         return res.json();
       });
 
       response.page_url = this.buildPageURL(response.date);
-      if (response.media_type === "video" && response.thumbnail_url) {
-        response.url = response.thumbnail_url;
+      if (response.media_type === "video" && retries < this.RETRY_LIMIT) {
+        response = await this.getAPOD(options, apiKey, retries + 1);
       }
 
       return response;
@@ -82,7 +89,7 @@ export class NASAEngineImpl {
     const endDate = new Date();
     const randomDate = new Date(
       startDate.getTime() +
-        Math.random() * (endDate.getTime() - startDate.getTime())
+        Math.random() * (endDate.getTime() - startDate.getTime()),
     );
     const dateStr = randomDate.toISOString().split("T")[0];
 
@@ -117,18 +124,6 @@ export class NASAEngineImpl {
   }
 
   /**
-   * Remove a date from NASA APOD favorites
-   * @param date Date string to remove from favorites
-   */
-  public removeNasaFavorite(date: string) {
-    SettingStore.update((state) => {
-      state.wallpaper.plugins.nasa.favorites =
-        state.wallpaper.plugins.nasa.favorites.filter((d) => d !== date);
-      return state;
-    });
-  }
-
-  /**
    * Pin current NASA APOD.
    * Pinning can be used only when in dynamic mode to fix the wallpaper to current APOD.
    * By pinning, the mode will be changed to static with current APOD date.
@@ -151,13 +146,20 @@ export class NASAEngineImpl {
    * Unpin current NASA APOD.
    * By unpinning, the mode will be changed back to dynamic to get daily updates.
    */
-  public unpinCurrentNasaAPOD() {
+  public async unpinCurrentNasaAPOD() {
+    const wallpaper = await this.getAPOD();
     SettingStore.update((state) => {
       if (
         state.wallpaper.activePlugin === "nasa" &&
         state.wallpaper.plugins.nasa.mode === "static"
       ) {
         state.wallpaper.plugins.nasa.mode = "dynamic";
+        state.wallpaper.plugins.nasa.category = "apod";
+        state.wallpaper.plugins.nasa.metadata = wallpaper;
+        state.wallpaper.url = wallpaper.hdurl || wallpaper.url;
+        state.wallpaper.plugins.nasa.lastUpdate = new Date(
+          new Date().setHours(0, 0, 0, 0),
+        );
         delete state.wallpaper.plugins.nasa.staticDate;
       }
       return state;
@@ -174,6 +176,18 @@ export class NASAEngineImpl {
       if (!favs.find((d) => d === date)) {
         favs.push(date);
       }
+      return state;
+    });
+  }
+
+  /**
+   * Remove a date from NASA APOD favorites
+   * @param date Date string to remove from favorites
+   */
+  public removeNasaFavorite(date: string) {
+    SettingStore.update((state) => {
+      state.wallpaper.plugins.nasa.favorites =
+        state.wallpaper.plugins.nasa.favorites.filter((d) => d !== date);
       return state;
     });
   }

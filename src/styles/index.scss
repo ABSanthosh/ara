@@ -42,3 +42,73 @@ html {
 ::selection {
   background: #2daadb4d;
 }
+
+// For some reason, style in App.svelte is not applied, so moved here
+.NasaTools {
+  gap: 8px;
+  position: absolute;
+  @include make-flex($dir: row);
+
+  bottom: 7px;
+  right: 10px;
+  z-index: 15;
+
+  & > .CrispButton {
+    padding: 5px;
+    border-radius: 8px;
+    @include make-flex();
+    @include box(30px, 30px);
+    --crp-button-bg-hover: var(--views-regular);
+
+    & > p {
+      mix-blend-mode: luminosity;
+      color: var(--vibrant-labels-tertiary);
+      filter: invert(1) contrast(1.3);
+    }
+
+    &:hover {
+      color: var(--views-thicker);
+
+      & > svg {
+        filter: unset;
+        fill: var(--views-thicker);
+        stroke: var(--views-thicker);
+      }
+    }
+
+    &.SpinnerButton .IoSpinnerWrapper.loader-ios {
+      --svg-fill-color: var(--views-thicker) !important;
+      --svg-pulse-color: var(--views-regular) !important;
+      --svg-pulse-fade-color: var(--separator-secondary) !important;
+
+      & > svg {
+        filter: invert(1) contrast(1.3);
+      }
+    }
+
+    & > svg {
+      stroke: var(--vibrant-labels-tertiary);
+      filter: invert(1) contrast(1.3);
+      mix-blend-mode: luminosity;
+
+      transition:
+        color 0.25s ease,
+        fill 0.25s ease,
+        stroke 0.25s ease,
+        filter 0.25s ease;
+    }
+    &.pinned > svg {
+      filter: unset;
+      fill: var(--colors-blue);
+      color: var(--colors-blue);
+      stroke: var(--colors-blue);
+    }
+
+    &.favorited > svg {
+      filter: unset;
+      fill: var(--colors-red);
+      stroke: var(--colors-red);
+      color: var(--colors-red);
+    }
+  }
+}

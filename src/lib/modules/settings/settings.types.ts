@@ -8,8 +8,8 @@ export type TSettingStore = {
       cols: number;
       gap: number;
       cellSize: number;
-      element: HTMLElement
-    }
+      element: HTMLElement;
+    };
   };
   options: {
     isDraggable: boolean;
@@ -28,9 +28,9 @@ export type TSettingStore = {
         mode: "dynamic" | "static";
         lastUpdate?: Date; // ISO date string of last wallpaper update
         staticDate?: Date; // ISO date string for static wallpaper selection
-        metadata: APODResponse | {}
-      },
+        metadata: APODResponse | null; // Store metadata of current NASA APOD
+      };
       presets: string[]; // Array of preset wallpaper URLs
-    }
+    };
   };
-}
+};

@@ -1,30 +1,98 @@
 <script lang="ts">
   import { onDestroy } from "svelte";
-  import {
-    WallpaperManager,
-    WallpaperManagerImpl,
-  } from "@/lib/modules/wallpaper/wallpaper.manager";
+  import { WallpaperManager } from "@/lib/modules/wallpaper/wallpaper.manager";
   import "../../styles/index.scss";
   import Grid from "@/lib/components/Grid.svelte";
   import TestWidget from "@/lib/components/widgets/TestWidget.svelte";
   import { SettingStore } from "@/lib/modules/settings/settings.store";
-  import { WidgetEngine } from "@/lib/modules/widgets/widgets.engine";
   import Settings from "@/lib/components/Settings/Settings.svelte";
+  import ContextMenu from "@/lib/components/ContextMenu.svelte";
+  import { Heart, Pin, PinOff } from "@lucide/svelte";
+  import { WidgetEngine } from "@/lib/modules/widgets/widgets.engine";
+  import Test from "@/lib/components/Test.svelte";
+  import Spinner from "@/lib/components/Spinner/Spinner.svelte";
+  import { AppStateStore } from "@/lib/modules/settings/appState.store";
 
   // Init modules
   const settingState = $derived(SettingStore.state);
+  const appState = $derived(AppStateStore);
 
-  let showSettingModal = $state(true);
+  let showSettingModal = $state(false);
+  let showNASAWallpaperInfo = $state(false);
 
   onDestroy(() => {
     SettingStore.destroy();
     WallpaperManager.destroy();
   });
+
+  const NasaContextMenu = $derived(
+    $settingState.wallpaper.activePlugin === "nasa"
+      ? [
+          {
+            name: "hr",
+            displayText: "",
+            onClick: () => {},
+          },
+          {
+            name: "Refresh Wallpaper",
+            displayText: "Refresh Wallpaper",
+            onClick: () => {
+              WallpaperManager.refreshNASA();
+            },
+          },
+        ]
+      : [],
+  );
+
+  let isPinned = $derived(
+    $settingState.wallpaper.activePlugin === "nasa" &&
+      $settingState.wallpaper.plugins.nasa.mode === "static",
+  );
+  let isFavorited = $derived(
+    $settingState.wallpaper.activePlugin === "nasa" &&
+      $settingState.wallpaper.plugins.nasa.favorites.includes(
+        $settingState.wallpaper.plugins.nasa.metadata!.date,
+      ),
+  );
 </script>
+
+<ContextMenu
+  menuItems={[
+    {
+      name: "settings",
+      onClick: () => (showSettingModal = true),
+      displayText: "Settings",
+    },
+    {
+      name: "showGrid",
+      onClick: () => {
+        SettingStore.update((store) => {
+          store.options.showGrid = !store.options.showGrid;
+          return store;
+        });
+      },
+      displayText: $settingState.options.showGrid ? "Hide Grid" : "Show Grid",
+    },
+    {
+      name: "Edit Widgets",
+      onClick: () => {
+        SettingStore.update((store) => {
+          store.options.isResizable = !store.options.isResizable;
+          store.options.isDraggable = !store.options.isDraggable;
+          return store;
+        });
+      },
+      displayText: $settingState.options.isResizable
+        ? "Stop Editing"
+        : "Edit Widgets",
+    },
+    ...NasaContextMenu,
+  ]}
+/>
 
 <Settings bind:showModal={showSettingModal} />
 
-<Grid>
+<Grid showGrid={$settingState.options.showGrid}>
   {#each Object.keys($settingState.widgets) as widgetId}
     {@const widget = $settingState.widgets[widgetId]}
     {#if widget.type === "test-widget"}
@@ -39,70 +107,99 @@
   {/each}
 </Grid>
 
-<button
-  style="right: 200px"
-  onclick={() => {
-    const combos = [
-      { x: 1, y: 1 },
-      { x: 2, y: 2 },
-      { x: 2, y: 1 },
-      { x: 1, y: 2 },
-    ];
+{#if $settingState.wallpaper.activePlugin === "nasa"}
+  <div class="NasaTools">
+    {#if $appState.wallpaper.isWallpaperLoading}
+      <div class="SpinnerButton CrispButton blur-thin" data-no-hover>
+        <Spinner height={18} width={18} />
+      </div>
+    {/if}
+    <button
+      class="CrispButton blur-thin"
+      data-no-blur
+      data-type="fav"
+      class:favorited={isFavorited}
+      onclick={() => {
+        if (isFavorited) {
+          WallpaperManager.NASAEngine.removeNasaFavorite(
+            $settingState.wallpaper.plugins.nasa.metadata!.date,
+          );
+        } else {
+          WallpaperManager.NASAEngine.addNasaFavorite(
+            $settingState.wallpaper.plugins.nasa.metadata!.date,
+          );
+        }
+      }}
+    >
+      <Heart size={15} />
+    </button>
+    <button
+      class="CrispButton blur-thin"
+      data-no-blur
+      class:pinned={isPinned}
+      data-type="pin"
+      onclick={() => {
+        if (isPinned) {
+          WallpaperManager.NASAEngine.unpinCurrentNasaAPOD();
+        } else {
+          WallpaperManager.NASAEngine.pinCurrentNasaAPOD();
+        }
+      }}
+    >
+      {#if isPinned}
+        <PinOff size={15} />
+      {:else}
+        <Pin size={15} />
+      {/if}
+    </button>
+    <button
+      id="nasa-info-button"
+      class="CrispButton blur-thin"
+      data-type="info"
+      class:active={showNASAWallpaperInfo}
+      data-no-blur
+      style="anchor-name: --nasa-info-button;"
+      onclick={() => (showNASAWallpaperInfo = true)}
+    >
+      <p>?</p>
+    </button>
+  </div>
 
-    WidgetEngine.addWidget({
-      settings: {},
-      type: "test-widget",
-      pos: { row: 1, col: 1 },
-      span: combos[Math.floor(Math.random() * combos.length)],
-    });
-  }}
->
-  Add Widget
-</button>
-
-<!-- <button
-  style="right: 20px"
-  onclick={() => {
-    SettingStore.update((store) => {
-      store.options.isDraggable = !store.options.isDraggable;
-      return store;
-    });
-  }}
->
-  {$settingState.options.isDraggable ? "Disable" : "Enable"} Dragging
-</button> -->
-
-<button
-  style="right: 20px"
-  onclick={() => {
-    showSettingModal = true;
-  }}
->
-  Open Settings
-</button>
+  {#if showNASAWallpaperInfo}
+    <Test
+      heading={$settingState.wallpaper.plugins.nasa.metadata!.title}
+      bind:showContainer={showNASAWallpaperInfo}
+    >
+      <div class="WallpaperDetails">
+        <p>{$settingState.wallpaper.plugins.nasa.metadata!.explanation}</p>
+        {#if $settingState.wallpaper.plugins.nasa.metadata!.copyright}
+          <p>© {$settingState.wallpaper.plugins.nasa.metadata!.copyright}</p>
+        {/if}
+        <div class="WallpaperDetails--calltoaction">
+          <a
+            href={$settingState.wallpaper.plugins.nasa.metadata!.page_url}
+            target="_blank"
+          >
+            Website
+          </a>
+          <a
+            href={$settingState.wallpaper.plugins.nasa.metadata!.url}
+            target="_blank"
+          >
+            View full image
+          </a>
+        </div>
+      </div>
+    </Test>
+  {/if}
+{/if}
 
 <style lang="scss">
-  button {
-    position: fixed;
-    bottom: 20px;
-    padding: 12px 24px;
-    background: rgba(99, 102, 241, 0.9);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-    backdrop-filter: blur(10px);
-    transition: all 0.2s ease;
-    z-index: 900;
-
-    &:hover {
-      background: rgba(99, 102, 241, 1);
-      transform: scale(1.05);
-    }
-
-    &:active {
-      transform: scale(0.95);
+  .NasaTools {
+    button.active {
+      // Hide the button when container is open
+      opacity: 0;
+      pointer-events: none;
     }
   }
 </style>

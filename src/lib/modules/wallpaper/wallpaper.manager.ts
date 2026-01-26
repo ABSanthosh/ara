@@ -1,6 +1,7 @@
 import { get } from "svelte/store";
 import { SettingStore } from "../settings/settings.store";
 import { NASAEngineImpl } from "./nasa/nasa.engine";
+import { AppStateStore } from "../settings/appState.store";
 
 /**
  * This is the class that manages different types of wallpapers.
@@ -81,7 +82,7 @@ export class WallpaperManagerImpl {
           state.wallpaper.plugins.nasa.mode = "dynamic";
           state.wallpaper.plugins.nasa.category = "apod";
           state.wallpaper.plugins.nasa.lastUpdate = new Date(
-            new Date().setHours(0, 0, 0, 0)
+            new Date().setHours(0, 0, 0, 0),
           );
 
           return state;
@@ -119,6 +120,32 @@ export class WallpaperManagerImpl {
         type: "nasa" as const,
         metadata: settings.wallpaper.plugins.nasa,
       };
+    }
+  }
+
+  /**
+   * Refresh nasa wallpaper if the active plugin is nasa and mode is dynamic
+   */
+  public async refreshNASA() {
+    const settings = get(SettingStore);
+    if (settings.wallpaper.activePlugin === "nasa") {
+      AppStateStore.update((state) => {
+        state.wallpaper.isWallpaperLoading = true;
+        return state;
+      });
+
+      const wallpaper = await this._nasaEngine.getRandomAPOD();
+      SettingStore.update((state) => {
+        state.wallpaper.url = wallpaper.hdurl || wallpaper.url;
+        state.wallpaper.plugins.nasa.metadata = wallpaper;
+
+        return state;
+      });
+
+      AppStateStore.update((state) => {
+        state.wallpaper.isWallpaperLoading = false;
+        return state;
+      });
     }
   }
 }

@@ -149,6 +149,12 @@
           <p>Dynamic Wallpapers</p>
         </label>
       </div>
+      <p class="Nasa__apiHelp">
+        Don't have a NASA API key? <a
+          href="https://api.nasa.gov/"
+          target="_blank">Get one free here</a
+        >
+      </p>
     </div>
 
     <!-- Add your appearance settings UI here -->
@@ -158,12 +164,12 @@
     <h3 class="Appearance__subheader">Preset Wallpapers</h3>
     <div class="Appearance__preset--options">
       {#each get(SettingStore).wallpaper.plugins.presets as preset}
-        <button
-          aria-label="Set Preset Wallpaper"
-          data-type="tertiary"
+        <!-- svelte-ignore a11y_click_events_have_key_events -->
+        <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+        <img
           class:active={localReactiveSettings?.wallpaper.activePlugin ===
             "preset" && localReactiveSettings?.wallpaper.url === preset}
-          style={`background-image: url(${preset})`}
+          src={preset}
           onclick={() => {
             WallpaperManager.setWallpaper({
               type: "preset",
@@ -172,8 +178,10 @@
               },
             });
           }}
-        >
-        </button>
+          alt="Preset Wallpaper"
+          loading="lazy"
+          style="width: 100%; height: 100%; border-radius: 8px; object-fit: cover;"
+        />
       {/each}
     </div>
   </section>
@@ -223,7 +231,7 @@
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
 
-        & > button {
+        & > img {
           @include box($height: 150px);
           border-radius: 8px;
           background-size: cover;
@@ -237,7 +245,7 @@
             transform: scale(1.02);
           }
           &.active {
-            box-shadow: 0 0 0 4px #338cec inset;
+            border: 4px solid #338cec;
           }
         }
       }
@@ -245,7 +253,6 @@
   }
 
   .Nasa {
-    gap: 20px;
     width: 100%;
     padding: 10px;
     border-radius: 20px;
@@ -303,6 +310,7 @@
 
     &__options {
       width: 100%;
+      margin-top: 20px;
       @include make-flex($dir: column, $align: flex-start, $just: flex-start);
 
       & > label {
@@ -339,6 +347,18 @@
             color: #fff;
           }
         }
+      }
+    }
+
+    &__apiHelp {
+      margin-top: 5px;
+      font-size: 14px;
+      padding-left: 7px;
+      padding-bottom: 2px;
+
+      a {
+        font-weight: 500;
+        text-decoration: underline;
       }
     }
   }
