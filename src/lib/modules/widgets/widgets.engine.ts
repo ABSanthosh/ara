@@ -17,7 +17,6 @@ class WidgetEngineImpl {
   }
 
   // Add, remove, update
-
   public addWidget(widget: Widgets) {
     const widgetId = nanoid();
 
