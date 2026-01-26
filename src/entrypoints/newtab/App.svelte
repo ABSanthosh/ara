@@ -12,6 +12,7 @@
   import Test from "@/lib/components/Test.svelte";
   import Spinner from "@/lib/components/Spinner/Spinner.svelte";
   import { AppStateStore } from "@/lib/modules/settings/appState.store";
+  import Modal from "@/lib/components/Modal.svelte";
 
   // Init modules
   const settingState = $derived(SettingStore.state);
@@ -166,9 +167,9 @@
   </div>
 
   {#if showNASAWallpaperInfo}
-    <Test
+    <Modal
       heading={$settingState.wallpaper.plugins.nasa.metadata!.title}
-      bind:showContainer={showNASAWallpaperInfo}
+      bind:showModal={showNASAWallpaperInfo}
     >
       <div class="WallpaperDetails">
         <p>{$settingState.wallpaper.plugins.nasa.metadata!.explanation}</p>
@@ -190,16 +191,6 @@
           </a>
         </div>
       </div>
-    </Test>
+    </Modal>
   {/if}
 {/if}
-
-<style lang="scss">
-  .NasaTools {
-    button.active {
-      // Hide the button when container is open
-      opacity: 0;
-      pointer-events: none;
-    }
-  }
-</style>
