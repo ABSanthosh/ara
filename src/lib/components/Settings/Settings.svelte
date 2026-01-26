@@ -155,9 +155,8 @@
             }
 
             &:has(input:checked) {
-              background: var(--labels-secondary);
-              // background-color: #338cec;
               color: #fff;
+              background: var(--labels-secondary);
 
               svg {
                 color: #fff;
