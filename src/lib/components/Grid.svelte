@@ -11,10 +11,10 @@
   }
 
   let {
-    gridGap = 15,
+    gridGap = 10,
     showGrid = false,
     gridPadding = 40,
-    minWidgetSize = 110,
+    minWidgetSize = 115,
     children,
   }: Props = $props();
 
@@ -22,7 +22,7 @@
   let grid: HTMLElement;
   let gridCols = $state(6);
   let gridRows = $state(4);
-  let cellSize = $state(110);
+  let cellSize = $state(115);
 
   function calculateGrid() {
     if (!gridContainer) return;
@@ -33,10 +33,10 @@
 
     // Calculate the number of columns and rows that can fit in the viewport
     gridCols = Math.floor(
-      (viewportWidth + gridGap) / (minWidgetSize + gridGap)
+      (viewportWidth + gridGap) / (minWidgetSize + gridGap),
     );
     gridRows = Math.floor(
-      (viewportHeight + gridGap) / (minWidgetSize + gridGap)
+      (viewportHeight + gridGap) / (minWidgetSize + gridGap),
     );
 
     // Calculate the maximum available width and height for placing widgets
@@ -103,8 +103,8 @@
 <style lang="scss">
   .grid-container {
     padding: 40px;
-    @include make-flex();
     @include box(100vw, 100vh);
+    @include make-flex($align: flex-start);
 
     @include respondAt(768px) {
       padding: 20px;

@@ -9,13 +9,12 @@
   import ContextMenu from "@/lib/components/ContextMenu.svelte";
   import { Heart, Pin, PinOff } from "@lucide/svelte";
   import { WidgetEngine } from "@/lib/modules/widgets/widgets.engine";
-  import Test from "@/lib/components/Test.svelte";
   import Spinner from "@/lib/components/Spinner/Spinner.svelte";
   import { AppStateStore } from "@/lib/modules/settings/appState.store";
   import Modal from "@/lib/components/Modal.svelte";
 
   // Init modules
-  const settingState = $derived(SettingStore.state);
+  const settingState = $state(SettingStore.state);
   const appState = $derived(AppStateStore);
 
   let showSettingModal = $state(false);
@@ -94,7 +93,7 @@
 <Settings bind:showModal={showSettingModal} />
 
 <Grid showGrid={$settingState.options.showGrid}>
-  {#each Object.keys($settingState.widgets) as widgetId}
+  {#each Object.keys($settingState.widgets) as widgetId (widgetId)}
     {@const widget = $settingState.widgets[widgetId]}
     {#if widget.type === "test-widget"}
       <TestWidget
@@ -160,9 +159,17 @@
       class:active={showNASAWallpaperInfo}
       data-no-blur
       style="anchor-name: --nasa-info-button;"
-      onclick={() => (showNASAWallpaperInfo = true)}
+      onclick={() => {
+        // showNASAWallpaperInfo = true;
+        WidgetEngine.addWidget({
+          settings: {},
+          type: "test-widget",
+          span: { x: 2, y: 2 },
+          pos: { col: 1, row: 1 },
+        });
+      }}
     >
-      <p>?</p>
+      <p>+</p>
     </button>
   </div>
 

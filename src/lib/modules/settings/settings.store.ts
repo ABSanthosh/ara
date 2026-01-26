@@ -13,7 +13,7 @@ const defaultStore: TSettingStore = {
   },
   options: {
     showGrid: false,
-    isDraggable: true,
+    isDraggable: false,
     isResizable: false,
   },
   widgets: {},

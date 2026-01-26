@@ -1,6 +1,8 @@
 <script lang="ts">
   import { LayoutDashboard, Settings, Wallpaper, X } from "@lucide/svelte";
   import AppearancePane from "./AppearancePane.svelte";
+  import WidgetsPane from "./WidgetsPane.svelte";
+  import GeneralPane from "./GeneralPane.svelte";
 
   let {
     showModal = $bindable(),
@@ -27,7 +29,7 @@
     Appearance: { name: "Appearance", icon: Wallpaper },
     Widgets: { name: "Widgets", icon: LayoutDashboard },
   };
-  let selectedKey: ItemKey = $state("Appearance");
+  let selectedKey: ItemKey = $state("Widgets");
 </script>
 
 {#if showModal}
@@ -77,14 +79,11 @@
           <X size="18" stroke-width="3" />
         </button>
         {#if selectedKey === "General"}
-          <h3>General Settings</h3>
-          <!-- General settings content goes here -->
+          <GeneralPane />
         {:else if selectedKey === "Appearance"}
           <AppearancePane />
-          <!-- Appearance settings content goes here -->
         {:else if selectedKey === "Widgets"}
-          <h3>Widgets Settings</h3>
-          <!-- Widgets settings content goes here -->
+          <WidgetsPane />
         {/if}
       </main>
     </div>
