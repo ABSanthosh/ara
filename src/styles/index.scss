@@ -112,3 +112,44 @@ html {
     }
   }
 }
+
+.NasaWallpaperInfoModal {
+  &.ModalWrapper {
+    align-items: flex-end !important;
+    justify-content: flex-end !important;
+
+    & > .Modal {
+      margin-bottom: 7px;
+      margin-right: 10px;
+      animation: none;
+    }
+  }
+}
+
+.WallpaperDetails {
+  gap: 8px;
+  color: white;
+  font-size: 14px;
+  border-radius: 10px 10px 0 0;
+  @include make-flex($dir: column, $align: flex-start);
+
+  &--calltoaction {
+    gap: 10px;
+    @include box(100%, auto);
+    @include make-flex($dir: row, $just: flex-end);
+    a {
+      color: #ccc;
+      text-decoration: underline;
+      font-size: 13px;
+
+      &:hover {
+        color: white;
+        text-decoration: underline;
+      }
+    }
+  }
+  p {
+    font-size: 15px;
+    line-height: 1.5;
+  }
+}

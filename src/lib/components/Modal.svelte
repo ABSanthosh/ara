@@ -58,13 +58,15 @@
     position: fixed;
     @include make-flex();
     background: transparent;
+    max-width: 100vw;
+    max-height: 100vh;
     @include box(100vw, 100vh);
   }
 
   .Modal {
     width: 90%;
     color: #fff;
-    max-width: 600px;
+    max-width: 650px;
     animation: fadeInScale 0.3s ease forwards;
 
     border: 1px solid rgba(255, 255, 255, 0.1);
