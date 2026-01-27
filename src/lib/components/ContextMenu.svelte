@@ -104,8 +104,8 @@
 
 <style lang="scss">
   .context-menu {
-    min-width: 210px;
     padding: 8px;
+    min-width: 210px;
     border-radius: 10px;
 
     @supports (corner-shape: squircle) {
@@ -161,8 +161,9 @@
       min-height: 28px;
       text-align: left;
       padding: 5px 12px;
-      border-radius: 6px;
+      border-radius: 6px;      
       background: transparent;
+      color: var(--vibrant-labels-primary);
 
       &:active,
       &:hover {

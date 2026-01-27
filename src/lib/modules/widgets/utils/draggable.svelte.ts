@@ -20,7 +20,7 @@ function createDragShadow() {
 
 function makeRemoveButton(widgetId: string) {
   const btn = document.createElement("button");
-  btn.textContent = "-";
+  btn.innerHTML = `&times;`;
   btn.className = "widget-remove";
   btn.setAttribute("data-drag-ignore", "true");
   btn.onclick = () => {
@@ -32,7 +32,7 @@ function makeRemoveButton(widgetId: string) {
 function makeResizeHandle() {
   const handleSvg = document.createElementNS(
     "http://www.w3.org/2000/svg",
-    "svg"
+    "svg",
   );
   handleSvg.setAttribute("class", "widget-resize-handle");
   handleSvg.setAttribute("data-drag-ignore", "true");
@@ -45,7 +45,7 @@ function makeResizeHandle() {
   const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
   path.setAttribute(
     "d",
-    "M36.0005 9C36.0005 9 36.0005 19.5 28.5005 27C21.0005 34.5 9.00049 33.5 9.00049 33.5"
+    "M36.0005 9C36.0005 9 36.0005 19.5 28.5005 27C21.0005 34.5 9.00049 33.5 9.00049 33.5",
   );
   path.setAttribute("stroke-width", "18");
   path.setAttribute("stroke-miterlimit", "10");
@@ -180,11 +180,14 @@ export function draggable(draggedWidget: HTMLElement, widgetId: string) {
     return {
       row: Math.max(
         1,
-        Math.min(Math.floor((y - rect.top) / (g.cellSize + g.gap)) + 1, g.rows)
+        Math.min(Math.floor((y - rect.top) / (g.cellSize + g.gap)) + 1, g.rows),
       ),
       col: Math.max(
         1,
-        Math.min(Math.floor((x - rect.left) / (g.cellSize + g.gap)) + 1, g.cols)
+        Math.min(
+          Math.floor((x - rect.left) / (g.cellSize + g.gap)) + 1,
+          g.cols,
+        ),
       ),
     };
   }

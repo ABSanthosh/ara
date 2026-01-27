@@ -12,6 +12,7 @@
   import Spinner from "@/lib/components/Spinner/Spinner.svelte";
   import { AppStateStore } from "@/lib/modules/settings/appState.store";
   import Modal from "@/lib/components/Modal.svelte";
+  import Calendar from "@/lib/components/widgets/Calendar.svelte";
 
   // Init modules
   const settingState = $state(SettingStore.state);
@@ -103,6 +104,8 @@
         gridSpanX={widget.span.x}
         gridSpanY={widget.span.y}
       />
+    {:else if widget.type === "calendar"}
+      <Calendar {widget} />
     {/if}
   {/each}
 </Grid>
@@ -163,7 +166,7 @@
         // showNASAWallpaperInfo = true;
         WidgetEngine.addWidget({
           settings: {},
-          type: "test-widget",
+          type: "calendar",
           span: { x: 2, y: 2 },
           pos: { col: 1, row: 1 },
         });
