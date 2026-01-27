@@ -47,14 +47,13 @@
   // box-shadow: var(--crp-button-shadow);
 
   padding: var(--crp-button-padding-y) var(--crp-button-padding-x);
-  gap: var(--crp-button-gap);
 
   &:not([data-no-blur]) {
     backdrop-filter: blur(30px) saturate(120%) brightness(1.04);
   }
 
-  @include make-flex(row);
   @include box(auto, var(--crp-button-height));
+  @include make-flex($dir: row, $gap: var(--crp-button-gap));
 
   /* ─────────────────────────────
    Squircle Corners

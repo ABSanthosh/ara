@@ -127,16 +127,14 @@ html {
 }
 
 .WallpaperDetails {
-  gap: 8px;
   color: white;
   font-size: 14px;
   border-radius: 10px 10px 0 0;
-  @include make-flex($dir: column, $align: flex-start);
+  @include make-flex($dir: column, $align: flex-start, $gap: 8px);
 
   &--calltoaction {
-    gap: 10px;
     @include box(100%, auto);
-    @include make-flex($dir: row, $just: flex-end);
+    @include make-flex($dir: row, $just: flex-end, $gap: 10px);
     a {
       color: #ccc;
       text-decoration: underline;
