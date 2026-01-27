@@ -2,6 +2,7 @@
   import { SettingStore } from "@/lib/modules/settings/settings.store";
   import type { TSettingStore } from "@/lib/modules/settings/settings.types";
   import { WallpaperManager } from "@/lib/modules/wallpaper/wallpaper.manager";
+  import { Dices } from "@lucide/svelte";
   import { get } from "svelte/store";
   import NasaLogo from "~/assets/nasa.png";
 
@@ -22,9 +23,9 @@
   }
 
   // Radio group for selecting Static vs Dynamic
-  const oldWallpaper = WallpaperManager.getWallpaper()?.metadata;
+  let oldWallpaper = WallpaperManager.getWallpaper()?.metadata;
   let wallpaperType: "Static" | "Dynamic" | undefined = $state(
-    oldWallpaper?.mode === "static" ? "Static" : "Dynamic"
+    oldWallpaper?.mode === "static" ? "Static" : "Dynamic",
   );
 
   let localReactiveSettings = $state<TSettingStore>();
@@ -95,7 +96,7 @@
                     mode: "static",
                     category: "apod",
                     date: new Date(
-                      localReactiveSettings?.wallpaper.plugins.nasa.staticDate
+                      localReactiveSettings?.wallpaper.plugins.nasa.staticDate,
                     ),
                   },
                 });
@@ -128,6 +129,14 @@
             min="1995-06-16"
             max={new Date().toISOString().split("T")[0]}
           />
+          <!-- TODO: When I roll the dice the date picker isn't showing the new date -->
+          <button
+            class="CrispButton"
+            onclick={() => WallpaperManager.refreshNASA()}
+            title="Random NASA Wallpaper"
+          >
+            <Dices />
+          </button>
         </label>
         <label>
           <input
@@ -222,7 +231,12 @@
     &__preset {
       margin-top: 25px;
       @include box($height: auto, $width: 100%);
-      @include make-flex($dir: column, $align: flex-start, $just: flex-start, $gap: 15px);
+      @include make-flex(
+        $dir: column,
+        $align: flex-start,
+        $just: flex-start,
+        $gap: 15px
+      );
 
       &--options {
         gap: 15px;
@@ -266,7 +280,12 @@
 
     &__header {
       width: 100%;
-      @include make-flex($dir: row, $align: center, $just: flex-start, $gap: 15px);
+      @include make-flex(
+        $dir: row,
+        $align: center,
+        $just: flex-start,
+        $gap: 15px
+      );
 
       & > img {
         margin-left: 8px;
@@ -275,7 +294,12 @@
 
       &--right {
         width: 100%;
-        @include make-flex($dir: column, $align: flex-start, $just: center, $gap: 10px);
+        @include make-flex(
+          $dir: column,
+          $align: flex-start,
+          $just: center,
+          $gap: 10px
+        );
 
         & > h4 {
           font-size: 20px;
@@ -285,7 +309,12 @@
 
         &__input-group {
           width: 100%;
-          @include make-flex($dir: row, $align: center, $just: flex-start, $gap: 10px);
+          @include make-flex(
+            $dir: row,
+            $align: center,
+            $just: flex-start,
+            $gap: 10px
+          );
 
           & > label {
             width: 100%;
@@ -331,6 +360,12 @@
         & > input[type="date"] {
           margin-left: auto;
           --crp-input-width: auto;
+        }
+
+        & > button.CrispButton {
+          --crp-button-radius: 10px;
+          --crp-button-width: 32px;
+          --crp-button-padding-x: 6px;
         }
 
         &:has(input:checked) {

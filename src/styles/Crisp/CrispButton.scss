@@ -7,6 +7,7 @@
   --crp-button-radius: 12px;
   --crp-button-corner-shape: squircle;
   --crp-button-height: 32px;
+  --crp-button-width: auto;
   --crp-button-font-size: 15px;
   --crp-button-gap: 8px;
 
@@ -52,8 +53,8 @@
     backdrop-filter: blur(30px) saturate(120%) brightness(1.04);
   }
 
-  @include box(auto, var(--crp-button-height));
   @include make-flex($dir: row, $gap: var(--crp-button-gap));
+  @include box(var(--crp-button-width), var(--crp-button-height));
 
   /* ─────────────────────────────
    Squircle Corners
@@ -131,7 +132,7 @@
   }
 
   &[data-type="inverse-danger"] {
-    --crp-button-bg: transparent;
+    // --crp-button-bg: transparent;
     --crp-button-bg-hover: #d75350;
     // --crp-button-border: 1px solid rgba(234, 57, 60, 0.85);
     --crp-button-color: var(--colors-red);
