@@ -221,9 +221,8 @@
 
     &__preset {
       margin-top: 25px;
-      gap: 15px;
       @include box($height: auto, $width: 100%);
-      @include make-flex($dir: column, $align: flex-start, $just: flex-start);
+      @include make-flex($dir: column, $align: flex-start, $just: flex-start, $gap: 15px);
 
       &--options {
         gap: 15px;
@@ -266,9 +265,8 @@
     @include make-flex($dir: column, $align: flex-start, $just: flex-start);
 
     &__header {
-      gap: 15px;
       width: 100%;
-      @include make-flex($dir: row, $align: center, $just: flex-start);
+      @include make-flex($dir: row, $align: center, $just: flex-start, $gap: 15px);
 
       & > img {
         margin-left: 8px;
@@ -276,9 +274,8 @@
       }
 
       &--right {
-        gap: 10px;
         width: 100%;
-        @include make-flex($dir: column, $align: flex-start, $just: center);
+        @include make-flex($dir: column, $align: flex-start, $just: center, $gap: 10px);
 
         & > h4 {
           font-size: 20px;
@@ -287,14 +284,13 @@
         }
 
         &__input-group {
-          gap: 10px;
           width: 100%;
-          @include make-flex($dir: row, $align: center, $just: flex-start);
+          @include make-flex($dir: row, $align: center, $just: flex-start, $gap: 10px);
 
           & > label {
-            gap: 4px;
             width: 100%;
             @include make-flex(
+              $gap: 4px,
               $dir: row,
               $align: flex-start,
               $just: flex-start
@@ -314,19 +310,18 @@
       @include make-flex($dir: column, $align: flex-start, $just: flex-start);
 
       & > label {
-        gap: 10px;
         border: none;
         outline: none;
-        padding: 0 8px 0 15px;
         cursor: pointer;
         font-size: large;
         position: relative;
         border-radius: 12px;
+        padding: 0 8px 0 15px;
         @include box(100%, 48px);
         color: var(--text-secondary);
         background-color: transparent;
         transition: all 0.1s ease-in-out;
-        @include make-flex($dir: row, $just: flex-start);
+        @include make-flex($dir: row, $just: flex-start, $gap: 10px);
 
         @supports (corner-shape: squircle) {
           border-radius: 30px;

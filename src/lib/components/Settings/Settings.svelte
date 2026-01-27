@@ -100,13 +100,12 @@
     grid-template-columns: 260px 1fr;
 
     &__sidebar {
-      gap: 12px;
-      @include make-flex($just: flex-start);
+      padding: 18px;
       border-top: 1px solid var(--separator);
       border-left: 1px solid var(--separator);
       border-right: 1px solid var(--separator);
       border-radius: var(--__border-radius) 0 0 0;
-      padding: 18px;
+      @include make-flex($just: flex-start, $gap: 12px);
 
       & > h2 {
         font-size: 34px;
@@ -117,17 +116,15 @@
       }
 
       & > ul {
-        gap: 8px;
         width: 100%;
         list-style: none;
         margin-top: 10px;
-        @include make-flex($dir: column, $just: flex-start);
+        @include make-flex($dir: column, $just: flex-start, $gap: 8px);
 
         & > li {
           @include box(100%, 45px);
 
           & > label {
-            gap: 10px;
             border: none;
             outline: none;
             @include box();
@@ -139,7 +136,7 @@
             color: var(--text-secondary);
             background-color: transparent;
             transition: all 0.1s ease-in-out;
-            @include make-flex($dir: row, $just: flex-start);
+            @include make-flex($dir: row, $just: flex-start, $gap: 10px);
 
             @supports (corner-shape: squircle) {
               border-radius: 40px;

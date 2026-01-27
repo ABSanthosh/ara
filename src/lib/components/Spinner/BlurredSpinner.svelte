@@ -23,13 +23,12 @@
   .BlurredSpinner {
     top: 0;
     left: 0;
-    gap: 8px;
     @include box();
     position: absolute;
-    @include make-flex();
     backdrop-filter: none;
     border-radius: inherit;
     background: transparent;
+    @include make-flex($gap: 8px);
 
     &[data-blur="true"] {
       background: rgba(0, 0, 0, 0.49);
