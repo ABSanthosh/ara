@@ -8,21 +8,27 @@ $scrollbarWidth: 4px;
 * {
   margin: 0;
   padding: 0;
-  box-sizing: border-box;
   transition: color 0.1s ease-in-out;
 
   font-style: normal;
   font-optical-sizing: auto;
   font-family: "Inter", sans-serif;
   // color: var(--vibrant-fills-secondary);
-  color: var(--vibrant-labels-primary);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
 }
 
 html {
   overflow-y: auto;
   font-size: 15.5px;
   overflow-x: hidden;
+  box-sizing: border-box;
   @include box(100vw, auto);
+  color: var(--vibrant-labels-primary);
   @include make-flex($just: flex-start);
 }
 
@@ -45,6 +51,14 @@ html {
 }
 
 // For some reason, style in App.svelte is not applied, so moved here
+
+.stop-editing.CrispButton {
+  top: 10px;
+  right: 10px;
+  z-index: 20;
+  position: fixed;
+}
+
 .NasaTools {
   position: absolute;
   @include make-flex($dir: row, $gap: 8px);

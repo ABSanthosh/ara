@@ -55,23 +55,26 @@
 
 // Temp
 .widget-remove {
-  top: -7px;
-  left: -7px;
+  top: -6px;
+  left: -6px;
   z-index: 10;
   border: none;
   color: #000;
-  font-size: 18px;
+  font-size: 16px;
+  font-weight: 400;
   cursor: pointer;
   position: absolute;
   padding-bottom: 3px;
   border-radius: 50px;
   @include make-flex();
-  @include box(25px, 25px);
+  @include box(23px, 23px);
+  transition: all 0.2s ease;
   background-color: #c1c1c1;
-  transition: background-color 0.2s ease;
 
   &:hover {
+    color: #fff;
     background-color: var(--colors-red);
+    transform: scale(1.1);
   }
 }
 

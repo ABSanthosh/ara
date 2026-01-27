@@ -72,12 +72,12 @@ class SettingStoreImpl {
 
   constructor() {
     this.unsubscribe = this.state.subscribe((value) => {
-      if (this.saveTimer) {
-        clearTimeout(this.saveTimer);
-      }
-      this.saveTimer = setTimeout(() => {
-        window.localStorage.setItem("settingStore", JSON.stringify(value));
-      }, 1000);
+      // if (this.saveTimer) {
+      //   clearTimeout(this.saveTimer);
+      // }
+      // this.saveTimer = setTimeout(() => {
+      // }, 1000);
+      window.localStorage.setItem("settingStore", JSON.stringify(value));
     });
   }
 

@@ -1,8 +1,9 @@
-import nanoid from "@/lib/utils/nanoid";
-import { SettingStore } from "@/lib/modules/settings/settings.store";
-import type { Widgets } from "@/lib/modules/widgets/widgets.types";
-import { TSettingStore } from "../settings/settings.types";
 import { get } from "svelte/store";
+import nanoid from "@/lib/utils/nanoid";
+import { CatStore } from "../cats/cats.stores";
+import { TSettingStore } from "../settings/settings.types";
+import type { Widgets } from "@/lib/modules/widgets/widgets.types";
+import { SettingStore } from "@/lib/modules/settings/settings.store";
 
 class WidgetEngineImpl {
   private widgets: Record<string, Widgets> = {};
@@ -14,6 +15,10 @@ class WidgetEngineImpl {
       this.widgets = settings.widgets;
       this.internalState = settings.internal;
     });
+  }
+
+  onDestroy() {
+    this.unsubscribe();
   }
 
   // Add, remove, update
@@ -86,17 +91,64 @@ class WidgetEngineImpl {
 
   public removeWidget(widgetId: string) {
     const widget = this.widgets[widgetId];
-    
+
     // Clean up widget-specific resources
     if (widget && widget.type === "cat") {
       // Import CatStore dynamically to avoid circular dependency
-      import("../cats/cats.stores").then(({ CatStore }) => {
-        CatStore.removeMagazine(widgetId);
-      });
+      CatStore.removeMagazine(widgetId);
     }
-    
+
     SettingStore.update((state) => {
       delete state.widgets[widgetId];
+      return state;
+    });
+  }
+
+  public subscribeTo(widgetId: string, callback: (widget: Widgets) => void) {
+    return SettingStore.subscribe((settings) => {
+      const widget = settings.widgets[widgetId];
+      if (widget) {
+        callback(widget);
+      }
+    });
+  }
+
+  public updateWidget(widgetId: string, updatedFields: Partial<Widgets>) {
+    SettingStore.update((state) => {
+      const widget = state.widgets[widgetId];
+      if (widget) {
+        // Ensure type safety for discriminated union
+        switch (widget.type) {
+          case "analog-clock":
+            state.widgets[widgetId] = {
+              ...widget,
+              ...(updatedFields as Partial<typeof widget>),
+            };
+            break;
+          case "flip-clock":
+            state.widgets[widgetId] = {
+              ...widget,
+              ...(updatedFields as Partial<typeof widget>),
+            };
+            break;
+          case "cat":
+            state.widgets[widgetId] = {
+              ...widget,
+              ...(updatedFields as Partial<typeof widget>),
+            };
+            break;
+          case "checklist":
+            state.widgets[widgetId] = {
+              ...widget,
+              ...(updatedFields as Partial<typeof widget>),
+            };
+            break;
+          // Add other widget types as needed
+          default:
+            // fallback for unknown types
+            state.widgets[widgetId] = widget;
+        }
+      }
       return state;
     });
   }
