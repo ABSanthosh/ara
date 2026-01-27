@@ -14,7 +14,7 @@ $scrollbarWidth: 4px;
   font-style: normal;
   font-optical-sizing: auto;
   font-family: "Inter", sans-serif;
-  color: var(--vibrant-labels-primary);
+  color: var(--vibrant-fills-secondary);
 }
 
 html {
@@ -45,9 +45,8 @@ html {
 
 // For some reason, style in App.svelte is not applied, so moved here
 .NasaTools {
-  gap: 8px;
   position: absolute;
-  @include make-flex($dir: row);
+  @include make-flex($dir: row, $gap: 8px);
 
   bottom: 7px;
   right: 10px;

@@ -30,11 +30,12 @@
   @include prefix(transform, translate(-50%));
 }
 
-@mixin make-flex($dir: column, $align: center, $just: center) {
+@mixin make-flex($dir: column, $align: center, $just: center, $gap: 0) {
   display: flex;
   flex-direction: $dir;
   align-items: $align;
   justify-content: $just;
+  gap: $gap;
 }
 
 $screen-sm-max: 400px;
