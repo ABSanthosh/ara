@@ -29,33 +29,6 @@ function makeRemoveButton(widgetId: string) {
   return btn;
 }
 
-function makeResizeHandle() {
-  const handleSvg = document.createElementNS(
-    "http://www.w3.org/2000/svg",
-    "svg",
-  );
-  handleSvg.setAttribute("class", "widget-resize-handle");
-  handleSvg.setAttribute("data-drag-ignore", "true");
-  handleSvg.setAttribute("width", "25");
-  handleSvg.setAttribute("height", "25");
-  handleSvg.setAttribute("viewBox", "0 0 45 45");
-  handleSvg.setAttribute("fill", "none");
-  handleSvg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-
-  const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  path.setAttribute(
-    "d",
-    "M36.0005 9C36.0005 9 36.0005 19.5 28.5005 27C21.0005 34.5 9.00049 33.5 9.00049 33.5",
-  );
-  path.setAttribute("stroke-width", "18");
-  path.setAttribute("stroke-miterlimit", "10");
-  path.setAttribute("stroke-linecap", "round");
-
-  handleSvg.appendChild(path);
-
-  return handleSvg;
-}
-
 const occupiedCells = new Set<string>();
 
 type DragState =
@@ -72,21 +45,16 @@ export function draggable(draggedWidget: HTMLElement, widgetId: string) {
   /* ---------------------------------- */
 
   const removeButton = makeRemoveButton(widgetId);
-  const resizeHandle = makeResizeHandle();
 
   function attachRemoveButton() {
     if (!draggedWidget.contains(removeButton)) {
       draggedWidget.appendChild(removeButton);
-    }
-    if (!draggedWidget.contains(resizeHandle)) {
-      draggedWidget.appendChild(resizeHandle);
     }
     draggedWidget.classList.add("dragging-pane");
   }
 
   function detachRemoveButton() {
     removeButton.remove();
-    resizeHandle.remove();
     draggedWidget.classList.remove("dragging-pane");
   }
 
