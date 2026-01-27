@@ -95,9 +95,12 @@
     --__border-radius: 40px;
     height: 650px;
     width: min(1000px, 80vw);
-
     display: grid;
     grid-template-columns: 260px 1fr;
+
+    & > * {
+      user-select: none;
+    }
 
     &__sidebar {
       padding: 18px;
@@ -110,8 +113,9 @@
       & > h2 {
         font-size: 34px;
         font-weight: 700;
-        padding: 10px 12px 0 12px;
         @include box(100%, auto);
+        padding: 10px 12px 0 12px;
+        color: var(--vibrant-labels-primary);
         @include make-flex($dir: row, $just: space-between);
       }
 
@@ -133,9 +137,9 @@
             font-size: large;
             position: relative;
             border-radius: 12px;
-            color: var(--text-secondary);
             background-color: transparent;
             transition: all 0.1s ease-in-out;
+            color: var(--vibrant-labels-primary);
             @include make-flex($dir: row, $just: flex-start, $gap: 10px);
 
             @supports (corner-shape: squircle) {
@@ -172,15 +176,16 @@
       border-right: 1px solid var(--separator);
 
       & > .CrispButton[data-type="inverse-danger"] {
-        position: absolute;
-        z-index: 10;
         top: 23px;
+        z-index: 10;
         right: 25px;
+        position: absolute;
         @include box(30px, 30px);
         --crp-button-radius: 10px;
-        --crp-button-corner-shape: round;
         --crp-button-padding-x: 4px;
         --crp-button-padding-y: 4px;
+        --crp-button-corner-shape: round;
+        color: var(--vibrant-labels-primary);
       }
     }
   }
