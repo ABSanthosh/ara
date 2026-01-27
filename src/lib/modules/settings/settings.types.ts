@@ -1,5 +1,5 @@
 import { APODResponse } from "../wallpaper/nasa/nasa.types";
-import { Widgets } from "../widgets/widgets.types";
+import { CatWidget, Widgets } from "../widgets/widgets.types";
 
 export type TSettingStore = {
   internal: {
@@ -9,6 +9,9 @@ export type TSettingStore = {
       gap: number;
       cellSize: number;
       element: HTMLElement;
+    };
+    widgetDefaults: {
+      CatWidget: CatWidget["settings"];
     };
   };
   options: {

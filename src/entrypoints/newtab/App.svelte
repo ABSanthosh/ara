@@ -1,18 +1,20 @@
 <script lang="ts">
-  import { onDestroy } from "svelte";
-  import { WallpaperManager } from "@/lib/modules/wallpaper/wallpaper.manager";
   import "../../styles/index.scss";
+
+  import { onDestroy } from "svelte";
   import Grid from "@/lib/components/Grid.svelte";
+  import Modal from "@/lib/components/Modal.svelte";
+  import { Heart, Pin, PinOff } from "@lucide/svelte";
+  import Cat from "@/lib/components/widgets/Cat.svelte";
+  import ContextMenu from "@/lib/components/ContextMenu.svelte";
+  import Spinner from "@/lib/components/Spinner/Spinner.svelte";
+  import Calendar from "@/lib/components/widgets/Calendar.svelte";
+  import Settings from "@/lib/components/Settings/Settings.svelte";
+  import { WidgetEngine } from "@/lib/modules/widgets/widgets.engine";
   import TestWidget from "@/lib/components/widgets/TestWidget.svelte";
   import { SettingStore } from "@/lib/modules/settings/settings.store";
-  import Settings from "@/lib/components/Settings/Settings.svelte";
-  import ContextMenu from "@/lib/components/ContextMenu.svelte";
-  import { Heart, Pin, PinOff } from "@lucide/svelte";
-  import { WidgetEngine } from "@/lib/modules/widgets/widgets.engine";
-  import Spinner from "@/lib/components/Spinner/Spinner.svelte";
   import { AppStateStore } from "@/lib/modules/settings/appState.store";
-  import Modal from "@/lib/components/Modal.svelte";
-  import Calendar from "@/lib/components/widgets/Calendar.svelte";
+  import { WallpaperManager } from "@/lib/modules/wallpaper/wallpaper.manager";
 
   // Init modules
   const settingState = $state(SettingStore.state);
@@ -106,6 +108,8 @@
       />
     {:else if widget.type === "calendar"}
       <Calendar {widget} />
+    {:else if widget.type === "cat"}
+      <Cat {widget} />
     {/if}
   {/each}
 </Grid>
@@ -166,7 +170,7 @@
         // showNASAWallpaperInfo = true;
         WidgetEngine.addWidget({
           settings: {},
-          type: "calendar",
+          type: "cat",
           span: { x: 2, y: 2 },
           pos: { col: 1, row: 1 },
         });

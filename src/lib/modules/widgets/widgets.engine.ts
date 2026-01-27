@@ -31,6 +31,14 @@ class WidgetEngineImpl {
       return;
     }
 
+    // Copy default settings to the new widget if it's a CatWidget
+    if (widget.type === "cat") {
+      widget.settings = {
+        ...this.internalState.widgetDefaults.CatWidget,
+        ...widget.settings,
+      };
+    }
+
     const occupiedCells: Set<string> = new Set();
     Object.values(this.widgets).forEach((w) => {
       for (let r = w.pos.row; r < w.pos.row + w.span.y; r++) {
@@ -77,6 +85,16 @@ class WidgetEngineImpl {
   }
 
   public removeWidget(widgetId: string) {
+    const widget = this.widgets[widgetId];
+    
+    // Clean up widget-specific resources
+    if (widget && widget.type === "cat") {
+      // Import CatStore dynamically to avoid circular dependency
+      import("../cats/cats.stores").then(({ CatStore }) => {
+        CatStore.removeMagazine(widgetId);
+      });
+    }
+    
     SettingStore.update((state) => {
       delete state.widgets[widgetId];
       return state;

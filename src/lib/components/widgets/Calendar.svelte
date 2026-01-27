@@ -13,12 +13,6 @@
   }: {
     widget: CalendarWidget;
   } = $props();
-
-  // svelte-ignore state_referenced_locally
-  let size = $state(
-    widget.span.x === 1 && widget.span.y === 1 ? "compact" : "large",
-  );
-
   // TODO: Let users select different starting day of the week and locale
   const today = dayjs();
   let date = $state(dayjs());
@@ -51,23 +45,32 @@
     },
   });
 
-  const allowedSpans: CalendarSpan[] = [
-    { x: 1, y: 1 },
-    { x: 2, y: 2 },
-  ];
-  let resizeProgress = $state<"idle" | "resizing">("idle");
+  const config = $state<{
+    size: "compact" | "large";
+    allowedSpans: CalendarSpan[];
+    resizeProgress: "idle" | "resizing";
+  }>({
+    // svelte-ignore state_referenced_locally
+    size: widget.span.x === 1 && widget.span.y === 1 ? "compact" : "large",
+    allowedSpans: [
+      { x: 1, y: 1 },
+      { x: 2, y: 2 },
+    ],
+    resizeProgress: "idle" as "idle" | "resizing",
+  });
 </script>
 
 <div
-  data-size={size}
+  data-size={config.size}
   use:draggable={widget.id!}
   use:resizable={{
     widgetId: widget.id!,
-    spans: allowedSpans,
-    onResizeStateChange: (resizeState) => (resizeProgress = resizeState.type),
+    spans: config.allowedSpans,
+    onResizeStateChange: (resizeState) =>
+      (config.resizeProgress = resizeState.type),
     onResize: (newSpan) => {
       // Update size based on new span
-      size = newSpan.x === 1 && newSpan.y === 1 ? "compact" : "large";
+      config.size = newSpan.x === 1 && newSpan.y === 1 ? "compact" : "large";
     },
   }}
   class="calendar blur-regular"
@@ -76,8 +79,8 @@
     widget.span.y} / {widget.pos.col + widget.span.x};
   "
 >
-  {#if resizeProgress === "idle"}
-    {#if size === "large"}
+  {#if config.resizeProgress === "idle"}
+    {#if config.size === "large"}
       <!-- Month Header -->
       <div class="month-header">
         <h2 class="month-name">
@@ -157,7 +160,7 @@
     @for $i from 1 through 7 {
       &:has(.date-grid .date-cell:nth-child(7n + #{$i}):hover) {
         .day-header .day-name:nth-child(#{$i}) {
-          color: var(--colors-pink);
+          color: var(--colors-red);
           font-weight: 600;
           transform: scale(1.1);
         }
@@ -196,7 +199,7 @@
         overflow: hidden;
         letter-spacing: 1px;
         text-overflow: ellipsis;
-        color: var(--colors-pink);
+        color: var(--colors-red);
       }
 
       .month-controls {
@@ -222,7 +225,7 @@
         }
 
         & > svg {
-          color: var(--colors-pink) !important;
+          color: var(--colors-red) !important;
         }
 
         &:hover {
@@ -289,7 +292,7 @@
         &.today {
           font-weight: 600;
           color: var(--vibrant-labels-primary);
-          background-color: var(--colors-pink);
+          background-color: var(--colors-red);
           box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
         }
         &.empty {
@@ -311,7 +314,7 @@
       .compact-month {
         font-size: 20px;
         font-weight: 800;
-        color: var(--colors-pink);
+        color: var(--colors-red);
       }
 
       .compact-day-name {
