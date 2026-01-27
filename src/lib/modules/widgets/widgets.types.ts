@@ -65,7 +65,10 @@ export type CatWidget = Widget & {
   type: "cat";
   span: CatSpan;
   settings: {
-    // No specific settings for cat widget currently
+    // TODO: should I decouple these settings from widgetDefaults?
+    subreddit?: string[];
+    magazineSize?: number;
+    maxAccess?: number; // Number of times to show the same cat before moving to next (1-10)
   };
 };
 

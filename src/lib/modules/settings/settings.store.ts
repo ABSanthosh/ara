@@ -1,5 +1,5 @@
-import { writable, type Writable } from "svelte/store";
 import { TSettingStore } from "./settings.types";
+import { writable, type Writable } from "svelte/store";
 
 const defaultStore: TSettingStore = {
   internal: {
@@ -9,6 +9,20 @@ const defaultStore: TSettingStore = {
       cellSize: -1,
       gap: -1,
       element: document.createElement("div"),
+    },
+    widgetDefaults: {
+      CatWidget: {
+        magazineSize: 7,
+        maxAccess: 1,
+        subreddit: [
+          "catpics",
+          "CatsInHats",
+          "catpictures",
+          "catsinboxes",
+          "Catswithjobs",
+          "CatsInBusinessAttire",
+        ],
+      },
     },
   },
   options: {
