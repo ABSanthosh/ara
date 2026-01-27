@@ -27,7 +27,6 @@
     resizeProgress: "idle" as "idle" | "resizing",
   });
 
-  const catEngine = $state(CatEngine);
   let tooLong = $state(false);
   let timer: ReturnType<typeof setTimeout> | undefined;
   let storeUnsubscribe: (() => void) | undefined;

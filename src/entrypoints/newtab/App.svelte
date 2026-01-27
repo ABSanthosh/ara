@@ -15,6 +15,7 @@
   import { SettingStore } from "@/lib/modules/settings/settings.store";
   import { AppStateStore } from "@/lib/modules/settings/appState.store";
   import { WallpaperManager } from "@/lib/modules/wallpaper/wallpaper.manager";
+  import Checklist from "@/lib/components/widgets/Checklist.svelte";
 
   // Init modules
   const settingState = $state(SettingStore.state);
@@ -110,9 +111,26 @@
       <Calendar {widget} />
     {:else if widget.type === "cat"}
       <Cat {widget} />
+    {:else if widget.type === "checklist"}
+      <Checklist {widget} />
     {/if}
   {/each}
 </Grid>
+
+{#if $settingState.options.isResizable}
+  <button
+    class="stop-editing CrispButton"
+    onclick={() => {
+      SettingStore.update((store) => {
+        store.options.isResizable = false;
+        store.options.isDraggable = false;
+        return store;
+      });
+    }}
+  >
+    Stop Editing
+  </button>
+{/if}
 
 {#if $settingState.wallpaper.activePlugin === "nasa"}
   <div class="NasaTools">
@@ -169,8 +187,10 @@
       onclick={() => {
         // showNASAWallpaperInfo = true;
         WidgetEngine.addWidget({
-          settings: {},
-          type: "cat",
+          settings: {
+            items: [],
+          },
+          type: "checklist",
           span: { x: 2, y: 2 },
           pos: { col: 1, row: 1 },
         });
