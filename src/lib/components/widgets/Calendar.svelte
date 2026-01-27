@@ -1,8 +1,12 @@
 <script lang="ts">
   import { draggable } from "@/lib/modules/widgets/utils/draggable.svelte";
-  import type { CalendarWidget } from "@/lib/modules/widgets/widgets.types";
+  import type {
+    CalendarSpan,
+    CalendarWidget,
+  } from "@/lib/modules/widgets/widgets.types";
   import dayjs from "dayjs";
-  import { ChevronLeft, ChevronRight, RotateCcw } from "@lucide/svelte";
+  import { ChevronLeft, ChevronRight, Expand, RotateCcw } from "@lucide/svelte";
+  import { resizable } from "@/lib/modules/widgets/utils/resizable.svelte";
 
   let {
     widget,
@@ -11,8 +15,11 @@
   } = $props();
 
   // svelte-ignore state_referenced_locally
-  const size = widget.span.x === 1 && widget.span.y === 1 ? "compact" : "large";
+  let size = $state(
+    widget.span.x === 1 && widget.span.y === 1 ? "compact" : "large",
+  );
 
+  // TODO: Let users select different starting day of the week and locale
   const today = dayjs();
   let date = $state(dayjs());
   const dateFormats = $derived({
@@ -43,67 +50,99 @@
       "2-digit": date.format("YY"),
     },
   });
-  console.log(dateFormats);
+
+  const allowedSpans: CalendarSpan[] = [
+    { x: 1, y: 1 },
+    { x: 2, y: 2 },
+  ];
+  let resizeProgress = $state<"idle" | "resizing">("idle");
 </script>
 
 <div
   data-size={size}
   use:draggable={widget.id!}
+  use:resizable={{
+    widgetId: widget.id!,
+    spans: allowedSpans,
+    onResizeStateChange: (resizeState) => (resizeProgress = resizeState.type),
+    onResize: (newSpan) => {
+      // Update size based on new span
+      size = newSpan.x === 1 && newSpan.y === 1 ? "compact" : "large";
+    },
+  }}
   class="calendar blur-regular"
   style="
     grid-area: {widget.pos.row} / {widget.pos.col} / {widget.pos.row +
     widget.span.y} / {widget.pos.col + widget.span.x};
   "
 >
-  {#if size === "large"}
-    <!-- Month Header -->
-    <div class="month-header">
-      <h2 class="month-name">
-        {dateFormats.month.short}. {dateFormats.year.numeric}
-      </h2>
-      <div class="month-controls">
-        <button
-          class="prev-month"
-          onclick={() => (date = date.subtract(1, "month"))}
-        >
-          <ChevronLeft size="15" />
-        </button>
-        <button class="reset-month" onclick={() => (date = dayjs())}>
-          <RotateCcw size="14" />
-        </button>
-        <button
-          class="next-month"
-          onclick={() => (date = date.add(1, "month"))}
-        >
-          <ChevronRight size="15" />
-        </button>
-      </div>
-    </div>
-
-    <!-- Day Header -->
-    <div class="day-header">
-      {#each dateFormats.weekday.allDays as day}
-        <div class="day-name">{day[0]}</div>
-      {/each}
-    </div>
-
-    <!-- Date Grid -->
-    <div
-      class="date-grid"
-      style="--rowCount: {dateFormats.month.calendarDays.length / 7}"
-    >
-      {#each dateFormats.month.calendarDays as day}
-        <div
-          class="date-cell"
-          class:empty={day === null}
-          class:today={day === today.format("DD") &&
-            date.format("MMYYYY") === today.format("MMYYYY")}
-        >
-          {day || ""}
+  {#if resizeProgress === "idle"}
+    {#if size === "large"}
+      <!-- Month Header -->
+      <div class="month-header">
+        <h2 class="month-name">
+          {dateFormats.month.short}. {dateFormats.year.numeric}
+        </h2>
+        <div class="month-controls">
+          <button
+            class="prev-month"
+            onclick={() => (date = date.subtract(1, "month"))}
+          >
+            <ChevronLeft size="15" color="var(--vibrant-fills-secondary)" />
+          </button>
+          <button class="reset-month" onclick={() => (date = dayjs())}>
+            <RotateCcw size="14" color="var(--vibrant-fills-secondary)" />
+          </button>
+          <button
+            class="next-month"
+            onclick={() => (date = date.add(1, "month"))}
+          >
+            <ChevronRight size="15" color="var(--vibrant-fills-secondary)" />
+          </button>
         </div>
-      {/each}
+      </div>
+
+      <!-- Day Header -->
+      <div class="day-header">
+        {#each dateFormats.weekday.allDays as day}
+          <div class="day-name">{day[0]}</div>
+        {/each}
+      </div>
+
+      <!-- Date Grid -->
+      <div
+        class="date-grid"
+        style="--rowCount: {dateFormats.month.calendarDays.length / 7}"
+      >
+        {#each dateFormats.month.calendarDays as day}
+          <div
+            class="date-cell"
+            class:empty={day === null}
+            class:today={day === today.format("DD") &&
+              date.format("MMYYYY") === today.format("MMYYYY")}
+          >
+            {day || ""}
+          </div>
+        {/each}
+      </div>
+    {:else}
+      <div class="compact-calendar">
+        <div class="compact-header">
+          <div class="compact-month">
+            {dateFormats.month.short}
+          </div>
+          <div class="compact-day-name">
+            {dateFormats.weekday.short}
+          </div>
+        </div>
+        <div class="compact-date">{dateFormats.date["2-digit"]}</div>
+      </div>
+    {/if}
+  {:else}
+    <div class="resize-progress">
+      <Expand size="24" color="var(--vibrant-labels-secondary)" />
     </div>
-  {:else}{/if}
+  {/if}
 </div>
 
 <style lang="scss">
@@ -123,6 +162,13 @@
           transform: scale(1.1);
         }
       }
+    }
+
+    .resize-progress {
+      @include box();
+      border-radius: 10px;
+      @include make-flex();
+      border: 4px dotted var(--vibrant-labels-secondary);
     }
 
     &[data-size="large"] {
@@ -250,6 +296,36 @@
           visibility: hidden;
         }
       }
+    }
+  }
+
+  .compact-calendar {
+    height: 100%;
+    text-align: center;
+    @include make-flex($dir: column, $just: center, $align: center, $gap: 8px);
+
+    .compact-header {
+      @include make-flex($dir: row, $gap: 4px, $align: center);
+      width: 100%;
+
+      .compact-month {
+        font-size: 20px;
+        font-weight: 800;
+        color: var(--colors-pink);
+      }
+
+      .compact-day-name {
+        font-size: 20px;
+        font-weight: 800;
+        letter-spacing: 0.5px;
+        color: var(--vibrant-labels-secondary);
+      }
+    }
+    .compact-date {
+      font-size: 55px;
+      font-weight: 700;
+      line-height: 1;
+      color: var(--vibrant-fills-primary);
     }
   }
 </style>

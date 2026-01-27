@@ -85,3 +85,17 @@
     cursor: nw-resize;
   }
 }
+
+.widget-resize-shadow {
+  position: fixed;
+  pointer-events: none;
+  border: 2px dashed;
+  border-radius: 20px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1000;
+
+  @supports (corner-shape: squircle) {
+    border-radius: 20px;
+    corner-shape: squircle;
+  }
+}

@@ -41,11 +41,7 @@ class WidgetEngineImpl {
     });
 
     // Try to find a place in the grid
-    for (
-      let row = 1;
-      row <= this.internalState.grid.rows - spanY + 1;
-      row++
-    ) {
+    for (let row = 1; row <= this.internalState.grid.rows - spanY + 1; row++) {
       for (
         let col = 1;
         col <= this.internalState.grid.cols - spanX + 1;
