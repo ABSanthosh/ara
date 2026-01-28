@@ -16,6 +16,10 @@ export type ClockWidgetFlipSpan =
   | { x: 2; y: 1 } // Compact widget
   | { x: 2; y: 2 }; // Large widget
 
+export type ClockWidgetSemiDigitalSpan =
+  | { x: 1; y: 1 } // Small widget
+  | { x: 2; y: 2 };
+
 export type CalendarSpan =
   | { x: 1; y: 1 } // Compact widget
   | { x: 2; y: 2 }; // Large widget
@@ -37,9 +41,18 @@ export type ClockWidgetClassicAnalog = Widget & {
   type: "analog-clock";
   span: ClockWidgetClassicAnalogSpan;
   settings: {
+    city: string;
     showNumbers: boolean;
     showSecondsHand: boolean;
-    city: string;
+  };
+};
+
+export type ClockWidgetSemiDigital = Widget & {
+  type: "semi-digital-clock";
+  span: ClockWidgetSemiDigitalSpan;
+  settings: {
+    city?: string;
+    is12Hour: boolean;
   };
 };
 
@@ -91,6 +104,7 @@ export type TestWidget = Widget & {
 
 export type Widgets =
   | ClockWidgetClassicAnalog
+  | ClockWidgetSemiDigital
   | ClockWidgetFlip
   | CalendarWidget
   | CatWidget
