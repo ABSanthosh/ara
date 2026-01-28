@@ -88,3 +88,10 @@
     cursor: nw-resize;
   }
 }
+
+.resize-progress {
+  @include box();
+  border-radius: 10px;
+  @include make-flex();
+  border: 4px dotted var(--views-thicker);
+}

@@ -143,7 +143,7 @@
     {/if}
   {:else}
     <div class="resize-progress">
-      <Expand size="24" color="var(--vibrant-labels-secondary)" />
+      <Expand size="24" color="var(--views-thicker)" />
     </div>
   {/if}
 </div>
@@ -165,13 +165,6 @@
           transform: scale(1.1);
         }
       }
-    }
-
-    .resize-progress {
-      @include box();
-      border-radius: 10px;
-      @include make-flex();
-      border: 4px dotted var(--vibrant-labels-secondary);
     }
 
     &[data-size="large"] {
