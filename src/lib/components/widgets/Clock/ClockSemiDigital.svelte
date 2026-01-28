@@ -13,25 +13,6 @@
     widget: ClockWidgetSemiDigital;
   } = $props();
 
-  const tickHeight = 4;
-  const tickOffset = 46; // Distance from center to start of ticks
-  const tickCenterOffset = 50; // Distance from center to center of ticks
-  const waveLength = 30; // Number of ticks affected by the wave
-
-  // Function to calculate tick opacity based on distance from current second
-  function getTickOpacity(tickIndex: number, currentSecond: number): number {
-    // Calculate distance behind current second (considering wrap around)
-    let distance = (currentSecond - tickIndex + 60) % 60;
-
-    // Only apply wave to the 30 ticks trailing behind current second
-    if (distance > waveLength) {
-      return 0.15; // Base opacity for ticks outside wave
-    }
-
-    // Create fade effect: 1.0 (darkest) at current second, fading to 0.15
-    return 1.0 - (distance / waveLength) * 0.85;
-  }
-
   let date = $state(dayjs());
   const timeFormats = $derived({
     hours: date.hour(),
@@ -63,6 +44,25 @@
     ],
     resizeProgress: "idle" as "idle" | "resizing",
   });
+
+  const tickHeight = $derived(config.size === "large" ? 5 : 5);
+  const tickOffset = 46; // Distance from center to start of ticks
+  const tickCenterOffset = 50; // Distance from center to center of ticks
+  const waveLength = 30; // Number of ticks affected by the wave
+
+  // Function to calculate tick opacity based on distance from current second
+  function getTickOpacity(tickIndex: number, currentSecond: number): number {
+    // Calculate distance behind current second (considering wrap around)
+    let distance = (currentSecond - tickIndex + 60) % 60;
+
+    // Only apply wave to the 30 ticks trailing behind current second
+    if (distance > waveLength) {
+      return 0.15; // Base opacity for ticks outside wave
+    }
+
+    // Create fade effect: 1.0 (darkest) at current second, fading to 0.15
+    return 1.0 - (distance / waveLength) * 0.85;
+  }
 </script>
 
 <div
@@ -178,6 +178,7 @@
       </tspan>
       <tspan
         x="0"
+        dx="2.5"
         dy={config.size === "large" ? "32" : "36"}
         font-size={"45px"}
         class="time"
