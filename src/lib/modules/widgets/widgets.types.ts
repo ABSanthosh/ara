@@ -14,7 +14,7 @@ export type ClockWidgetClassicAnalogSpan =
 
 export type ClockWidgetFlipSpan =
   | { x: 2; y: 1 } // Compact widget
-  | { x: 2; y: 2 }; // Large widget
+  | { x: 1; y: 2 }; // Large widget
 
 export type ClockWidgetSemiDigitalSpan =
   | { x: 1; y: 1 } // Small widget

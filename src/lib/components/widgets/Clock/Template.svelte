@@ -5,6 +5,7 @@
     ClockWidgetClassicAnalog,
     ClockWidgetClassicAnalogSpan,
   } from "@/lib/modules/widgets/widgets.types";
+  import { Expand } from "@lucide/svelte";
 
   let {
     widget,
@@ -45,7 +46,19 @@
     grid-area: {widget.pos.row} / {widget.pos.col} / {widget.pos.row +
     widget.span.y} / {widget.pos.col + widget.span.x};
   "
-></div>
+>
+  {#if config.resizeProgress === "idle"}
+    {#if config.size === "large"}
+      large
+    {:else}
+      Compact
+    {/if}
+  {:else}
+    <div class="resize-progress">
+      <Expand size="24" color="var(--views-thicker)" />
+    </div>
+  {/if}
+</div>
 
 <style lang="scss">
   .AnalogClock {

@@ -16,6 +16,7 @@
   import { AppStateStore } from "@/lib/modules/settings/appState.store";
   import { WallpaperManager } from "@/lib/modules/wallpaper/wallpaper.manager";
   import Checklist from "@/lib/components/widgets/Checklist.svelte";
+  import ClockFlip from "@/lib/components/widgets/Clock/ClockFlip.svelte";
   import ClockClassicAnalog from "@/lib/components/widgets/Clock/ClockClassicAnalog.svelte";
   import ClockSemiDigital from "@/lib/components/widgets/Clock/ClockSemiDigital.svelte";
 
@@ -119,6 +120,8 @@
       <ClockClassicAnalog {widget} />
     {:else if widget.type === "semi-digital-clock"}
       <ClockSemiDigital {widget} />
+    {:else if widget.type === "flip-clock"}
+      <ClockFlip {widget} />
     {/if}
   {/each}
 </Grid>
@@ -194,10 +197,10 @@
         // showNASAWallpaperInfo = true;
         WidgetEngine.addWidget({
           settings: {
-            city: "New York",
-            is12Hour: true,
+            city: "America/New_York",
+            showSeconds: true,
           },
-          type: "semi-digital-clock",
+          type: "flip-clock",
           span: { x: 2, y: 2 },
           pos: { col: 1, row: 1 },
         });
