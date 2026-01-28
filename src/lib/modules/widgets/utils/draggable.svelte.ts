@@ -34,19 +34,23 @@ function setPointerEvents(
   disable: boolean,
   button: HTMLButtonElement,
 ) {
-  // Disable pointer events on all children except the remove button
+  // Disable pointer events on all children except the remove button and those with [data-drag-ignore]
   Array.from(el.children).forEach((child) => {
-    if (child !== button) {
-      (child as HTMLElement).style.pointerEvents = disable ? "none" : "";
-      (child as HTMLElement).style.touchAction = disable ? "none" : "";
-      (child as HTMLElement).style.userSelect = disable ? "none" : "";
+    const childEl = child as HTMLElement;
+    if (
+      childEl !== button &&
+      !childEl.hasAttribute("data-drag-ignore")
+    ) {
+      childEl.style.pointerEvents = disable ? "none" : "";
+      childEl.style.touchAction = disable ? "none" : "";
+      childEl.style.userSelect = disable ? "none" : "";
     }
   });
 
   // Always ensure the button is interactive when attached
   button.style.pointerEvents = "auto";
   button.style.touchAction = "auto";
-  button.style.userSelect = "auto";
+  button.style.userSelect = "none";
 }
 
 const occupiedCells = new Set<string>();

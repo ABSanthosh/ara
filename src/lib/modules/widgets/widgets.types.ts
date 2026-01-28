@@ -8,11 +8,11 @@ export type Widget = {
 };
 
 // Define valid span combinations for each widget type
-export type AnalogClockSpan =
+export type ClockWidgetClassicAnalogSpan =
   | { x: 1; y: 1 } // Small widget
   | { x: 2; y: 2 }; // Large widget
 
-export type FlipClockSpan =
+export type ClockWidgetFlipSpan =
   | { x: 2; y: 1 } // Compact widget
   | { x: 2; y: 2 }; // Large widget
 
@@ -24,8 +24,7 @@ export type CatSpan =
   | { x: 1; y: 1 } // Small cat widget
   | { x: 2; y: 2 }; // Large cat widget
 
-export type ChecklistSpan =
-  | { x: 2; y: 2 }; // Only 2x2 size allowed
+export type ChecklistSpan = { x: 2; y: 2 }; // Only 2x2 size allowed
 
 export type TestWidgetSpan =
   | { x: 1; y: 1 }
@@ -34,22 +33,22 @@ export type TestWidgetSpan =
   | { x: 1; y: 2 }
   | { x: 2; y: 1 };
 
-export type AnalogClockWidget = Widget & {
+export type ClockWidgetClassicAnalog = Widget & {
   type: "analog-clock";
-  span: AnalogClockSpan;
+  span: ClockWidgetClassicAnalogSpan;
   settings: {
     showNumbers: boolean;
     showSecondsHand: boolean;
-    // city?: SupportedCityName;
+    city: string;
   };
 };
 
-export type FlipClockWidget = Widget & {
+export type ClockWidgetFlip = Widget & {
   type: "flip-clock";
-  span: FlipClockSpan;
+  span: ClockWidgetFlipSpan;
   settings: {
     showSeconds: boolean;
-    // city?: SupportedCityName;
+    city?: string;
   };
 };
 
@@ -90,5 +89,11 @@ export type TestWidget = Widget & {
   settings: {};
 };
 
-export type Widgets = AnalogClockWidget | FlipClockWidget | CalendarWidget | CatWidget | ChecklistWidget | TestWidget;
+export type Widgets =
+  | ClockWidgetClassicAnalog
+  | ClockWidgetFlip
+  | CalendarWidget
+  | CatWidget
+  | ChecklistWidget
+  | TestWidget;
 export type WidgetTypes = Widgets["type"];

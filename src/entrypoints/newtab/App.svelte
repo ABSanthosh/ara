@@ -16,6 +16,7 @@
   import { AppStateStore } from "@/lib/modules/settings/appState.store";
   import { WallpaperManager } from "@/lib/modules/wallpaper/wallpaper.manager";
   import Checklist from "@/lib/components/widgets/Checklist.svelte";
+  import ClockClassicAnalog from "@/lib/components/widgets/Clock/ClockClassicAnalog.svelte";
 
   // Init modules
   const settingState = $state(SettingStore.state);
@@ -113,6 +114,8 @@
       <Cat {widget} />
     {:else if widget.type === "checklist"}
       <Checklist {widget} />
+    {:else if widget.type === "analog-clock"}
+      <ClockClassicAnalog {widget} />
     {/if}
   {/each}
 </Grid>
@@ -188,9 +191,11 @@
         // showNASAWallpaperInfo = true;
         WidgetEngine.addWidget({
           settings: {
-            items: [],
+            city: "New York",
+            showNumbers: true,
+            showSecondsHand: true,
           },
-          type: "checklist",
+          type: "analog-clock",
           span: { x: 2, y: 2 },
           pos: { col: 1, row: 1 },
         });
