@@ -13,8 +13,6 @@
   }: {
     widget: ClockWidgetClassicAnalog;
   } = $props();
-  // TODO: Let users select different starting day of the week and locale
-  const today = dayjs();
 
   let date = $state(dayjs());
   const timeFormats = $derived({
@@ -176,13 +174,13 @@
 
 <style lang="scss">
   .AnalogClock {
-    padding: 13px;
-    border-radius: 20px;
+    padding: 6px;
+    border-radius: 22px;
     border: 1px solid var(--separator-secondary);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 
     &[data-size="compact"] {
-      padding: 7px;
+      padding: 4px;
     }
 
     // SVG Container

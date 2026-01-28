@@ -17,6 +17,7 @@
   import { WallpaperManager } from "@/lib/modules/wallpaper/wallpaper.manager";
   import Checklist from "@/lib/components/widgets/Checklist.svelte";
   import ClockClassicAnalog from "@/lib/components/widgets/Clock/ClockClassicAnalog.svelte";
+  import ClockSemiDigital from "@/lib/components/widgets/Clock/ClockSemiDigital.svelte";
 
   // Init modules
   const settingState = $state(SettingStore.state);
@@ -116,6 +117,8 @@
       <Checklist {widget} />
     {:else if widget.type === "analog-clock"}
       <ClockClassicAnalog {widget} />
+    {:else if widget.type === "semi-digital-clock"}
+      <ClockSemiDigital {widget} />
     {/if}
   {/each}
 </Grid>
@@ -192,10 +195,9 @@
         WidgetEngine.addWidget({
           settings: {
             city: "New York",
-            showNumbers: true,
-            showSecondsHand: true,
+            is12Hour: true,
           },
-          type: "analog-clock",
+          type: "semi-digital-clock",
           span: { x: 2, y: 2 },
           pos: { col: 1, row: 1 },
         });
