@@ -5,6 +5,7 @@ export type Widget = {
     row: number;
     col: number;
   };
+  isDemo?: boolean;
 };
 
 // Define valid span combinations for each widget type
@@ -45,6 +46,7 @@ export type ClockWidgetClassicAnalog = Widget & {
     showNumbers: boolean;
     showSecondsHand: boolean;
   };
+  isDemo?: boolean;
 };
 
 export type ClockWidgetSemiDigital = Widget & {
@@ -54,6 +56,7 @@ export type ClockWidgetSemiDigital = Widget & {
     city?: string;
     is12Hour: boolean;
   };
+  isDemo?: boolean;
 };
 
 export type ClockWidgetFlip = Widget & {
@@ -63,6 +66,7 @@ export type ClockWidgetFlip = Widget & {
     showSeconds: boolean;
     city?: string;
   };
+  isDemo?: boolean;
 };
 
 export type CalendarWidget = Widget & {
@@ -71,6 +75,7 @@ export type CalendarWidget = Widget & {
   settings: {
     // city?: SupportedCityName;
   };
+  isDemo?: boolean;
 };
 
 export type CatWidget = Widget & {
@@ -82,6 +87,7 @@ export type CatWidget = Widget & {
     magazineSize?: number;
     maxAccess?: number; // Number of times to show the same cat before moving to next (1-10)
   };
+  isDemo?: boolean;
 };
 
 export type ChecklistWidget = Widget & {
@@ -94,12 +100,14 @@ export type ChecklistWidget = Widget & {
       completed: boolean;
     }[];
   };
+  isDemo?: boolean;
 };
 
 export type TestWidget = Widget & {
   type: "test-widget";
   span: TestWidgetSpan;
   settings: {};
+  isDemo?: boolean;
 };
 
 export type Widgets =

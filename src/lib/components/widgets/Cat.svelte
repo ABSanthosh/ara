@@ -6,13 +6,12 @@
   import { draggable } from "@/lib/modules/widgets/utils/draggable.svelte";
   import { resizable } from "@/lib/modules/widgets/utils/resizable.svelte";
   import type { CatWidget, CatSpan } from "@/lib/modules/widgets/widgets.types";
+  import { fade } from "svelte/transition";
 
   let {
     widget,
-    demoImageUrl,
   }: {
-    widget: CatWidget;
-    demoImageUrl?: string;
+    widget: CatWidget & { isDemo?: boolean };
   } = $props();
 
   const config = $state<{
@@ -37,10 +36,10 @@
   // Reactively get the current cat from the store without incrementing timesAccessed
   // If demoImageUrl is provided, use that instead
   let currentCat = $derived.by(() => {
-    if (demoImageUrl) {
-      return { imageUrl: demoImageUrl };
+    if (widget.isDemo) {
+      return { imageUrl: "https://i.redd.it/coyr5sm987gg1.jpeg" };
     }
-    
+
     const store = $CatStore;
     const widgetStore = store.widgets[widget.id!];
     if (!widgetStore || widgetStore.magazine.length === 0) {
@@ -52,11 +51,11 @@
   });
 
   onMount(() => {
-    // Skip initialization if using demo image
-    if (demoImageUrl) {
+    // Skip initialization if using demo image or in demo mode
+    if (widget.isDemo) {
       return;
     }
-    
+
     // Initialize magazine for this widget
     CatStore.initMagazine(widget.id!, {
       magazineSize: widget.settings.magazineSize ?? 7,
@@ -66,7 +65,11 @@
     // Immediately increment timesAccessed if magazine already has items
     // This prevents the visual glitch of showing the old image
     const magazine = CatStore.getMagazine(widget.id!);
-    if (magazine && magazine.getAllItems().length > 0 && !hasIncrementedOnMount) {
+    if (
+      magazine &&
+      magazine.getAllItems().length > 0 &&
+      !hasIncrementedOnMount
+    ) {
       CatEngine.getCat(widget.id!); // Increment immediately
       hasIncrementedOnMount = true;
       tooLong = false;
@@ -113,8 +116,9 @@
 </script>
 
 <div
+  transition:fade
   class="cat-box blur-thin"
-  use:draggable={widget.id!}
+  use:draggable={{ widgetId: widget.id!, isDemo: widget.isDemo }}
   use:resizable={{
     widgetId: widget.id!,
     spans: config.allowedSpans,
@@ -124,6 +128,7 @@
       // Update size based on new span
       config.size = newSpan.x === 1 && newSpan.y === 1 ? "compact" : "large";
     },
+    isDemo: widget.isDemo,
   }}
   style="
     grid-area: {widget.pos.row} / {widget.pos.col} / {widget.pos.row +

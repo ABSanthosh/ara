@@ -1,11 +1,11 @@
 import { get } from "svelte/store";
 import { SettingStore } from "../../settings/settings.store";
 import {
-  AnalogClockSpan,
+  ClockWidgetClassicAnalogSpan,
   CalendarSpan,
   CatSpan,
   ChecklistSpan,
-  FlipClockSpan,
+  ClockWidgetFlipSpan,
 } from "../widgets.types";
 
 /**
@@ -56,13 +56,21 @@ export function resizable(
     spans:
       | CatSpan[]
       | CalendarSpan[]
-      | FlipClockSpan[]
+      | ClockWidgetFlipSpan[]
       | ChecklistSpan[]
-      | AnalogClockSpan[];
+      | ClockWidgetClassicAnalogSpan[];
     onResize?: (newSpan: { x: number; y: number }) => void;
     onResizeStateChange?: (resizeState: ResizeState) => void;
+    isDemo?: boolean;
   },
 ) {
+  // If demo mode, do nothing
+  if (options.isDemo) {
+    return {
+      destroy() {},
+    };
+  }
+
   /* ---------------------------------- */
   /* Store + derived state              */
   /* ---------------------------------- */

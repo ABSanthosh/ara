@@ -99,7 +99,26 @@
 
 <Settings bind:showModal={showSettingModal} />
 
-<Grid showGrid={$settingState.options.showGrid}>
+<Grid
+  showGrid={$settingState.options.showGrid}
+  onGridUpdate={(gridInfo: {
+    gap: number;
+    rows: number;
+    cols: number;
+    cellSize: number;
+    grid: HTMLElement;
+  }) => {
+    SettingStore.update((store) => {
+      store.internal.grid.rows = gridInfo.rows;
+      store.internal.grid.cols = gridInfo.cols;
+      store.internal.grid.gap = gridInfo.gap;
+      store.internal.grid.cellSize = gridInfo.cellSize;
+      store.internal.grid.element = gridInfo.grid;
+
+      return store;
+    });
+  }}
+>
   {#each Object.keys($settingState.widgets) as widgetId (widgetId)}
     {@const widget = $settingState.widgets[widgetId]}
     {#if widget.type === "test-widget"}

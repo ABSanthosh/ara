@@ -8,11 +8,12 @@
   } from "@/lib/modules/widgets/widgets.types";
   import dayjs from "dayjs";
   import { GlobalTimer } from "@/lib/modules/widgets/shared-time.store";
+  import { fade } from "svelte/transition";
 
   let {
     widget,
   }: {
-    widget: ClockWidgetSemiDigital;
+    widget: ClockWidgetSemiDigital & { isDemo?: boolean };
   } = $props();
 
   let date = $state(dayjs());
@@ -23,6 +24,11 @@
   });
 
   onMount(() => {
+    // Skip timer registration if in demo mode
+    if (widget.isDemo) {
+      return;
+    }
+
     GlobalTimer.register(widget.id!, () => {
       date = dayjs();
     });
@@ -128,9 +134,10 @@
 </script>
 
 <div
-  class="SemiDigital blur-thin"
+  transition:fade
   data-size={config.size}
-  use:draggable={widget.id!}
+  use:draggable={{ widgetId: widget.id!, isDemo: widget.isDemo }}
+  class="SemiDigital blur-thin"
   use:resizable={{
     widgetId: widget.id!,
     spans: config.allowedSpans,
@@ -140,6 +147,7 @@
       // Update size based on new span
       config.size = newSpan.x === 1 && newSpan.y === 1 ? "compact" : "large";
     },
+    isDemo: widget.isDemo,
   }}
   style="
     grid-area: {widget.pos.row} / {widget.pos.col} / {widget.pos.row +

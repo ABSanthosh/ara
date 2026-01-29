@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from "svelte";
   import { draggable } from "@/lib/modules/widgets/utils/draggable.svelte";
   import { resizable } from "@/lib/modules/widgets/utils/resizable.svelte";
   import type {
@@ -7,11 +8,12 @@
   } from "@/lib/modules/widgets/widgets.types";
   import { Expand } from "@lucide/svelte";
   import dayjs from "dayjs";
+  import { fade } from "svelte/transition";
 
   let {
     widget,
   }: {
-    widget: ClockWidgetClassicAnalog;
+    widget: ClockWidgetClassicAnalog & { isDemo?: boolean };
   } = $props();
 
   let date = $state(dayjs());
@@ -22,6 +24,11 @@
   });
 
   onMount(() => {
+    // Skip interval if in demo mode
+    if (widget.isDemo) {
+      return;
+    }
+
     const interval = setInterval(() => {
       date = dayjs();
       timeFormats.hours = date.hour();
@@ -48,9 +55,10 @@
 </script>
 
 <div
-  class="AnalogClock blur-thin"
+  transition:fade
   data-size={config.size}
-  use:draggable={widget.id!}
+  use:draggable={{ widgetId: widget.id!, isDemo: widget.isDemo }}
+  class="AnalogClock blur-thin"
   use:resizable={{
     widgetId: widget.id!,
     spans: config.allowedSpans,
@@ -60,6 +68,7 @@
       // Update size based on new span
       config.size = newSpan.x === 1 && newSpan.y === 1 ? "compact" : "large";
     },
+    isDemo: widget.isDemo,
   }}
   style="
     grid-area: {widget.pos.row} / {widget.pos.col} / {widget.pos.row +

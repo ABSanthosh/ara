@@ -10,6 +10,7 @@
     gridSpanY?: number;
     title?: string;
     color?: string;
+    isDemo?: boolean;
   }
 
   let {
@@ -20,12 +21,13 @@
     gridSpanY = 1,
     title = "Widget",
     color = "#6366f1",
+    isDemo = false,
   }: Props = $props();
 </script>
 
 <div
   class="test-widget BlurBG"
-  use:draggable={widgetId}
+  use:draggable={{ widgetId, isDemo }}
   style="
     grid-area: {gridRow} / {gridCol} / {gridRow + gridSpanY} / {gridCol +
     gridSpanX};
