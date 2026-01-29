@@ -9,6 +9,7 @@
   import { Expand } from "@lucide/svelte";
   import dayjs from "dayjs";
   import NumberFlow, { NumberFlowGroup } from "@number-flow/svelte";
+  import { GlobalTimer } from "@/lib/modules/widgets/shared-time.store";
 
   let {
     widget,
@@ -69,11 +70,13 @@
   });
 
   onMount(() => {
-    const interval = setInterval(() => {
+    GlobalTimer.register(widget.id!, () => {
       date = dayjs();
-    }, 1000);
+    });
 
-    return () => clearInterval(interval);
+    return () => {
+      GlobalTimer.unregister(widget.id!);
+    };
   });
 </script>
 
@@ -221,6 +224,7 @@
     font-size: 14px;
     font-weight: 500;
     text-align: center;
+    color: var(--vibrant-labels-primary);
   }
 
   @keyframes blink {
