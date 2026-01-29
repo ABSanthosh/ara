@@ -9,8 +9,10 @@
 
   let {
     widget,
+    demoImageUrl,
   }: {
     widget: CatWidget;
+    demoImageUrl?: string;
   } = $props();
 
   const config = $state<{
@@ -33,7 +35,12 @@
   let hasIncrementedOnMount = $state(false);
 
   // Reactively get the current cat from the store without incrementing timesAccessed
+  // If demoImageUrl is provided, use that instead
   let currentCat = $derived.by(() => {
+    if (demoImageUrl) {
+      return { imageUrl: demoImageUrl };
+    }
+    
     const store = $CatStore;
     const widgetStore = store.widgets[widget.id!];
     if (!widgetStore || widgetStore.magazine.length === 0) {
@@ -45,6 +52,11 @@
   });
 
   onMount(() => {
+    // Skip initialization if using demo image
+    if (demoImageUrl) {
+      return;
+    }
+    
     // Initialize magazine for this widget
     CatStore.initMagazine(widget.id!, {
       magazineSize: widget.settings.magazineSize ?? 7,

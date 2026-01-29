@@ -8,6 +8,12 @@
     children?: Snippet;
     gridPadding?: number;
     minWidgetSize?: number;
+    maxCellSize?: number;
+    rows?: number;
+    cols?: number;
+    minRows?: number;
+    minCols?: number;
+    onGridUpdate?: (gridInfo: { rows: number; cols: number; cellSize: number; gap: number }) => void;
   }
 
   let {
@@ -15,7 +21,13 @@
     showGrid = false,
     gridPadding = 40,
     minWidgetSize = 115,
+    maxCellSize,
+    rows,
+    cols,
+    minRows,
+    minCols,
     children,
+    onGridUpdate,
   }: Props = $props();
 
   let gridContainer: HTMLElement;
@@ -27,27 +39,50 @@
   function calculateGrid() {
     if (!gridContainer) return;
 
-    // Calculate the available viewport size minus padding
-    const viewportWidth = window.innerWidth - gridPadding * 2;
-    const viewportHeight = window.innerHeight - gridPadding * 2;
+    // Get the parent container's dimensions
+    const parentWidth = gridContainer.parentElement?.clientWidth || window.innerWidth;
+    const parentHeight = gridContainer.parentElement?.clientHeight || window.innerHeight;
 
-    // Calculate the number of columns and rows that can fit in the viewport
-    gridCols = Math.floor(
-      (viewportWidth + gridGap) / (minWidgetSize + gridGap),
-    );
-    gridRows = Math.floor(
-      (viewportHeight + gridGap) / (minWidgetSize + gridGap),
-    );
+    // Calculate the available size minus padding
+    const availableWidth = parentWidth - gridPadding * 2;
+    const availableHeight = parentHeight - gridPadding * 2;
+
+    // Use hardcoded values if provided, otherwise calculate
+    if (rows !== undefined && cols !== undefined) {
+      gridCols = cols;
+      gridRows = rows;
+    } else {
+      // Calculate the number of columns and rows that can fit in the available space
+      gridCols = Math.floor(
+        (availableWidth + gridGap) / (minWidgetSize + gridGap),
+      );
+      gridRows = Math.floor(
+        (availableHeight + gridGap) / (minWidgetSize + gridGap),
+      );
+
+      // Apply minimum constraints if provided
+      if (minCols !== undefined) {
+        gridCols = Math.max(gridCols, minCols);
+      }
+      if (minRows !== undefined) {
+        gridRows = Math.max(gridRows, minRows);
+      }
+    }
 
     // Calculate the maximum available width and height for placing widgets
-    const maxWidth = viewportWidth - gridGap * (gridCols - 1);
-    const maxHeight = viewportHeight - gridGap * (gridRows - 1);
+    const maxWidth = availableWidth - gridGap * (gridCols - 1);
+    const maxHeight = availableHeight - gridGap * (gridRows - 1);
 
     // Determine the cell size based on the maximum available space
     cellSize = Math.floor(Math.min(maxWidth / gridCols, maxHeight / gridRows));
 
     // Ensure the cell size does not go below the minimum widget size
     cellSize = Math.max(cellSize, minWidgetSize);
+
+    // Ensure the cell size does not exceed the maximum cell size if provided
+    if (maxCellSize !== undefined) {
+      cellSize = Math.min(cellSize, maxCellSize);
+    }
 
     SettingStore.update((store) => {
       store.internal.grid.rows = gridRows;
@@ -58,6 +93,16 @@
 
       return store;
     });
+
+    // Call the optional callback if provided
+    if (onGridUpdate) {
+      onGridUpdate({
+        rows: gridRows,
+        cols: gridCols,
+        cellSize,
+        gap: gridGap,
+      });
+    }
   }
 
   onMount(() => {

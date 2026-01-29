@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from "svelte";
   import { draggable } from "@/lib/modules/widgets/utils/draggable.svelte";
   import { resizable } from "@/lib/modules/widgets/utils/resizable.svelte";
   import type {
@@ -6,6 +7,7 @@
     ClockWidgetSemiDigitalSpan,
   } from "@/lib/modules/widgets/widgets.types";
   import dayjs from "dayjs";
+  import { GlobalTimer } from "@/lib/modules/widgets/shared-time.store";
 
   let {
     widget,
@@ -21,14 +23,13 @@
   });
 
   onMount(() => {
-    const interval = setInterval(() => {
+    GlobalTimer.register(widget.id!, () => {
       date = dayjs();
-      timeFormats.hours = date.hour();
-      timeFormats.minutes = date.minute();
-      timeFormats.seconds = date.second();
-    }, 1000);
+    });
 
-    return () => clearInterval(interval);
+    return () => {
+      GlobalTimer.unregister(widget.id!);
+    };
   });
 
   const config = $state<{
@@ -49,6 +50,67 @@
   const tickOffset = 46; // Distance from center to start of ticks
   const tickCenterOffset = 50; // Distance from center to center of ticks
   const waveLength = 30; // Number of ticks affected by the wave
+
+  // Pre-calculate tick positions to avoid recalculating on every render
+  const tickPositions = $derived.by(() => {
+    const positions: Array<{
+      x1: number;
+      y1: number;
+      x2: number;
+      y2: number;
+      index: number;
+    }> = [];
+
+    // Top edge ticks
+    for (let tick = 0; tick < 15; tick++) {
+      const x1 = -tickOffset + (tick * (tickOffset * 2)) / 14;
+      const y1 = -tickCenterOffset;
+      const dist = Math.sqrt(x1 * x1 + y1 * y1);
+      const angle = Math.atan2(y1, x1);
+      const adjustedLength = tickHeight / Math.abs(Math.sin(angle));
+      const x2 = (x1 * (dist - adjustedLength)) / dist;
+      const y2 = (y1 * (dist - adjustedLength)) / dist;
+      positions.push({ x1, y1, x2, y2, index: tick });
+    }
+
+    // Right edge ticks
+    for (let tick = 0; tick < 15; tick++) {
+      const x1 = tickCenterOffset;
+      const y1 = -tickOffset + (tick * (tickOffset * 2)) / 14;
+      const dist = Math.sqrt(x1 * x1 + y1 * y1);
+      const angle = Math.atan2(y1, x1);
+      const adjustedLength = tickHeight / Math.abs(Math.cos(angle));
+      const x2 = (x1 * (dist - adjustedLength)) / dist;
+      const y2 = (y1 * (dist - adjustedLength)) / dist;
+      positions.push({ x1, y1, x2, y2, index: 15 + tick });
+    }
+
+    // Bottom edge ticks
+    for (let tick = 0; tick < 15; tick++) {
+      const x1 = tickOffset - (tick * (tickOffset * 2)) / 14;
+      const y1 = tickCenterOffset;
+      const dist = Math.sqrt(x1 * x1 + y1 * y1);
+      const angle = Math.atan2(y1, x1);
+      const adjustedLength = tickHeight / Math.abs(Math.sin(angle));
+      const x2 = (x1 * (dist - adjustedLength)) / dist;
+      const y2 = (y1 * (dist - adjustedLength)) / dist;
+      positions.push({ x1, y1, x2, y2, index: 30 + tick });
+    }
+
+    // Left edge ticks
+    for (let tick = 0; tick < 15; tick++) {
+      const x1 = -tickCenterOffset;
+      const y1 = tickOffset - (tick * (tickOffset * 2)) / 14;
+      const dist = Math.sqrt(x1 * x1 + y1 * y1);
+      const angle = Math.atan2(y1, x1);
+      const adjustedLength = tickHeight / Math.abs(Math.cos(angle));
+      const x2 = (x1 * (dist - adjustedLength)) / dist;
+      const y2 = (y1 * (dist - adjustedLength)) / dist;
+      positions.push({ x1, y1, x2, y2, index: 45 + tick });
+    }
+
+    return positions;
+  });
 
   // Function to calculate tick opacity based on distance from current second
   function getTickOpacity(tickIndex: number, currentSecond: number): number {
@@ -86,84 +148,15 @@
 >
   <svg viewBox="-52 -52 104 104">
     <rect x="-50" y="-50" width="100" height="100" rx="5" ry="5" fill="none" />
-    <!-- Top edge ticks -->
-    {#each Array.from({ length: 15 }, (_, i) => i) as tick}
-      {@const tickIndex = tick}
-      {@const opacity = getTickOpacity(tickIndex, timeFormats.seconds)}
-      {@const x1 = -tickOffset + (tick * (tickOffset * 2)) / 14}
-      {@const y1 = -tickCenterOffset}
-      {@const dist = Math.sqrt(x1 * x1 + y1 * y1)}
-      {@const angle = Math.atan2(y1, x1)}
-      {@const adjustedLength = tickHeight / Math.abs(Math.sin(angle))}
-      {@const x2 = (x1 * (dist - adjustedLength)) / dist}
-      {@const y2 = (y1 * (dist - adjustedLength)) / dist}
+    <!-- All ticks rendered from pre-calculated positions -->
+    {#each tickPositions as tick (tick.index)}
       <line
-        {x1}
-        {y1}
-        {x2}
-        {y2}
+        x1={tick.x1}
+        y1={tick.y1}
+        x2={tick.x2}
+        y2={tick.y2}
         class="SemiDigital__tick"
-        style="opacity: {opacity}"
-      />
-    {/each}
-    <!-- Right edge ticks -->
-    {#each Array.from({ length: 15 }, (_, i) => i) as tick}
-      {@const tickIndex = 15 + tick}
-      {@const opacity = getTickOpacity(tickIndex, timeFormats.seconds)}
-      {@const x1 = tickCenterOffset}
-      {@const y1 = -tickOffset + (tick * (tickOffset * 2)) / 14}
-      {@const dist = Math.sqrt(x1 * x1 + y1 * y1)}
-      {@const angle = Math.atan2(y1, x1)}
-      {@const adjustedLength = tickHeight / Math.abs(Math.cos(angle))}
-      {@const x2 = (x1 * (dist - adjustedLength)) / dist}
-      {@const y2 = (y1 * (dist - adjustedLength)) / dist}
-      <line
-        {x1}
-        {y1}
-        {x2}
-        {y2}
-        class="SemiDigital__tick"
-        style="opacity: {opacity}"
-      />
-    {/each}
-    <!-- Bottom edge ticks -->
-    {#each Array.from({ length: 15 }, (_, i) => i) as tick}
-      {@const tickIndex = 30 + tick}
-      {@const opacity = getTickOpacity(tickIndex, timeFormats.seconds)}
-      {@const x1 = tickOffset - (tick * (tickOffset * 2)) / 14}
-      {@const y1 = tickCenterOffset}
-      {@const dist = Math.sqrt(x1 * x1 + y1 * y1)}
-      {@const angle = Math.atan2(y1, x1)}
-      {@const adjustedLength = tickHeight / Math.abs(Math.sin(angle))}
-      {@const x2 = (x1 * (dist - adjustedLength)) / dist}
-      {@const y2 = (y1 * (dist - adjustedLength)) / dist}
-      <line
-        {x1}
-        {y1}
-        {x2}
-        {y2}
-        class="SemiDigital__tick"
-        style="opacity: {opacity}"
-      />
-    {/each}
-    <!-- Left edge ticks -->
-    {#each Array.from({ length: 15 }, (_, i) => i) as tick}
-      {@const tickIndex = 45 + tick}
-      {@const opacity = getTickOpacity(tickIndex, timeFormats.seconds)}
-      {@const x1 = -tickCenterOffset}
-      {@const y1 = tickOffset - (tick * (tickOffset * 2)) / 14}
-      {@const dist = Math.sqrt(x1 * x1 + y1 * y1)}
-      {@const angle = Math.atan2(y1, x1)}
-      {@const adjustedLength = tickHeight / Math.abs(Math.cos(angle))}
-      {@const x2 = (x1 * (dist - adjustedLength)) / dist}
-      {@const y2 = (y1 * (dist - adjustedLength)) / dist}
-      <line
-        {x1}
-        {y1}
-        {x2}
-        {y2}
-        class="SemiDigital__tick"
-        style="opacity: {opacity}"
+        style="opacity: {getTickOpacity(tick.index, timeFormats.seconds)}"
       />
     {/each}
 

@@ -24,7 +24,7 @@
   const settingState = $state(SettingStore.state);
   const appState = $derived(AppStateStore);
 
-  let showSettingModal = $state(false);
+  let showSettingModal = $state(true);
   let showNASAWallpaperInfo = $state(false);
 
   onDestroy(() => {
@@ -201,12 +201,12 @@
             showSeconds: true,
           },
           type: "flip-clock",
-          span: { x: 2, y: 2 },
+          span: { x: 2, y: 1 },
           pos: { col: 1, row: 1 },
         });
       }}
     >
-      <p>+</p>
+      <p>?</p>
     </button>
   </div>
 
