@@ -10,11 +10,12 @@
   import dayjs from "dayjs";
   import NumberFlow, { NumberFlowGroup } from "@number-flow/svelte";
   import { GlobalTimer } from "@/lib/modules/widgets/shared-time.store";
+  import { fade } from "svelte/transition";
 
   let {
     widget,
   }: {
-    widget: ClockWidgetFlip;
+    widget: ClockWidgetFlip & { isDemo?: boolean };
   } = $props();
 
   let widgetElement: HTMLDivElement | null = $state(null);
@@ -70,6 +71,11 @@
   });
 
   onMount(() => {
+    // Skip timer registration if in demo mode
+    if (widget.isDemo) {
+      return;
+    }
+
     GlobalTimer.register(widget.id!, () => {
       date = dayjs();
     });
@@ -81,10 +87,11 @@
 </script>
 
 <div
-  class="FlipClock blur-thin"
+  transition:fade
   data-size={config.size}
+  class="FlipClock blur-thin"
   bind:this={widgetElement}
-  use:draggable={widget.id!}
+  use:draggable={{ widgetId: widget.id!, isDemo: widget.isDemo }}
   use:resizable={{
     widgetId: widget.id!,
     spans: config.allowedSpans,
@@ -94,6 +101,7 @@
       config.size =
         newSpan.x === 1 && newSpan.y === 2 ? "vertical" : "horizontal";
     },
+    isDemo: widget.isDemo,
   }}
   style="
     grid-area: {widget.pos.row} / {widget.pos.col} / {widget.pos.row +
@@ -165,9 +173,10 @@
         flex-direction: row;
       }
       .segment {
-        font-size: var(--segment-width);
+        font-size: 45px;
       }
       .colon {
+        margin-top: -6px;
         font-size: var(--segment-width);
       }
     }
@@ -180,7 +189,7 @@
       }
       .segment {
         height: 50px;
-        font-size: calc(var(--segment-width) * 1.2);
+        font-size: 45px;
       }
       .colon {
         display: none;

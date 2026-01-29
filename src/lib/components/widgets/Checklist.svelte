@@ -5,11 +5,12 @@
   import { WidgetEngine } from "@/lib/modules/widgets/widgets.engine";
   import { nanoid } from "nanoid";
   import { X } from "@lucide/svelte";
+  import { fade } from "svelte/transition";
 
   let {
     widget,
   }: {
-    widget: ChecklistWidget;
+    widget: ChecklistWidget & { isDemo?: boolean };
   } = $props();
 
   let editValue = $state("");
@@ -69,7 +70,8 @@
 
 <div
   role="region"
-  use:draggable={widget.id!}
+  transition:fade
+  use:draggable={{ widgetId: widget.id!, isDemo: widget.isDemo }}
   data-isolate-context="true"
   class="checklist-box blur-thin"
   oncontextmenu={(event: MouseEvent) => {

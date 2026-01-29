@@ -9,6 +9,7 @@
   import ClockFlip from "@/lib/components/widgets/Clock/ClockFlip.svelte";
   import ClockClassicAnalog from "@/lib/components/widgets/Clock/ClockClassicAnalog.svelte";
   import ClockSemiDigital from "@/lib/components/widgets/Clock/ClockSemiDigital.svelte";
+  import { fade } from "svelte/transition";
 
   // Local state for demo widgets
   let demoWidgets: Record<string, Widgets> = $state({});
@@ -28,6 +29,7 @@
 
   // Callback to receive grid updates
   function handleGridUpdate(gridInfo: {
+    grid: HTMLElement;
     rows: number;
     cols: number;
     cellSize: number;
@@ -210,8 +212,27 @@
     ];
 
   // Cache filter list to avoid recalculating on every render (must be after ALL_WIDGET_DEMOS)
-  const WIDGET_FILTERS = ["All", ...Array.from(new Set(ALL_WIDGET_DEMOS.map((w) => w.filter)))];
+  const WIDGET_FILTERS = [
+    "All",
+    ...Array.from(new Set(ALL_WIDGET_DEMOS.map((w) => w.filter))),
+  ];
   const FILTER_COUNT = WIDGET_FILTERS.length;
+
+  // Cache for widget positions and minRows to avoid recalculation
+  const positionCache = new Map<
+    string,
+    {
+      placedWidgets: Widgets[];
+      minRows: number;
+    }
+  >();
+
+  /**
+   * Generate cache key based on filter, rows, and cols
+   */
+  function getCacheKey(filter: string, rows: number, cols: number): string {
+    return `${filter}-${rows}-${cols}`;
+  }
 
   /**
    * Simplified compact placement algorithm for demo widgets
@@ -319,13 +340,40 @@
       (gridParent?.clientWidth ?? 0) / (115 + 10), // maxCellSize + gap
     );
     if (cols > 0) {
-      minRequiredRows = calculateMinRows(ALL_WIDGET_DEMOS, cols);
+      // Check cache first for initial minRows calculation
+      const cacheKey = getCacheKey("All", 0, cols);
+      const cached = positionCache.get(cacheKey);
+      if (cached) {
+        minRequiredRows = cached.minRows;
+      } else {
+        const calculatedMinRows = calculateMinRows(ALL_WIDGET_DEMOS, cols);
+        minRequiredRows = calculatedMinRows;
+        // Pre-cache the minRows for "All" filter
+        positionCache.set(cacheKey, {
+          placedWidgets: [],
+          minRows: calculatedMinRows,
+        });
+      }
     }
   });
 
   function processWidgetPlacement() {
     const { rows, cols } = localGrid;
     if (rows > 0 && cols > 0) {
+      // Check if we have cached results for this configuration
+      const cacheKey = getCacheKey(activeFilter, rows, cols);
+      const cached = positionCache.get(cacheKey);
+
+      if (cached) {
+        // Use cached results
+        demoWidgets = {};
+        cached.placedWidgets.forEach((widget) => {
+          demoWidgets[widget.id!] = widget;
+        });
+        minRequiredRows = cached.minRows;
+        return;
+      }
+
       // Filter widgets based on active filter
       const filteredWidgets =
         activeFilter === "All"
@@ -333,6 +381,13 @@
           : ALL_WIDGET_DEMOS.filter((w) => w.filter === activeFilter);
 
       const placedWidgets = placeWidgetsCompactly(filteredWidgets, rows, cols);
+      const calculatedMinRows = calculateMinRows(filteredWidgets, cols);
+
+      // Cache the results
+      positionCache.set(cacheKey, {
+        placedWidgets,
+        minRows: calculatedMinRows,
+      });
 
       // Update local state
       demoWidgets = {};
@@ -340,8 +395,7 @@
         demoWidgets[widget.id!] = widget;
       });
 
-      // Recalculate min rows for filtered widgets
-      minRequiredRows = calculateMinRows(filteredWidgets, cols);
+      minRequiredRows = calculatedMinRows;
     }
   }
 
@@ -412,7 +466,11 @@
       minRows={minRequiredRows}
     >
       {#each Object.keys(demoWidgets) as widgetId (widgetId)}
-        {@const widget = demoWidgets[widgetId]}
+        {@const widget = {
+          id: widgetId,
+          ...demoWidgets[widgetId],
+          isDemo: true,
+        }}
         {#if widget.type === "test-widget"}
           <TestWidget
             {widgetId}
@@ -424,7 +482,7 @@
         {:else if widget.type === "calendar"}
           <Calendar {widget} />
         {:else if widget.type === "cat"}
-          <Cat {widget} demoImageUrl={"https://i.redd.it/coyr5sm987gg1.jpeg"} />
+          <Cat {widget} />
         {:else if widget.type === "checklist"}
           <Checklist {widget} />
         {:else if widget.type === "analog-clock"}

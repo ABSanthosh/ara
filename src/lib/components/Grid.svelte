@@ -1,6 +1,5 @@
 <script lang="ts">
   import { type Snippet } from "svelte";
-  import { SettingStore } from "../modules/settings/settings.store";
 
   interface Props {
     gridGap?: number;
@@ -13,7 +12,13 @@
     cols?: number;
     minRows?: number;
     minCols?: number;
-    onGridUpdate?: (gridInfo: { rows: number; cols: number; cellSize: number; gap: number }) => void;
+    onGridUpdate?: (gridInfo: {
+      grid: HTMLElement;
+      rows: number;
+      cols: number;
+      cellSize: number;
+      gap: number;
+    }) => void;
   }
 
   let {
@@ -40,8 +45,10 @@
     if (!gridContainer) return;
 
     // Get the parent container's dimensions
-    const parentWidth = gridContainer.parentElement?.clientWidth || window.innerWidth;
-    const parentHeight = gridContainer.parentElement?.clientHeight || window.innerHeight;
+    const parentWidth =
+      gridContainer.parentElement?.clientWidth || window.innerWidth;
+    const parentHeight =
+      gridContainer.parentElement?.clientHeight || window.innerHeight;
 
     // Calculate the available size minus padding
     const availableWidth = parentWidth - gridPadding * 2;
@@ -84,19 +91,10 @@
       cellSize = Math.min(cellSize, maxCellSize);
     }
 
-    SettingStore.update((store) => {
-      store.internal.grid.rows = gridRows;
-      store.internal.grid.cols = gridCols;
-      store.internal.grid.gap = gridGap;
-      store.internal.grid.cellSize = cellSize;
-      store.internal.grid.element = grid;
-
-      return store;
-    });
-
     // Call the optional callback if provided
     if (onGridUpdate) {
       onGridUpdate({
+        grid: grid,
         rows: gridRows,
         cols: gridCols,
         cellSize,

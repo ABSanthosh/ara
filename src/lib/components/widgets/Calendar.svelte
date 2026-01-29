@@ -7,11 +7,12 @@
   import dayjs from "dayjs";
   import { ChevronLeft, ChevronRight, Expand, RotateCcw } from "@lucide/svelte";
   import { resizable } from "@/lib/modules/widgets/utils/resizable.svelte";
+  import { fade } from "svelte/transition";
 
   let {
     widget,
   }: {
-    widget: CalendarWidget;
+    widget: CalendarWidget & { isDemo?: boolean };
   } = $props();
   // TODO: Let users select different starting day of the week and locale
   const today = dayjs();
@@ -61,8 +62,9 @@
 </script>
 
 <div
+  transition:fade
   data-size={config.size}
-  use:draggable={widget.id!}
+  use:draggable={{ widgetId: widget.id!, isDemo: widget.isDemo }}
   use:resizable={{
     widgetId: widget.id!,
     spans: config.allowedSpans,
@@ -72,6 +74,7 @@
       // Update size based on new span
       config.size = newSpan.x === 1 && newSpan.y === 1 ? "compact" : "large";
     },
+    isDemo: widget.isDemo,
   }}
   class="calendar blur-regular"
   style="

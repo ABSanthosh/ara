@@ -63,7 +63,18 @@ type DragState =
       offsetY: number;
     };
 
-export function draggable(draggedWidget: HTMLElement, widgetId: string) {
+export function draggable(draggedWidget: HTMLElement, params: string | { widgetId: string; isDemo?: boolean }) {
+  // Handle both old string format and new object format for backwards compatibility
+  const widgetId = typeof params === 'string' ? params : params.widgetId;
+  const isDemo = typeof params === 'string' ? false : (params.isDemo ?? false);
+
+  // If demo mode, do nothing
+  if (isDemo) {
+    return {
+      destroy() {},
+    };
+  }
+
   /* ---------------------------------- */
   /* Store + derived state               */
   /* ---------------------------------- */
