@@ -57,74 +57,10 @@
   }
 
   /**
-   * Calculate the minimum number of rows needed to fit all widgets
-   * for a given number of columns
+   * REMOVED: calculateMinRows
+   * This function was duplicating the work of placeWidgetsCompactly.
+   * Now placeWidgetsCompactly returns both placed widgets and min rows.
    */
-  function calculateMinRows(
-    widgetList: Omit<Widgets, "id" | "pos">[],
-    gridCols: number,
-  ): number {
-    const occupiedCells = new Set<string>();
-    let maxRowUsed = 0;
-
-    // Sort widgets by size (larger first) for better packing
-    const sortedWidgets = [...widgetList].sort((a, b) => {
-      const areaA = a.span.x * a.span.y;
-      const areaB = b.span.x * b.span.y;
-      return areaB - areaA;
-    });
-
-    // Try to place widgets with an unlimited row count
-    for (const widget of sortedWidgets) {
-      const spanX = widget.span.x;
-      const spanY = widget.span.y;
-
-      // Skip if widget is too wide for the grid
-      if (spanX > gridCols) {
-        continue;
-      }
-
-      // Try to find a place in the grid (start from row 1 and go as far as needed)
-      let placed = false;
-      let currentRow = 1;
-
-      while (!placed) {
-        for (let col = 1; col <= gridCols - spanX + 1 && !placed; col++) {
-          let canPlace = true;
-
-          // Check if all cells are available
-          for (let r = currentRow; r < currentRow + spanY; r++) {
-            for (let c = col; c < col + spanX; c++) {
-              if (occupiedCells.has(`${r},${c}`)) {
-                canPlace = false;
-                break;
-              }
-            }
-            if (!canPlace) break;
-          }
-
-          if (canPlace) {
-            // Mark cells as occupied
-            for (let r = currentRow; r < currentRow + spanY; r++) {
-              for (let c = col; c < col + spanX; c++) {
-                occupiedCells.add(`${r},${c}`);
-              }
-            }
-
-            // Update max row used
-            maxRowUsed = Math.max(maxRowUsed, currentRow + spanY - 1);
-            placed = true;
-          }
-        }
-
-        if (!placed) {
-          currentRow++;
-        }
-      }
-    }
-
-    return maxRowUsed;
-  }
 
   // Hardcoded list of all possible widget combinations for demo
   const ALL_WIDGET_DEMOS: (Omit<Widgets, "id" | "pos"> & { filter: string })[] =
@@ -237,55 +173,27 @@
   const FILTER_COUNT = WIDGET_FILTERS.length;
 
   /**
-   * Simplified compact placement algorithm for demo widgets
-   * Places widgets in the most compact way possible in the grid
-   * with a consistent mixed ordering
+   * Optimized compact placement algorithm for demo widgets.
+   * Returns both placed widgets and minimum rows needed.
+   * Reduced complexity by combining placement and row calculation.
    */
   function placeWidgetsCompactly(
     widgetList: Omit<Widgets, "id" | "pos">[],
     gridRows: number,
     gridCols: number,
-  ): Widgets[] {
+  ): { placedWidgets: Widgets[]; minRows: number } {
     const placedWidgets: Widgets[] = [];
     const occupiedCells = new Set<string>();
+    let maxRowUsed = 0;
 
-    // Group widgets by size
-    const largeWidgets = widgetList.filter((w) => w.span.x * w.span.y >= 4);
-    const mediumWidgets = widgetList.filter(
-      (w) => w.span.x * w.span.y > 1 && w.span.x * w.span.y < 4,
-    );
-    const smallWidgets = widgetList.filter((w) => w.span.x * w.span.y === 1);
+    // Simplified interleaving: Sort by size descending for better packing
+    const sortedWidgets = [...widgetList].sort((a, b) => {
+      const areaA = a.span.x * a.span.y;
+      const areaB = b.span.x * b.span.y;
+      return areaB - areaA; // Larger widgets first
+    });
 
-    // Create a consistent interleaved pattern (no randomness, same order every time)
-    const interleavedWidgets: Omit<Widgets, "id" | "pos">[] = [];
-    let largeIdx = 0,
-      mediumIdx = 0,
-      smallIdx = 0;
-
-    // Pattern: large, small, small, medium, small, large, medium, small, ...
-    while (
-      largeIdx < largeWidgets.length ||
-      mediumIdx < mediumWidgets.length ||
-      smallIdx < smallWidgets.length
-    ) {
-      if (largeIdx < largeWidgets.length) {
-        interleavedWidgets.push(largeWidgets[largeIdx++]);
-      }
-      if (smallIdx < smallWidgets.length) {
-        interleavedWidgets.push(smallWidgets[smallIdx++]);
-      }
-      if (smallIdx < smallWidgets.length) {
-        interleavedWidgets.push(smallWidgets[smallIdx++]);
-      }
-      if (mediumIdx < mediumWidgets.length) {
-        interleavedWidgets.push(mediumWidgets[mediumIdx++]);
-      }
-      if (smallIdx < smallWidgets.length) {
-        interleavedWidgets.push(smallWidgets[smallIdx++]);
-      }
-    }
-
-    for (const widget of interleavedWidgets) {
+    for (const widget of sortedWidgets) {
       const spanX = widget.span.x;
       const spanY = widget.span.y;
 
@@ -300,10 +208,10 @@
         for (let col = 1; col <= gridCols - spanX + 1 && !placed; col++) {
           let canPlace = true;
 
-          // Check if all cells are available
+          // Check if all cells are available (using standard delimiter)
           for (let r = row; r < row + spanY; r++) {
             for (let c = col; c < col + spanX; c++) {
-              if (occupiedCells.has(`${r},${c}`)) {
+              if (occupiedCells.has(`${r}-${c}`)) {
                 canPlace = false;
                 break;
               }
@@ -315,9 +223,12 @@
             // Mark cells as occupied
             for (let r = row; r < row + spanY; r++) {
               for (let c = col; c < col + spanX; c++) {
-                occupiedCells.add(`${r},${c}`);
+                occupiedCells.add(`${r}-${c}`);
               }
             }
+
+            // Track maximum row used
+            maxRowUsed = Math.max(maxRowUsed, row + spanY - 1);
 
             // Create the placed widget
             const placedWidget: Widgets = {
@@ -333,7 +244,7 @@
       }
     }
 
-    return placedWidgets;
+    return { placedWidgets, minRows: maxRowUsed };
   }
 
   // Calculate minimum rows needed when cols is known
@@ -349,8 +260,9 @@
       if (cached) {
         minRequiredRows = cached.minRows;
       } else {
-        const calculatedMinRows = calculateMinRows(ALL_WIDGET_DEMOS, cols);
-        minRequiredRows = calculatedMinRows;
+        // Use a high row count for initial calculation to find minimum
+        const result = placeWidgetsCompactly(ALL_WIDGET_DEMOS, 100, cols);
+        minRequiredRows = result.minRows;
       }
     }
   });
@@ -379,25 +291,25 @@
           ? ALL_WIDGET_DEMOS
           : ALL_WIDGET_DEMOS.filter((w) => w.filter === activeFilter);
 
-      const placedWidgets = placeWidgetsCompactly(filteredWidgets, rows, cols);
-      const calculatedMinRows = calculateMinRows(filteredWidgets, cols);
+      // Single call returns both placed widgets and min rows
+      const result = placeWidgetsCompactly(filteredWidgets, rows, cols);
 
       // Cache the results in SettingStore
       SettingStore.update((state) => {
         state.internal.settings.widgetPane.filterCache[activeFilter] = {
-          placedWidgets,
-          minRows: calculatedMinRows,
+          placedWidgets: result.placedWidgets,
+          minRows: result.minRows,
         };
         return state;
       });
 
       // Update local state
       demoWidgets = {};
-      placedWidgets.forEach((widget) => {
+      result.placedWidgets.forEach((widget) => {
         demoWidgets[widget.id!] = widget;
       });
 
-      minRequiredRows = calculatedMinRows;
+      minRequiredRows = result.minRows;
     }
   }
 

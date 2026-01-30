@@ -45,14 +45,9 @@ class WidgetEngineImpl {
       };
     }
 
-    const occupiedCells: Set<string> = new Set();
-    Object.values(this.widgets).forEach((w) => {
-      for (let r = w.pos.row; r < w.pos.row + w.span.y; r++) {
-        for (let c = w.pos.col; c < w.pos.col + w.span.x; c++) {
-          occupiedCells.add(`${r},${c}`);
-        }
-      }
-    });
+    // Update centralized occupied cells state
+    SettingStore.updateOccupiedCells();
+    const occupiedCells = this.internalState.grid.occupiedCells;
 
     // Try to find a place in the grid
     for (let row = 1; row <= this.internalState.grid.rows - spanY + 1; row++) {
@@ -67,7 +62,7 @@ class WidgetEngineImpl {
             if (
               r > this.internalState.grid.rows ||
               c > this.internalState.grid.cols ||
-              occupiedCells.has(`${r},${c}`)
+              occupiedCells.has(`${r}-${c}`)
             ) {
               canPlace = false;
               break;
@@ -118,37 +113,11 @@ class WidgetEngineImpl {
     SettingStore.update((state) => {
       const widget = state.widgets[widgetId];
       if (widget) {
-        // Ensure type safety for discriminated union
-        switch (widget.type) {
-          case "analog-clock":
-            state.widgets[widgetId] = {
-              ...widget,
-              ...(updatedFields as Partial<typeof widget>),
-            };
-            break;
-          case "flip-clock":
-            state.widgets[widgetId] = {
-              ...widget,
-              ...(updatedFields as Partial<typeof widget>),
-            };
-            break;
-          case "cat":
-            state.widgets[widgetId] = {
-              ...widget,
-              ...(updatedFields as Partial<typeof widget>),
-            };
-            break;
-          case "checklist":
-            state.widgets[widgetId] = {
-              ...widget,
-              ...(updatedFields as Partial<typeof widget>),
-            };
-            break;
-          // Add other widget types as needed
-          default:
-            // fallback for unknown types
-            state.widgets[widgetId] = widget;
-        }
+        // Simplified: all cases do the same thing
+        state.widgets[widgetId] = {
+          ...widget,
+          ...(updatedFields as Partial<typeof widget>),
+        } as Widgets;
       }
       return state;
     });

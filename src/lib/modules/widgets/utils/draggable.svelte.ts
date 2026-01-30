@@ -50,8 +50,6 @@ function setPointerEvents(
   button.style.userSelect = "none";
 }
 
-const occupiedCells = new Set<string>();
-
 type DragState =
   | { type: "idle" }
   | {
@@ -135,20 +133,6 @@ export function draggable(
   /* Grid helpers                       */
   /* ---------------------------------- */
 
-  function updateOccupiedCells() {
-    occupiedCells.clear();
-
-    Object.values(settings.widgets).forEach((w) => {
-      if (w.id === options.widgetId) return;
-
-      for (let r = w.pos.row; r < w.pos.row + w.span.y; r++) {
-        for (let c = w.pos.col; c < w.pos.col + w.span.x; c++) {
-          occupiedCells.add(`${r}-${c}`);
-        }
-      }
-    });
-  }
-
   function isValid(row: number, col: number, sx: number, sy: number) {
     const g = getGrid();
     if (row < 1 || col < 1 || row + sy - 1 > g.rows || col + sx - 1 > g.cols)
@@ -156,7 +140,7 @@ export function draggable(
 
     for (let r = row; r < row + sy; r++) {
       for (let c = col; c < col + sx; c++) {
-        if (occupiedCells.has(`${r}-${c}`)) return false;
+        if (g.occupiedCells.has(`${r}-${c}`)) return false;
       }
     }
     return true;
@@ -222,7 +206,8 @@ export function draggable(
     let best: { row: number; col: number } | null = null;
     let bestOverlap = 0;
 
-    const radius = Math.max(w.span.x, w.span.y) + 1;
+    // Reduced search radius for better performance
+    const radius = Math.min(Math.max(w.span.x, w.span.y), 2);
 
     for (let r = center.row - radius; r <= center.row + radius; r++) {
       for (let c = center.col - radius; c <= center.col + radius; c++) {
@@ -278,7 +263,8 @@ export function draggable(
     draggedWidget.style.left = `${x}px`;
     draggedWidget.style.top = `${y}px`;
 
-    if (Math.abs(x - lastUpdateX) > 8 || Math.abs(y - lastUpdateY) > 8) {
+    // Increased threshold from 8px to 12px to reduce snap calculations
+    if (Math.abs(x - lastUpdateX) > 12 || Math.abs(y - lastUpdateY) > 12) {
       const snap = getBestSnap(x, y);
       if (snap.row !== shadowPos.row || snap.col !== shadowPos.col) {
         updateShadow(snap.row, snap.col);
@@ -310,7 +296,7 @@ export function draggable(
     };
 
     isDragging = true;
-    updateOccupiedCells();
+    SettingStore.updateOccupiedCells(options.widgetId);
 
     shadow = createDragShadow();
     updateShadow(getWidget().pos.row, getWidget().pos.col);

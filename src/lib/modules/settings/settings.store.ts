@@ -10,6 +10,7 @@ const defaultStore: TSettingStore = {
       cellSize: -1,
       gap: -1,
       element: document.createElement("div"),
+      occupiedCells: new Set<string>(),
     },
     settings: {
       lastVisitedTab: SettingsTabs.GENERAL,
@@ -90,6 +91,28 @@ class SettingStoreImpl {
 
   public destroy() {
     this.unsubscribe();
+  }
+
+  /**
+   * Updates the occupiedCells Set in the grid based on all current widgets.
+   * Optionally excludes a specific widget ID (useful during drag/resize operations).
+   */
+  public updateOccupiedCells(excludeWidgetId?: string) {
+    this.update((state) => {
+      state.internal.grid.occupiedCells.clear();
+
+      Object.values(state.widgets).forEach((w) => {
+        if (excludeWidgetId && w.id === excludeWidgetId) return;
+
+        for (let r = w.pos.row; r < w.pos.row + w.span.y; r++) {
+          for (let c = w.pos.col; c < w.pos.col + w.span.x; c++) {
+            state.internal.grid.occupiedCells.add(`${r}-${c}`);
+          }
+        }
+      });
+
+      return state;
+    });
   }
 
   private loadFromLocalStorage(): TSettingStore {
