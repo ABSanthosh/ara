@@ -21,7 +21,8 @@ export type TSettingStore = {
       lastVisitedTab: SettingsTabs;
       widgetPane: {
         filterCache: Record<string, {
-          minRows: number;
+          cols: number;
+          rows: number;
           placedWidgets: Widgets[];
         }>;
       };

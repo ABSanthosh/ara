@@ -166,7 +166,9 @@
     ];
 
   // Cache filter list to avoid recalculating on every render (must be after ALL_WIDGET_DEMOS)
-  const WIDGET_FILTERS = Array.from(new Set(ALL_WIDGET_DEMOS.map((w) => w.filter)));
+  const WIDGET_FILTERS = Array.from(
+    new Set(ALL_WIDGET_DEMOS.map((w) => w.filter)),
+  );
   const FILTER_COUNT = WIDGET_FILTERS.length;
 
   /**
@@ -254,12 +256,14 @@
       const filterCache =
         $SettingStore.internal.settings.widgetPane.filterCache;
       const cached = filterCache["Clock"];
-      if (cached) {
-        minRequiredRows = cached.minRows;
+      if (cached && cached.cols === cols) {
+        minRequiredRows = cached.rows;
       } else {
         // Use a high row count for initial calculation to find minimum
         // Only show Clock widgets on first load
-        const clockWidgets = ALL_WIDGET_DEMOS.filter((w) => w.filter === "Clock");
+        const clockWidgets = ALL_WIDGET_DEMOS.filter(
+          (w) => w.filter === "Clock",
+        );
         const result = placeWidgetsCompactly(clockWidgets, 100, cols);
         minRequiredRows = result.minRows;
       }
@@ -269,33 +273,36 @@
   function processWidgetPlacement() {
     const { rows, cols } = localGrid;
     if (rows > 0 && cols > 0) {
-      // Check if we have cached results for this filter
+      // Check if we have cached results for this filter with matching cols
       const filterCache =
         $SettingStore.internal.settings.widgetPane.filterCache;
       const cached = filterCache[activeFilter];
 
-      if (cached) {
-        // Use cached results
+      if (cached && cached.cols === cols && cached.rows !== minRequiredRows) {
+        // Use cached results only if cols match
         demoWidgets = {};
         cached.placedWidgets.forEach((widget) => {
           demoWidgets[widget.id!] = widget;
         });
-        minRequiredRows = cached.minRows;
+        minRequiredRows = cached.rows;
         return;
       }
 
       // Filter widgets based on active filter
-      const filteredWidgets = ALL_WIDGET_DEMOS.filter((w) => w.filter === activeFilter);
+      const filteredWidgets = ALL_WIDGET_DEMOS.filter(
+        (w) => w.filter === activeFilter,
+      );
 
       // Use a high row count to find the true minimum rows needed
       // Don't limit by current grid rows to ensure optimal compact placement
       const result = placeWidgetsCompactly(filteredWidgets, 100, cols);
 
-      // Cache the results in SettingStore
+      // Cache the results in SettingStore with cols
       SettingStore.update((state) => {
         state.internal.settings.widgetPane.filterCache[activeFilter] = {
+          cols: cols,
           placedWidgets: result.placedWidgets,
-          minRows: result.minRows,
+          rows: result.minRows,
         };
         return state;
       });
@@ -312,12 +319,13 @@
 
   /**
    * Readjust minrows and grid positions when the number of columns changes.
-   * This clears the cache and recalculates optimal widget placement.
+   * Invalidates cache entries that don't match current cols and recalculates.
    */
   function readjustWidgetsOnColsChange(newCols: number, oldCols: number) {
     if (newCols === oldCols || newCols <= 0) return;
 
-    // Clear the entire filter cache since column changes affect all filters
+    // Invalidate cache entries for all filters since cols changed
+    // Each filter will be recalculated on-demand with the new cols
     SettingStore.update((state) => {
       state.internal.settings.widgetPane.filterCache = {};
       return state;
@@ -399,7 +407,7 @@
       gridGap={16}
       maxCellSize={115}
       onGridUpdate={handleGridUpdate}
-      bind:minRows={minRequiredRows}
+      bind:rows={minRequiredRows}
     >
       {#each Object.keys(demoWidgets) as widgetId (widgetId)}
         {@const widget = {

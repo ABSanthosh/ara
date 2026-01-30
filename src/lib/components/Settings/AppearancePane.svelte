@@ -347,7 +347,7 @@
         border-radius: 12px;
         padding: 0 8px 0 15px;
         @include box(100%, 48px);
-        color: var(--text-secondary);
+        color: var(--vibrant-labels-primary);
         background-color: transparent;
         transition: all 0.1s ease-in-out;
         @include make-flex($dir: row, $just: flex-start, $gap: 10px);
@@ -385,10 +385,12 @@
       font-size: 14px;
       padding-left: 7px;
       padding-bottom: 2px;
+      color: var(--vibrant-labels-primary);
 
       a {
         font-weight: 500;
         text-decoration: underline;
+        color: var(--colors-cyan);
       }
     }
   }

@@ -10,7 +10,6 @@
   import Spinner from "@/lib/components/Spinner/Spinner.svelte";
   import Calendar from "@/lib/components/widgets/Calendar.svelte";
   import Settings from "@/lib/components/Settings/Settings.svelte";
-  import { WidgetEngine } from "@/lib/modules/widgets/widgets.engine";
   import TestWidget from "@/lib/components/widgets/TestWidget.svelte";
   import { SettingStore } from "@/lib/modules/settings/settings.store";
   import { AppStateStore } from "@/lib/modules/settings/appState.store";
