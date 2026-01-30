@@ -1,4 +1,5 @@
-import { TSettingStore } from "./settings.types";
+import { Widgets } from "../widgets/widgets.types";
+import { SettingsTabs, TSettingStore } from "./settings.types";
 import { writable, type Writable } from "svelte/store";
 
 const defaultStore: TSettingStore = {
@@ -9,6 +10,12 @@ const defaultStore: TSettingStore = {
       cellSize: -1,
       gap: -1,
       element: document.createElement("div"),
+    },
+    settings: {
+      lastVisitedTab: SettingsTabs.GENERAL,
+      widgetPane: {
+        filterCache: {},
+      },
     },
     widgetDefaults: {
       CatWidget: {
@@ -87,7 +94,14 @@ class SettingStoreImpl {
 
   private loadFromLocalStorage(): TSettingStore {
     const stored = window.localStorage.getItem("settingStore");
-    return stored ? JSON.parse(stored) : defaultStore;
+    if (!stored) return defaultStore;
+
+    // On every load, we reset these flags to false
+    let tempStored = JSON.parse(stored) as TSettingStore;
+    tempStored.options.isDraggable = false;
+    tempStored.options.isResizable = false;
+    tempStored.options.showGrid = false;
+    return tempStored;
   }
 }
 

@@ -1,6 +1,12 @@
 import { APODResponse } from "../wallpaper/nasa/nasa.types";
 import { CatWidget, Widgets } from "../widgets/widgets.types";
 
+export enum SettingsTabs {
+  GENERAL = "General",
+  APPEARANCE = "Appearance",
+  WIDGETS = "Widgets",
+}
+
 export type TSettingStore = {
   internal: {
     grid: {
@@ -9,6 +15,15 @@ export type TSettingStore = {
       gap: number;
       cellSize: number;
       element: HTMLElement;
+    };
+    settings: {
+      lastVisitedTab: SettingsTabs;
+      widgetPane: {
+        filterCache: Record<string, {
+          minRows: number;
+          placedWidgets: Widgets[];
+        }>;
+      };
     };
     widgetDefaults: {
       CatWidget: CatWidget["settings"];

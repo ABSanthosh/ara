@@ -7,7 +7,6 @@
   import dayjs from "dayjs";
   import { ChevronLeft, ChevronRight, Expand, RotateCcw } from "@lucide/svelte";
   import { resizable } from "@/lib/modules/widgets/utils/resizable.svelte";
-  import { fade } from "svelte/transition";
 
   let {
     widget,
@@ -62,7 +61,6 @@
 </script>
 
 <div
-  transition:fade
   data-size={config.size}
   use:draggable={{ widgetId: widget.id!, isDemo: widget.isDemo }}
   use:resizable={{
@@ -154,6 +152,7 @@
 <style lang="scss">
   .calendar {
     padding: 13px;
+    @include box();
     border-radius: 20px;
     background-color: #fff;
     border: 1px solid var(--separator);

@@ -6,7 +6,6 @@
   import { draggable } from "@/lib/modules/widgets/utils/draggable.svelte";
   import { resizable } from "@/lib/modules/widgets/utils/resizable.svelte";
   import type { CatWidget, CatSpan } from "@/lib/modules/widgets/widgets.types";
-  import { fade } from "svelte/transition";
 
   let {
     widget,
@@ -116,7 +115,6 @@
 </script>
 
 <div
-  transition:fade
   class="cat-box blur-thin"
   use:draggable={{ widgetId: widget.id!, isDemo: widget.isDemo }}
   use:resizable={{
@@ -151,6 +149,7 @@
 
 <style lang="scss">
   .cat-box {
+    @include box();
     border-radius: 20px;
     @include make-flex();
     background-size: cover;

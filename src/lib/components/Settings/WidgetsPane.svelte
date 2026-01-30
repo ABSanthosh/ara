@@ -1,15 +1,15 @@
 <script lang="ts">
   import Grid from "../Grid.svelte";
-  import { SettingStore } from "@/lib/modules/settings/settings.store";
-  import type { Widgets } from "@/lib/modules/widgets/widgets.types";
   import Cat from "@/lib/components/widgets/Cat.svelte";
   import Calendar from "@/lib/components/widgets/Calendar.svelte";
-  import TestWidget from "@/lib/components/widgets/TestWidget.svelte";
   import Checklist from "@/lib/components/widgets/Checklist.svelte";
+  import type { Widgets } from "@/lib/modules/widgets/widgets.types";
+  import { WidgetEngine } from "@/lib/modules/widgets/widgets.engine";
+  import { SettingStore } from "@/lib/modules/settings/settings.store";
+  import TestWidget from "@/lib/components/widgets/TestWidget.svelte";
   import ClockFlip from "@/lib/components/widgets/Clock/ClockFlip.svelte";
-  import ClockClassicAnalog from "@/lib/components/widgets/Clock/ClockClassicAnalog.svelte";
   import ClockSemiDigital from "@/lib/components/widgets/Clock/ClockSemiDigital.svelte";
-  import { fade } from "svelte/transition";
+  import ClockClassicAnalog from "@/lib/components/widgets/Clock/ClockClassicAnalog.svelte";
 
   // Local state for demo widgets
   let demoWidgets: Record<string, Widgets> = $state({});
@@ -36,6 +36,24 @@
     gap: number;
   }) {
     localGrid = gridInfo;
+  }
+
+  /**
+   * Handle clicking on a demo widget to add it to the actual grid
+   */
+  function handleWidgetClick(widget: Widgets) {
+    // Create a copy of the widget without demo-specific properties
+    // The WidgetEngine.addWidget will assign a new id and pos
+    const { id, pos, isDemo, ...widgetData } = widget;
+
+    // Reconstruct the widget with the required properties for addWidget
+    // pos is required by the type but will be overwritten by addWidget
+    const widgetToAdd = {
+      ...widgetData,
+      pos: { row: 1, col: 1 }, // Temporary position, will be calculated by addWidget
+    } as Widgets;
+
+    WidgetEngine.addWidget(widgetToAdd);
   }
 
   /**
@@ -218,22 +236,6 @@
   ];
   const FILTER_COUNT = WIDGET_FILTERS.length;
 
-  // Cache for widget positions and minRows to avoid recalculation
-  const positionCache = new Map<
-    string,
-    {
-      placedWidgets: Widgets[];
-      minRows: number;
-    }
-  >();
-
-  /**
-   * Generate cache key based on filter, rows, and cols
-   */
-  function getCacheKey(filter: string, rows: number, cols: number): string {
-    return `${filter}-${rows}-${cols}`;
-  }
-
   /**
    * Simplified compact placement algorithm for demo widgets
    * Places widgets in the most compact way possible in the grid
@@ -341,18 +343,14 @@
     );
     if (cols > 0) {
       // Check cache first for initial minRows calculation
-      const cacheKey = getCacheKey("All", 0, cols);
-      const cached = positionCache.get(cacheKey);
+      const filterCache =
+        $SettingStore.internal.settings.widgetPane.filterCache;
+      const cached = filterCache["All"];
       if (cached) {
         minRequiredRows = cached.minRows;
       } else {
         const calculatedMinRows = calculateMinRows(ALL_WIDGET_DEMOS, cols);
         minRequiredRows = calculatedMinRows;
-        // Pre-cache the minRows for "All" filter
-        positionCache.set(cacheKey, {
-          placedWidgets: [],
-          minRows: calculatedMinRows,
-        });
       }
     }
   });
@@ -360,9 +358,10 @@
   function processWidgetPlacement() {
     const { rows, cols } = localGrid;
     if (rows > 0 && cols > 0) {
-      // Check if we have cached results for this configuration
-      const cacheKey = getCacheKey(activeFilter, rows, cols);
-      const cached = positionCache.get(cacheKey);
+      // Check if we have cached results for this filter
+      const filterCache =
+        $SettingStore.internal.settings.widgetPane.filterCache;
+      const cached = filterCache[activeFilter];
 
       if (cached) {
         // Use cached results
@@ -383,10 +382,13 @@
       const placedWidgets = placeWidgetsCompactly(filteredWidgets, rows, cols);
       const calculatedMinRows = calculateMinRows(filteredWidgets, cols);
 
-      // Cache the results
-      positionCache.set(cacheKey, {
-        placedWidgets,
-        minRows: calculatedMinRows,
+      // Cache the results in SettingStore
+      SettingStore.update((state) => {
+        state.internal.settings.widgetPane.filterCache[activeFilter] = {
+          placedWidgets,
+          minRows: calculatedMinRows,
+        };
+        return state;
       });
 
       // Update local state
@@ -433,7 +435,10 @@
   <div class="Widgets__header">
     <h2>Widgets</h2>
   </div>
-  <ul class="Widget-filters blur-thin" style="--filter-count: {FILTER_COUNT}">
+  <ul
+    class="Widget-filters blur-recessed"
+    style="--filter-count: {FILTER_COUNT}"
+  >
     {#each WIDGET_FILTERS as type}
       <li>
         <input
@@ -471,27 +476,44 @@
           ...demoWidgets[widgetId],
           isDemo: true,
         }}
-        {#if widget.type === "test-widget"}
-          <TestWidget
-            {widgetId}
-            gridCol={widget.pos.col}
-            gridRow={widget.pos.row}
-            gridSpanX={widget.span.x}
-            gridSpanY={widget.span.y}
-          />
-        {:else if widget.type === "calendar"}
-          <Calendar {widget} />
-        {:else if widget.type === "cat"}
-          <Cat {widget} />
-        {:else if widget.type === "checklist"}
-          <Checklist {widget} />
-        {:else if widget.type === "analog-clock"}
-          <ClockClassicAnalog {widget} />
-        {:else if widget.type === "semi-digital-clock"}
-          <ClockSemiDigital {widget} />
-        {:else if widget.type === "flip-clock"}
-          <ClockFlip {widget} />
-        {/if}
+        <div
+          class="widget-wrapper"
+          role="button"
+          tabindex="0"
+          onclick={() => handleWidgetClick(widget)}
+          onkeydown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              handleWidgetClick(widget);
+            }
+          }}
+          style="
+            grid-column: {widget.pos.col} / span {widget.span.x};
+            grid-row: {widget.pos.row} / span {widget.span.y};
+          "
+        >
+          {#if widget.type === "test-widget"}
+            <TestWidget
+              {widgetId}
+              gridCol={widget.pos.col}
+              gridRow={widget.pos.row}
+              gridSpanX={widget.span.x}
+              gridSpanY={widget.span.y}
+            />
+          {:else if widget.type === "calendar"}
+            <Calendar {widget} />
+          {:else if widget.type === "cat"}
+            <Cat {widget} />
+          {:else if widget.type === "checklist"}
+            <Checklist {widget} />
+          {:else if widget.type === "analog-clock"}
+            <ClockClassicAnalog {widget} />
+          {:else if widget.type === "semi-digital-clock"}
+            <ClockSemiDigital {widget} />
+          {:else if widget.type === "flip-clock"}
+            <ClockFlip {widget} />
+          {/if}
+        </div>
       {/each}
     </Grid>
   {/if}
@@ -569,6 +591,67 @@
           border: none;
         }
       }
+    }
+  }
+
+  .widget-wrapper {
+    cursor: pointer;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    outline: none;
+    border-radius: 20px;
+    overflow: hidden;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &:hover {
+      transform: scale(1.02);
+
+      // Blur the widget content
+      & > :global(*) {
+        filter: blur(2px) brightness(0.75);
+      }
+    }
+
+    &::after {
+      inset: 0;
+      opacity: 0;
+      content: "+";
+      color: white;
+      font-size: 32px;
+      font-weight: 700;
+      position: absolute;
+      @include make-flex();
+      border-radius: 20px;
+      pointer-events: none;
+      border: 2px solid var(--colors-blue);
+      background: radial-gradient(
+        circle at center,
+        rgba(0, 145, 255, 0.3),
+        rgba(80, 80, 80, 0.85)
+      );
+      box-shadow:
+        inset 0 0 30px rgba(0, 145, 255, 0.2),
+        0 4px 20px rgba(0, 0, 0, 0.5);
+      transition: opacity 0.3s ease;
+    }
+
+    &:hover::after {
+      opacity: 1;
+    }
+
+    &:active {
+      transform: scale(0.98);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--vibrant-labels-primary);
+      outline-offset: 2px;
+    }
+
+    & > :global(*) {
+      pointer-events: none;
+      transition: filter 0.3s ease;
     }
   }
 </style>
