@@ -166,6 +166,10 @@
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
     border: 1px solid var(--separator-secondary);
 
+    & > * {
+      user-select: none;
+    }
+
     &[data-size="horizontal"] {
       gap: 15px;
 

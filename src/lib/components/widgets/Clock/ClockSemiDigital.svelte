@@ -224,6 +224,10 @@
     border: 1px solid var(--separator-secondary);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 
+    & > * {
+      user-select: none;
+    }
+
     &[data-size="compact"] {
       padding: 4px;
 
