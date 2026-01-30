@@ -15,6 +15,7 @@ export type TSettingStore = {
       gap: number;
       cellSize: number;
       element: HTMLElement;
+      occupiedCells: Set<string>;
     };
     settings: {
       lastVisitedTab: SettingsTabs;

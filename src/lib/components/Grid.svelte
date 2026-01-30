@@ -41,6 +41,9 @@
   let gridRows = $state(4);
   let cellSize = $state(115);
 
+  // Debounce timer for resize events
+  let resizeTimeout: ReturnType<typeof setTimeout> | null = null;
+
   function calculateGrid() {
     if (!gridContainer) return;
 
@@ -103,12 +106,26 @@
     }
   }
 
+  // Debounced version of calculateGrid to reduce resize event overhead
+  function debouncedCalculateGrid() {
+    if (resizeTimeout) {
+      clearTimeout(resizeTimeout);
+    }
+    resizeTimeout = setTimeout(() => {
+      calculateGrid();
+      resizeTimeout = null;
+    }, 150); // 150ms debounce delay
+  }
+
   onMount(() => {
     calculateGrid();
-    window.addEventListener("resize", calculateGrid);
+    window.addEventListener("resize", debouncedCalculateGrid);
 
     return () => {
-      window.removeEventListener("resize", calculateGrid);
+      window.removeEventListener("resize", debouncedCalculateGrid);
+      if (resizeTimeout) {
+        clearTimeout(resizeTimeout);
+      }
     };
   });
 </script>

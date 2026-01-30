@@ -38,8 +38,6 @@ function makeResizeHandle() {
   return svg;
 }
 
-const occupiedCells = new Set<string>();
-
 type ResizeState =
   | { type: "idle" }
   | {
@@ -124,23 +122,12 @@ export function resizable(
   let rafId: number | null = $state(null);
   let pendingEvent: MouseEvent | null = $state(null);
 
+  /* Cache valid spans to avoid recalculating on every mousemove */
+  let cachedValidSpans: Array<{ x: number; y: number }> = [];
+
   /* ---------------------------------- */
   /* Grid helpers                       */
   /* ---------------------------------- */
-
-  function updateOccupiedCells() {
-    occupiedCells.clear();
-
-    Object.values(settings.widgets).forEach((w) => {
-      if (w.id === options.widgetId) return;
-
-      for (let r = w.pos.row; r < w.pos.row + w.span.y; r++) {
-        for (let c = w.pos.col; c < w.pos.col + w.span.x; c++) {
-          occupiedCells.add(`${r}-${c}`);
-        }
-      }
-    });
-  }
 
   function isValid(row: number, col: number, sx: number, sy: number): boolean {
     const g = getGrid();
@@ -149,7 +136,7 @@ export function resizable(
 
     for (let r = row; r < row + sy; r++) {
       for (let c = col; c < col + sx; c++) {
-        if (occupiedCells.has(`${r}-${c}`)) return false;
+        if (g.occupiedCells.has(`${r}-${c}`)) return false;
       }
     }
     return true;
@@ -185,24 +172,19 @@ export function resizable(
     // Check validity
     const targetIsValid = isValid(w.pos.row, w.pos.col, newX, newY);
 
-    // If using allowed sizes, snap to closest
-    if (options.spans && options.spans.length > 0) {
+    // If using allowed sizes, use cached valid spans (calculated on resize start)
+    if (options.spans && options.spans.length > 0 && cachedValidSpans.length > 0) {
       let best = initial;
       let bestDist = Infinity;
       let foundValid = false;
 
-      for (const span of options.spans) {
-        if (
-          span.x <= maxX &&
-          span.y <= maxY &&
-          isValid(w.pos.row, w.pos.col, span.x, span.y)
-        ) {
-          const dist = Math.abs(span.x - newX) + Math.abs(span.y - newY);
-          if (dist < bestDist) {
-            bestDist = dist;
-            best = span;
-            foundValid = true;
-          }
+      // Use pre-filtered valid spans instead of checking all spans
+      for (const span of cachedValidSpans) {
+        const dist = Math.abs(span.x - newX) + Math.abs(span.y - newY);
+        if (dist < bestDist) {
+          bestDist = dist;
+          best = span;
+          foundValid = true;
         }
       }
 
@@ -260,24 +242,25 @@ export function resizable(
       w.pos.row + newY
     } / ${w.pos.col + newX}`;
 
+    // Single RAF instead of double RAF (removed 1-frame delay)
     requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        resizedWidget.style.width = `${targetW}px`;
-        resizedWidget.style.height = `${targetH}px`;
-      });
+      resizedWidget.style.width = `${targetW}px`;
+      resizedWidget.style.height = `${targetH}px`;
     });
 
-    setTimeout(
-      () => {
-        if (resizeState.type !== "resizing") {
-          resizedWidget.style.width = "";
-          resizedWidget.style.height = "";
-          resizedWidget.style.transition = "";
-        }
-        isTransitioning = false;
-      },
-      resizeState.type === "resizing" ? 150 : 250,
-    );
+    // Use transitionend event instead of setTimeout for better timing
+    const handleTransitionEnd = () => {
+      if (resizeState.type !== "resizing") {
+        resizedWidget.style.width = "";
+        resizedWidget.style.height = "";
+        resizedWidget.style.transition = "";
+      }
+      isTransitioning = false;
+      resizedWidget.removeEventListener("transitionend", handleTransitionEnd);
+    };
+    resizedWidget.addEventListener("transitionend", handleTransitionEnd, {
+      once: true,
+    });
 
     currentSpan = { x: newX, y: newY };
   }
@@ -340,7 +323,21 @@ export function resizable(
     options.onResizeStateChange?.(resizeState);
 
     currentSpan = { ...w.span };
-    updateOccupiedCells();
+    SettingStore.updateOccupiedCells(options.widgetId);
+
+    // Pre-calculate valid spans once at resize start
+    if (options.spans && options.spans.length > 0) {
+      const maxX = getGrid().cols - w.pos.col + 1;
+      const maxY = getGrid().rows - w.pos.row + 1;
+      cachedValidSpans = options.spans.filter(
+        (span) =>
+          span.x <= maxX &&
+          span.y <= maxY &&
+          isValid(w.pos.row, w.pos.col, span.x, span.y),
+      );
+    } else {
+      cachedValidSpans = [];
+    }
 
     resizedWidget.classList.add("resizing");
     resizedWidget.style.zIndex = "1001";
