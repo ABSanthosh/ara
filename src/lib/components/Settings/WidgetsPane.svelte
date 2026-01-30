@@ -25,7 +25,7 @@
   // Dynamic minimum rows based on widgets
   let minRequiredRows = $state<null | number>(null);
   let gridParent = $state<HTMLElement | null>(null);
-  let activeFilter = $state("All");
+  let activeFilter = $state("Clock");
 
   // Callback to receive grid updates
   function handleGridUpdate(gridInfo: {
@@ -166,10 +166,9 @@
     ];
 
   // Cache filter list to avoid recalculating on every render (must be after ALL_WIDGET_DEMOS)
-  const WIDGET_FILTERS = [
-    "All",
-    ...Array.from(new Set(ALL_WIDGET_DEMOS.map((w) => w.filter))),
-  ];
+  const WIDGET_FILTERS = Array.from(
+    new Set(ALL_WIDGET_DEMOS.map((w) => w.filter)),
+  );
   const FILTER_COUNT = WIDGET_FILTERS.length;
 
   /**
@@ -256,7 +255,7 @@
       // Check cache first for initial minRows calculation
       const filterCache =
         $SettingStore.internal.settings.widgetPane.filterCache;
-      const cached = filterCache["All"];
+      const cached = filterCache["Clock"];
       if (cached) {
         minRequiredRows = cached.minRows;
       } else {
@@ -287,7 +286,7 @@
 
       // Filter widgets based on active filter
       const filteredWidgets =
-        activeFilter === "All"
+        activeFilter === "Clock"
           ? ALL_WIDGET_DEMOS
           : ALL_WIDGET_DEMOS.filter((w) => w.filter === activeFilter);
 
@@ -315,7 +314,7 @@
 
   // Track previous grid dimensions and filter to avoid unnecessary updates
   let prevGridDimensions = $state({ rows: 0, cols: 0 });
-  let prevFilter = $state("All");
+  let prevFilter = $state("Clock");
   let isInitialized = $state(false);
 
   // Reactively place widgets when grid dimensions change
