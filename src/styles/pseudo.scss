@@ -1,0 +1,105 @@
+@use "./mixins" as *;
+
+.dragging-in-progress {
+  cursor: grabbing;
+  user-select: none;
+
+  * {
+    user-select: none;
+  }
+}
+
+.widget-drag-shadow {
+  z-index: 0;
+  opacity: 0;
+  position: fixed;
+  border-radius: 20px;
+  pointer-events: none;
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px dashed rgba(255, 255, 255, 0.4);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dragging-pane {
+  user-select: none;
+  position: relative;
+
+  &:hover {
+    cursor: grab;
+  }
+}
+
+.dragging-pane {
+  transform-origin: 50% 60%;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+  animation-timing-function: ease-in-out;
+  will-change: transform;
+
+  // Uncomment to enable jiggle effect
+  // &:not(.dragging) {
+  //   animation-name: ios-jiggle;
+  // }
+}
+
+@keyframes ios-jiggle {
+  0% {
+    transform: rotate(calc(var(--rot) * -1))
+      translate(calc(var(--dx) * -1), var(--dy));
+  }
+  50% {
+    transform: rotate(var(--rot)) translate(var(--dx), calc(var(--dy) * -1));
+  }
+}
+
+// Temp
+.widget-remove {
+  top: -6px;
+  left: -6px;
+  z-index: 10;
+  border: none;
+  color: #000;
+  font-size: 16px;
+  font-weight: 400;
+  cursor: pointer;
+  position: absolute;
+  padding-bottom: 3px;
+  border-radius: 50px;
+  @include make-flex();
+  @include box(23px, 23px);
+  transition: all 0.2s ease;
+  background-color: #c1c1c1;
+
+  &:hover {
+    color: #fff;
+    background-color: var(--colors-red);
+    transform: scale(1.1);
+  }
+}
+
+.widget-resize-handle {
+  right: -6px;
+  bottom: -6px;
+  position: absolute;
+  transform: rotate(-3deg);
+  path {
+    stroke: #c1c1c1;
+    cursor: nw-resize;
+  }
+}
+
+.resize-progress {
+  --__offset: 11px;
+  top: 0;
+  left: 0;
+  margin: var(--__offset);
+  @include box(
+    calc(100% - var(--__offset) * 2),
+    calc(100% - var(--__offset) * 2)
+  );
+  border-radius: 10px;
+  @include make-flex();
+  position: absolute;
+  border: 4px dotted var(--views-thicker);
+}

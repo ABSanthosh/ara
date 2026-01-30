@@ -1,298 +1,176 @@
-<svelte:options runes={true} />
-
 <script lang="ts">
-  import { onMount } from "svelte";
-  import type { CatImage } from "@/lib/modules/Cat/CatEngine";
-  import BlurredSpinner from "../BlurredSpinner.svelte";
-  import type { CatSpan } from "../../stores/setting.store";
-  import settingStore from "../../stores/setting.store";
-  import { catStoreActions, catImageStates } from "../../modules/Cat/cat.store";
-  import {
-    draggable,
-    type DraggableOptions,
-  } from "../../actions/draggable.svelte";
-  import {
-    resizable,
-    type ResizableOptions,
-  } from "../../actions/resizable.svelte";
-  import {
-    dissolve,
-  } from "../../actions/dissolve.svelte";
-  import { Minus, Pen, PenLine } from "@lucide/svelte";
-
-  interface Props {
-    id: string;
-    pos: {
-      row: number;
-      col: number;
-    };
-    span: CatSpan;
-    settings: Record<string, any>;
-    isEditable?: boolean;
-    onResize: (newSpan: CatSpan) => void;
-    onDragEnd: (newRow: number, newCol: number) => void;
-    onRemove?: () => void;
-    openSettings?: (widgetId: string) => void;
-  }
+  import { onMount, onDestroy } from "svelte";
+  import { CatEngine } from "@/lib/modules/cats/cats.engine";
+  import { CatStore } from "@/lib/modules/cats/cats.stores";
+  import BlurredSpinner from "../Spinner/BlurredSpinner.svelte";
+  import { draggable } from "@/lib/modules/widgets/utils/draggable.svelte";
+  import { resizable } from "@/lib/modules/widgets/utils/resizable.svelte";
+  import type { CatWidget, CatSpan } from "@/lib/modules/widgets/widgets.types";
 
   let {
-    id,
-    pos,
-    span,
-    settings,
-    onResize,
-    onDragEnd,
-    isEditable = false,
-    onRemove,
-    openSettings,
-  }: Props = $props();
+    widget,
+  }: {
+    widget: CatWidget & { isDemo?: boolean };
+  } = $props();
 
-  let imgSrc = $state<CatImage>({
-    imageUrl: "",
-    title: "",
-    subreddit: "",
-    postUrl: "",
-    author: "",
-    source: "",
+  const config = $state<{
+    size: "compact" | "large";
+    allowedSpans: CatSpan[];
+    resizeProgress: "idle" | "resizing";
+  }>({
+    // svelte-ignore state_referenced_locally
+    size: widget.span.x === 1 && widget.span.y === 1 ? "compact" : "large",
+    allowedSpans: [
+      { x: 1, y: 1 },
+      { x: 2, y: 2 },
+    ],
+    resizeProgress: "idle" as "idle" | "resizing",
   });
-
-  // Get the cached image state for this widget
-  const widgetCacheState = $derived($catImageStates[id]);
-
-  // Update imgSrc when cache state changes
-  $effect(() => {
-    if (widgetCacheState?.image) {
-      imgSrc = widgetCacheState.image;
-    }
-  });
-
-  const isLoading = $derived(widgetCacheState?.isLoading ?? true);
-  const hasError = $derived(!!widgetCacheState?.error);
-
-  // Current position and size state
-  let currentGridRow = $state(pos.row);
-  let currentGridCol = $state(pos.col);
-  let currentSpanX = $state(span.x);
-  let currentSpanY = $state(span.y);
 
   let tooLong = $state(false);
-  let sizeType = $derived(span.x === 1 && span.y === 1 ? "small" : "large");
-  
-  // Widget element reference for dissolve animation
-  let widgetElement: HTMLElement;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  let storeUnsubscribe: (() => void) | undefined;
+  let hasIncrementedOnMount = $state(false);
 
-  // Function to refresh the cat image
-  async function refreshImage() {
-    try {
-      const newImage = await catStoreActions.refreshCatImage(id);
-      imgSrc = newImage;
-      tooLong = false; // Reset the too long state on successful refresh
-    } catch (error) {
-      console.error("Failed to refresh cat image:", error);
+  // Reactively get the current cat from the store without incrementing timesAccessed
+  // If demoImageUrl is provided, use that instead
+  let currentCat = $derived.by(() => {
+    if (widget.isDemo) {
+      return { imageUrl: "https://i.redd.it/coyr5sm987gg1.jpeg" };
     }
-  }
 
-  // Function to trigger dissolve effect
-  async function triggerDissolve() {
-    onRemove?.();
-    // if (widgetElement) {
-    //   await dissolve(widgetElement, {
-    //     duration: 300,
-    //     maintainPosition: true,
-    //     onComplete: () => {
-    //     }
-    //   });
-    // }
-  }
-
-  // Handle drag end
-  function handleDragEnd(newRow: number, newCol: number) {
-    currentGridRow = newRow;
-    currentGridCol = newCol;
-    onDragEnd(newRow, newCol);
-  }
-
-  // Handle resize
-  function handleResize(newSpanX: number, newSpanY: number) {
-    // Type assertion to ensure only valid combinations are allowed
-    const newSpan = { x: newSpanX, y: newSpanY } as CatSpan;
-    currentSpanX = newSpan.x;
-    currentSpanY = newSpan.y;
-    onResize(newSpan);
-  }
-
-  // Draggable options
-  const draggableOptions: DraggableOptions = {
-    onDragEnd: handleDragEnd,
-  };
-
-  // Resizable options
-  const resizableOptions: ResizableOptions = {
-    allowedSizes: ["1x1", "2x2"],
-    onResize: handleResize,
-  };
-
-  onMount(() => {
-    const timer = setTimeout(() => {
-      tooLong = true;
-    }, 2500);
-    return () => clearTimeout(timer);
+    const store = $CatStore;
+    const widgetStore = store.widgets[widget.id!];
+    if (!widgetStore || widgetStore.magazine.length === 0) {
+      return null;
+    }
+    // Just read the first item from magazine without popping/incrementing
+    const magazine = CatStore.getMagazine(widget.id!);
+    return magazine?.getLatestItem(true) ?? null; // Pass true to not increment
   });
 
-  onMount(async () => {
-    try {
-      const cachedImage = await catStoreActions.getCatImage(id);
-      imgSrc = cachedImage;
-    } catch (err) {
-      console.error("Error getting cat image:", err);
-      imgSrc = {
-        imageUrl: "",
-        title: "Failed to load cat image",
-        subreddit: "",
-        postUrl: "",
-        author: "",
-        source: "",
-      };
+  onMount(() => {
+    // Skip initialization if using demo image or in demo mode
+    if (widget.isDemo) {
+      return;
     }
+
+    // Initialize magazine for this widget
+    CatStore.initMagazine(widget.id!, {
+      magazineSize: widget.settings.magazineSize ?? 7,
+      maxAccess: widget.settings.maxAccess ?? 1,
+    });
+
+    // Immediately increment timesAccessed if magazine already has items
+    // This prevents the visual glitch of showing the old image
+    const magazine = CatStore.getMagazine(widget.id!);
+    if (
+      magazine &&
+      magazine.getAllItems().length > 0 &&
+      !hasIncrementedOnMount
+    ) {
+      CatEngine.getCat(widget.id!); // Increment immediately
+      hasIncrementedOnMount = true;
+      tooLong = false;
+    } else {
+      // If no items yet, wait a bit for them to load
+      setTimeout(() => {
+        if (!hasIncrementedOnMount) {
+          const cat = CatEngine.getCat(widget.id!);
+          hasIncrementedOnMount = true;
+          if (cat) {
+            tooLong = false;
+          }
+        }
+      }, 100);
+    }
+
+    // Set up timeout for showing "too long" message
+    timer = setTimeout(() => {
+      tooLong = true;
+    }, 2500);
+
+    // Subscribe to store changes to clear the timer when cat becomes available
+    storeUnsubscribe = CatStore.subscribe((store) => {
+      const widgetStore = store.widgets[widget.id!];
+      if (widgetStore && widgetStore.magazine.length > 0 && timer) {
+        clearTimeout(timer);
+        tooLong = false;
+      }
+    });
+  });
+
+  onDestroy(() => {
+    // Clear timeout to prevent memory leak
+    if (timer) {
+      clearTimeout(timer);
+    }
+    // Unsubscribe from store
+    if (storeUnsubscribe) {
+      storeUnsubscribe();
+    }
+    // Note: We don't call removeMagazine here because the widget data
+    // should persist in localStorage. Cleanup happens in WidgetEngine.removeWidget
   });
 </script>
 
 <div
-  bind:this={widgetElement}
-  {id}
-  class="CatBox BlurBG"
-  use:draggable={draggableOptions}
-  use:resizable={resizableOptions}
-  class:draggable-widget={$settingStore.options.isDraggable}
+  class="cat-box blur-thin"
+  use:draggable={{ widgetId: widget.id!, isDemo: widget.isDemo }}
+  use:resizable={{
+    widgetId: widget.id!,
+    spans: config.allowedSpans,
+    onResizeStateChange: (resizeState) =>
+      (config.resizeProgress = resizeState.type),
+    onResize: (newSpan) => {
+      // Update size based on new span
+      config.size = newSpan.x === 1 && newSpan.y === 1 ? "compact" : "large";
+    },
+    isDemo: widget.isDemo,
+  }}
   style="
-    background-image: url({imgSrc.imageUrl});
-    grid-area: {currentGridRow} / {currentGridCol} / {currentGridRow +
-    currentSpanY} / {currentGridCol + currentSpanX};
+    grid-area: {widget.pos.row} / {widget.pos.col} / {widget.pos.row +
+    widget.span.y} / {widget.pos.col + widget.span.x};
+    background-image: url('{currentCat?.imageUrl}');
   "
 >
-  {#if !imgSrc.imageUrl}
-    <BlurredSpinner zIndex={-2}>
-      {#if tooLong && !isLoading}
-        <h3 class="CatBox--tooLong">
-          <em>Can't find a free cat, refresh the page!</em>
+  {#if !currentCat && tooLong}
+    <BlurredSpinner className="cat-spinner">
+      {#if config.size === "large"}
+        <h3>
+          <em>Cats are napping,<br /> please wait...</em>
         </h3>
-      {:else if hasError}
-        <div class="CatBox--error">
-          <h3><em>Failed to load cat image</em></h3>
-          <button onclick={refreshImage} class="retry-btn">Try Again</button>
-        </div>
       {/if}
     </BlurredSpinner>
-  {/if}
-
-  {#if isEditable && onRemove}
-    <div class="EditableOverlay BlurBG">
-      <button
-        class="remove-button BlurBG"
-        onclick={triggerDissolve}
-        title="Remove widget"
-        data-isolate-drag
-      >
-        <Minus size="18" />
-      </button>
-      <button
-        class="edit-button BlurBG"
-        onclick={() => openSettings?.(id)}
-        title="Edit widget"
-        data-isolate-drag
-      >
-        <PenLine size="13" />
-      </button>
-    </div>
+  {:else if !currentCat}
+    <BlurredSpinner className="cat-spinner" />
   {/if}
 </div>
 
 <style lang="scss">
-  @use "../../../styles/mixins.scss" as *;
-
-  .CatBox {
-    color: #e4e4e4;
-    position: relative;
+  .cat-box {
+    @include box();
     border-radius: 20px;
+    @include make-flex();
     background-size: cover;
     background-position: center;
-    @include make-flex($just: flex-end);
-    box-shadow: 0 0 20px 1px #00000087;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 
-    // Let the widget grid system control dimensions
-    @include box();
-    // min-height: 120px; // Ensure minimum usability
-
-    &--tooLong {
-      z-index: -1;
-      padding: 0 20px;
-      text-align: center;
-    }
-
-    &--error {
-      z-index: 1;
+    :global(.cat-spinner) {
       padding: 20px;
-      color: #ff6b6b;
+    }
+
+    h3 {
+      padding: 0 10px;
       text-align: center;
-    }
 
-    &:hover {
-      .CatBox__details {
-        opacity: 1;
-      }
-    }
-
-    &__details {
-      width: 100%;
-      padding: 20px;
-      min-height: 80px; // Responsive height
-      overflow: hidden;
-      position: relative;
-      border-radius: 0 0 20px 20px;
-
-      opacity: 0;
-      transition: opacity 0.3s ease-in-out;
-
-      &::after {
-        content: "";
-        left: -30px;
-        z-index: -1;
-        bottom: -50px;
-        position: absolute;
-        @include box(111%, 100%);
-        background: rgba(0, 0, 0, 0.87);
-        filter: blur(17.149999618530273px);
-        border-radius: 0px 0px 20px 20px;
-      }
-
-      @include make-flex($align: flex-start, $just: flex-end);
-      gap: 10px;
-      z-index: 1;
-
-      h4 {
-        font-size: 14px;
+      em {
         font-weight: 400;
-        a {
-          color: #c0c0c0;
-          text-decoration: underline;
-          &:hover {
-            color: #e4e4e4;
-          }
-        }
+        line-height: 1.4;
+        font-style: normal;
+        margin-bottom: -2px;
       }
-
-      h2 {
-        font-size: 16px;
-        font-weight: 500;
-        max-width: 100%;
-        overflow: hidden;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-      }
+      color: var(--colors-red);
     }
-  }
-
-  .CatBox:hover {
-    opacity: 1;
   }
 </style>

@@ -1,140 +1,162 @@
 @use "../mixins" as *;
 
 .CrispButton {
-  --crp-button-gap: 10px;
+  /* ─────────────────────────────
+   Tokens (visionOS-style)
+  ───────────────────────────── */
+  --crp-button-radius: 12px;
+  --crp-button-corner-shape: squircle;
+  --crp-button-height: 32px;
   --crp-button-width: auto;
-  --crp-button-height: 30px;
   --crp-button-font-size: 15px;
-  --crp-button-padding-top: 8px;
-  --crp-button-border-radius: 8px;
-  --crp-button-padding-left: 10px;
-  --crp-button-padding-right: 10px;
-  --crp-button-padding-bottom: 8px;
+  --crp-button-gap: 8px;
 
-  --crp-button-disabled-color: var(--t-crp-disabled-color);
-  --crp-button-disabled-background-color: var(
-    --t-crp-disabled-background-color
-  );
-  --crp-button-disabled-border: 1.2px solid var(--t-crp-disabled-border);
+  --crp-button-bg: var(--views-thin);
+  --crp-button-bg-hover: var(--views-regular);
+  --crp-button-bg-pressed: rgba(255, 255, 255, 0.18);
+  --crp-button-bg-disabled: rgba(255, 255, 255, 0.04);
 
-  --crp-button-color: var(--foreground);
-  --crp-button-background-color: var(--background);
-  --crp-button-border: 1.2px solid var(--t-crp-border);
-  --crp-button-box-shadow: var(--t-crp-box-shadow);
+  --crp-button-border: 1px solid rgba(255, 255, 255, 0.18);
+  --crp-button-border-hover: 1px solid rgba(255, 255, 255, 0.3);
 
-  &:not(&[data-type]) {
-    --crp-button-color-hover: var(--foreground);
-    --crp-button-background-color-hover: var(--t-crp-background-hover);
-    --crp-button-border-hover: 1.2px solid var(--t-crp-border-hover);
-  }
+  --crp-button-color: var(--labels-primary);
+  --crp-button-color-disabled: rgba(255, 255, 255, 0.505);
 
-  &[data-type="black-outline"] {
-    --crp-button-color: #ffffff;
-    --crp-button-color-hover: #000000;
+  --crp-button-shadow:
+    inset 0 0.5px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -0.5px 0 rgba(0, 0, 0, 0.35), 0 12px 30px rgba(0, 0, 0, 0.4);
 
-    --crp-button-background-color: #000000;
-    --crp-button-background-color-hover: #ffffff;
+  /* Padding (Apple prefers vertical balance) */
+  --crp-button-padding-y: 8px;
+  --crp-button-padding-x: 14px;
 
-    --crp-button-border: 1px solid #ffffff;
-    --crp-button-border-hover: 1px solid #000000;
-
-    --crp-button-box-shadow: transparent;
-
-    --crp-button-disabled-background-color: #757575;
-    --crp-button-disabled-border: 1px solid #757575;
-    --crp-button-disabled-color: #b8b8b8;
-  }
-
-  &[data-type="danger"] {
-    --crp-button-color-hover: #ffffff;
-    --crp-button-background-color-hover: #ff605c;
-    --crp-button-border-hover: 1.2px solid #ff605c;
-    --crp-button-box-shadow: transparent;
-  }
-
-  &[data-type="success"] {
-    --crp-button-color: #11181c;
-    --crp-button-color-hover: #ffffff;
-
-    --crp-button-background-color: #fbfcfd;
-    --crp-button-background-color-hover: #3ecf8e;
-
-    --crp-button-border: 1px solid #dfe3e6;
-    --crp-button-border-hover: 1px solid #3ecf8e;
-
-    --crp-button-box-shadow: transparent;
-  }
-
-  &[data-border="false"] {
-    --crp-button-border: none !important;
-    --crp-button-border-hover: none !important;
-    --crp-button-box-shadow: none !important;
-  }
-
-  &[data-type="ghost"] {
-    --crp-button-color: #11181c;
-    --crp-button-background-color: transparent;
-    --crp-button-border: 1px solid transparent;
-
-    --crp-button-color-hover: var(--foreground);
-    --crp-button-background-color-hover: var(--t-crp-background-hover);
-    --crp-button-border-hover: 1.2px solid var(--t-crp-border-hover);
-    --crp-button-box-shadow: transparent;
-  }
-
-  &[data-type="golden"] {
-    --crp-button-width: auto;
-    --crp-button-font-size: 18px;
-    --crp-button-border-radius: 6px;
-    --crp-button-border: 1.2px solid #9d7b7b;
-
-    --crp-button-background-color-hover: #ece0e0;
-    --crp-button-border-hover: 1.2px solid #9d7b7b;
-  }
-
-  // Basic
+  /* ─────────────────────────────
+   Base Style
+  ───────────────────────────── */
+  appearance: none;
   outline: none;
   cursor: pointer;
+  user-select: none;
   white-space: nowrap;
   text-decoration: none;
-  gap: var(--crp-button-gap);
-  transition: all 0.1s ease-in-out;
+
   font-size: var(--crp-button-font-size);
-  border-radius: var(--crp-button-border-radius);
+  color: var(--crp-button-color);
 
-  // Padding
-  padding-top: var(--crp-button-padding-top);
-  padding-left: var(--crp-button-padding-left);
-  padding-right: var(--crp-button-padding-right);
-  padding-bottom: var(--crp-button-padding-bottom);
+  background: var(--crp-button-bg);
+  border: var(--crp-button-border);
+  // box-shadow: var(--crp-button-shadow);
 
-  // Layout
-  @include make-flex($dir: row);
+  padding: var(--crp-button-padding-y) var(--crp-button-padding-x);
+
+  &:not([data-no-blur]) {
+    backdrop-filter: blur(30px) saturate(120%) brightness(1.04);
+  }
+
+  @include make-flex($dir: row, $gap: var(--crp-button-gap));
   @include box(var(--crp-button-width), var(--crp-button-height));
 
-  // Color
-  color: var(--crp-button-color);
-  border: var(--crp-button-border);
-  box-shadow: var(--crp-button-box-shadow);
-  background-color: var(--crp-button-background-color);
+  /* ─────────────────────────────
+   Squircle Corners
+  ───────────────────────────── */
+  border-radius: var(--crp-button-radius);
 
-  @media (any-hover: hover) {
-    &:focus:not(:disabled),
-    &:hover:not(:disabled) {
-      color: var(--crp-button-color-hover);
-      border: var(--crp-button-border-hover);
-      background-color: var(--crp-button-background-color-hover);
-
-      &::before {
-        color: var(--crp-button-color-hover);
-      }
+  @supports (corner-shape: squircle) {
+    @if var(--crp-button-corner-shape) == squircle {
+      border-radius: calc(var(--crp-button-radius) + 15px);
+      corner-shape: squircle;
     }
   }
 
+  transition:
+    background 0.25s ease,
+    box-shadow 0.25s ease,
+    transform 0.12s ease,
+    border-color 0.25s ease;
+
+  /* ─────────────────────────────
+   Hover / Focus
+  ───────────────────────────── */
+  @media (any-hover: hover) {
+    &:hover:not(:disabled):not([data-no-hover]),
+    &:focus-visible:not(:disabled):not([data-no-hover]) {
+      background: var(--crp-button-bg-hover);
+      border: var(--crp-button-border-hover);
+      // box-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.55),
+      //   0 18px 40px rgba(0, 0, 0, 0.45);
+    }
+  }
+
+  /* ─────────────────────────────
+   Pressed (Depth Collapse)
+  ───────────────────────────── */
+  &:active:not(:disabled) {
+    background: var(--crp-button-bg-pressed);
+    transform: translateY(0.5px);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.35);
+  }
+
+  /* ─────────────────────────────
+   Disabled
+  ───────────────────────────── */
   &:disabled {
     cursor: not-allowed;
-    color: var(--crp-button-disabled-color);
-    border: var(--crp-button-disabled-border);
-    background-color: var(--crp-button-disabled-background-color);
+    background: var(--crp-button-bg-disabled);
+    color: var(--crp-button-color-disabled);
+    border-color: rgba(255, 255, 255, 0.06);
+    box-shadow: none;
+    backdrop-filter: blur(20px);
+  }
+
+  /* ─────────────────────────────
+   Button Variants (visionOS-aligned)
+  ───────────────────────────── */
+
+  /* Primary / Emphasized */
+  &[data-type="primary"] {
+    --crp-button-bg: var(--colors-blue);
+    --crp-button-bg-hover: #2aa4ff;
+    --crp-button-border: 1px solid transparent;
+    --crp-button-color: #ffffff;
+
+    --crp-button-shadow:
+      inset 0 0.5px 0 rgba(255, 255, 255, 0.45), 0 18px 40px rgba(0, 0, 0, 0.45);
+  }
+
+  /* Destructive */
+  &[data-type="danger"] {
+    --crp-button-bg: rgba(234, 57, 60, 0.85);
+    --crp-button-bg-hover: #d75350;
+    --crp-button-border: 1px solid transparent;
+    --crp-button-color: #ffffff;
+  }
+
+  &[data-type="inverse-danger"] {
+    // --crp-button-bg: transparent;
+    --crp-button-bg-hover: #d75350;
+    // --crp-button-border: 1px solid rgba(234, 57, 60, 0.85);
+    --crp-button-color: var(--colors-red);
+  }
+
+  /* Success */
+  &[data-type="success"] {
+    --crp-button-bg: rgba(48, 209, 88, 0.85);
+    --crp-button-bg-hover: #3ecf8e;
+    --crp-button-border: 1px solid transparent;
+    --crp-button-color: #ffffff;
+  }
+
+  /* Ghost / Toolbar Button */
+  &[data-type="ghost"] {
+    --crp-button-bg: transparent;
+    --crp-button-bg-hover: var(--controls-hover);
+    --crp-button-border: 1px solid transparent;
+    --crp-button-shadow: none;
+  }
+
+  /* Borderless Icon Button */
+  &[data-border="false"] {
+    --crp-button-border: none;
+    --crp-button-shadow: none;
   }
 }

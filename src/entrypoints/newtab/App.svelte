@@ -1,62 +1,38 @@
 <script lang="ts">
-  import settingStore from "../../lib/stores/setting.store";
-  import WidgetGrid from "../../lib/components/WidgetGrid.svelte";
-  import Calendar from "../../lib/components/widgets/Calendar.svelte";
-  import FlipClock from "../../lib/components/widgets/clock/FlipClock.svelte";
-  import AnalogClock from "@/lib/components/widgets/clock/AnalogClock.svelte";
-  import Cat from "../../lib/components/widgets/Cat.svelte";
-  import Checklist from "../../lib/components/widgets/Checklist.svelte";
-  import ContextMenu from "@/lib/components/ContextMenu.svelte";
-  import WidgetModal from "@/lib/components/WidgetModal/WidgetModal.svelte";
-  import {
-    initializeWallpaper,
-    WallpaperManager,
-    setDynamicWallpaper,
-  } from "../../lib/managers/wallpaperManager";
-  import { onMount } from "svelte";
+  import "../../styles/index.scss";
+
+  import { onDestroy } from "svelte";
+  import Grid from "@/lib/components/Grid.svelte";
   import Modal from "@/lib/components/Modal.svelte";
-  import { removeWidget } from "../../lib/stores/setting.store";
   import { Heart, Pin, PinOff } from "@lucide/svelte";
+  import Cat from "@/lib/components/widgets/Cat.svelte";
+  import ContextMenu from "@/lib/components/ContextMenu.svelte";
+  import Spinner from "@/lib/components/Spinner/Spinner.svelte";
+  import Calendar from "@/lib/components/widgets/Calendar.svelte";
+  import Settings from "@/lib/components/Settings/Settings.svelte";
+  import TestWidget from "@/lib/components/widgets/TestWidget.svelte";
+  import { SettingStore } from "@/lib/modules/settings/settings.store";
+  import { AppStateStore } from "@/lib/modules/settings/appState.store";
+  import { WallpaperManager } from "@/lib/modules/wallpaper/wallpaper.manager";
+  import Checklist from "@/lib/components/widgets/Checklist.svelte";
+  import ClockFlip from "@/lib/components/widgets/Clock/ClockFlip.svelte";
+  import ClockClassicAnalog from "@/lib/components/widgets/Clock/ClockClassicAnalog.svelte";
+  import ClockSemiDigital from "@/lib/components/widgets/Clock/ClockSemiDigital.svelte";
 
-  settingStore.subscribe((value) => {
-    document.body.style.backgroundImage = `url(${value.options.wallpaper.url})`;
-  });
+  // Init modules
+  const settingState = $state(SettingStore.state);
+  const appState = $derived(AppStateStore);
 
-  let showModal = $state(false);
-  let settingsModalWidgetId = $state<undefined | string>(undefined);
-  let settingsModal = $derived(
-    settingsModalWidgetId !== undefined ? true : false
-  );
-
+  let showSettingModal = $state(false);
   let showNASAWallpaperInfo = $state(false);
 
-  // Derived value to check if wallpaper is pinned (static mode)
-  const isPinned = $derived(
-    $settingStore.options.wallpaper.type === "nasa" &&
-      $settingStore.options.wallpaper.metadata.mode === "static"
-  );
-
-  // Derived value to check if current wallpaper is hearted
-  const isHearted = $derived(
-    $settingStore.options.wallpaper.type === "nasa" &&
-      $settingStore.options.wallpaper.metadata.date &&
-      ($settingStore.wallpapers.heartedDates || []).includes(
-        $settingStore.options.wallpaper.metadata.date
-      )
-  );
-
-  // Derived value to determine if widgets are in editable mode
-  const isEditable = $derived(
-    $settingStore.options.isDraggable && $settingStore.options.isResizable
-  );
-
-  onMount(() => {
-    initializeWallpaper();
-    console.log($settingStore.options.wallpaper);
+  onDestroy(() => {
+    SettingStore.destroy();
+    WallpaperManager.destroy();
   });
 
   const NasaContextMenu = $derived(
-    $settingStore.options.wallpaper.type === "nasa"
+    $settingState.wallpaper.activePlugin === "nasa"
       ? [
           {
             name: "hr",
@@ -67,11 +43,22 @@
             name: "Refresh Wallpaper",
             displayText: "Refresh Wallpaper",
             onClick: () => {
-              WallpaperManager.refreshNASAWallpaper();
+              WallpaperManager.refreshNASA();
             },
           },
         ]
-      : []
+      : [],
+  );
+
+  let isPinned = $derived(
+    $settingState.wallpaper.activePlugin === "nasa" &&
+      $settingState.wallpaper.plugins.nasa.mode === "static",
+  );
+  let isFavorited = $derived(
+    $settingState.wallpaper.activePlugin === "nasa" &&
+      $settingState.wallpaper.plugins.nasa.favorites.includes(
+        $settingState.wallpaper.plugins.nasa.metadata!.date,
+      ),
   );
 </script>
 
@@ -79,29 +66,29 @@
   menuItems={[
     {
       name: "settings",
-      onClick: () => (showModal = true),
+      onClick: () => (showSettingModal = true),
       displayText: "Settings",
     },
     {
       name: "showGrid",
       onClick: () => {
-        settingStore.update((store) => {
+        SettingStore.update((store) => {
           store.options.showGrid = !store.options.showGrid;
           return store;
         });
       },
-      displayText: $settingStore.options.showGrid ? "Hide Grid" : "Show Grid",
+      displayText: $settingState.options.showGrid ? "Hide Grid" : "Show Grid",
     },
     {
       name: "Edit Widgets",
       onClick: () => {
-        settingStore.update((store) => {
+        SettingStore.update((store) => {
           store.options.isResizable = !store.options.isResizable;
           store.options.isDraggable = !store.options.isDraggable;
           return store;
         });
       },
-      displayText: $settingStore.options.isResizable
+      displayText: $settingState.options.isResizable
         ? "Stop Editing"
         : "Edit Widgets",
     },
@@ -109,172 +96,105 @@
   ]}
 />
 
-<WidgetModal bind:showModal />
+<Settings bind:showModal={showSettingModal} />
 
-<Modal
-  heading="Widget Settings"
-  bind:showModal={settingsModal}
-  onclose={() => (settingsModalWidgetId = undefined)}
->
-  Settings for widget ID: {settingsModalWidgetId}
-</Modal>
+<Grid
+  showGrid={$settingState.options.showGrid}
+  onGridUpdate={(gridInfo: {
+    gap: number;
+    rows: number;
+    cols: number;
+    cellSize: number;
+    grid: HTMLElement;
+  }) => {
+    SettingStore.update((store) => {
+      store.internal.grid.rows = gridInfo.rows;
+      store.internal.grid.cols = gridInfo.cols;
+      store.internal.grid.gap = gridInfo.gap;
+      store.internal.grid.cellSize = gridInfo.cellSize;
+      store.internal.grid.element = gridInfo.grid;
 
-<WidgetGrid
-  gridGap={10}
-  gridPadding={40}
-  minWidgetSize={110}
-  showGrid={$settingStore.options.showGrid}
+      return store;
+    });
+  }}
 >
-  {#each Object.keys($settingStore.widgets) as widgetId}
-    {@const widget = $settingStore.widgets[widgetId]}
-    {#if widget.type === "analog-clock"}
-      <AnalogClock
-        id={widget.id}
-        pos={widget.pos}
-        span={widget.span}
-        settings={widget.settings}
-        {isEditable}
-        openSettings={(id) => (settingsModalWidgetId = id)}
-        onDragEnd={(newRow, newCol) => {
-          settingStore.update((store) => {
-            store.widgets[widgetId].pos = { row: newRow, col: newCol };
-            return store;
-          });
-        }}
-        onResize={(newSpan) => {
-          settingStore.update((store) => {
-            store.widgets[widgetId].span = newSpan;
-            return store;
-          });
-        }}
-        onRemove={() => {
-          removeWidget(widgetId);
-        }}
-      />
-    {:else if widget.type === "flip-clock"}
-      <FlipClock
-        id={widget.id}
-        pos={widget.pos}
-        span={widget.span}
-        settings={widget.settings}
-        {isEditable}
-        openSettings={(id) => (settingsModalWidgetId = id)}
-        onDragEnd={(newRow, newCol) => {
-          settingStore.update((store) => {
-            store.widgets[widgetId].pos = { row: newRow, col: newCol };
-            return store;
-          });
-        }}
-        onResize={(newSpan) => {
-          settingStore.update((store) => {
-            store.widgets[widgetId].span = newSpan;
-            return store;
-          });
-        }}
-        onRemove={() => {
-          removeWidget(widgetId);
-        }}
+  {#each Object.keys($settingState.widgets) as widgetId (widgetId)}
+    {@const widget = $settingState.widgets[widgetId]}
+    {#if widget.type === "test-widget"}
+      <TestWidget
+        {widgetId}
+        gridCol={widget.pos.col}
+        gridRow={widget.pos.row}
+        gridSpanX={widget.span.x}
+        gridSpanY={widget.span.y}
       />
     {:else if widget.type === "calendar"}
-      <Calendar
-        id={widget.id}
-        pos={widget.pos}
-        span={widget.span}
-        settings={widget.settings}
-        {isEditable}
-        openSettings={(id) => (settingsModalWidgetId = id)}
-        onDragEnd={(newRow, newCol) => {
-          settingStore.update((store) => {
-            store.widgets[widgetId].pos = { row: newRow, col: newCol };
-            return store;
-          });
-        }}
-        onResize={(newSpan) => {
-          settingStore.update((store) => {
-            store.widgets[widgetId].span = newSpan;
-            return store;
-          });
-        }}
-        onRemove={() => {
-          removeWidget(widgetId);
-        }}
-      />
+      <Calendar {widget} />
     {:else if widget.type === "cat"}
-      <Cat
-        id={widget.id}
-        pos={widget.pos}
-        span={widget.span}
-        settings={widget.settings}
-        {isEditable}
-        openSettings={(id) => (settingsModalWidgetId = id)}
-        onDragEnd={(newRow, newCol) => {
-          settingStore.update((store) => {
-            store.widgets[widgetId].pos = { row: newRow, col: newCol };
-            return store;
-          });
-        }}
-        onResize={(newSpan) => {
-          settingStore.update((store) => {
-            store.widgets[widgetId].span = newSpan;
-            return store;
-          });
-        }}
-        onRemove={() => {
-          removeWidget(widgetId);
-        }}
-      />
+      <Cat {widget} />
     {:else if widget.type === "checklist"}
-      <Checklist
-        id={widget.id}
-        pos={widget.pos}
-        span={widget.span}
-        settings={widget.settings}
-        {isEditable}
-        openSettings={(id) => (settingsModalWidgetId = id)}
-        onDragEnd={(newRow, newCol) => {
-          settingStore.update((store) => {
-            store.widgets[widgetId].pos = { row: newRow, col: newCol };
-            return store;
-          });
-        }}
-        onResize={(newSpan) => {
-          settingStore.update((store) => {
-            store.widgets[widgetId].span = newSpan;
-            return store;
-          });
-        }}
-        onRemove={() => {
-          removeWidget(widgetId);
-        }}
-      />
+      <Checklist {widget} />
+    {:else if widget.type === "analog-clock"}
+      <ClockClassicAnalog {widget} />
+    {:else if widget.type === "semi-digital-clock"}
+      <ClockSemiDigital {widget} />
+    {:else if widget.type === "flip-clock"}
+      <ClockFlip {widget} />
     {/if}
   {/each}
-</WidgetGrid>
+</Grid>
 
-{#if $settingStore.options.wallpaper.type === "nasa"}
+{#if $settingState.options.isResizable}
+  <button
+    class="stop-editing CrispButton"
+    onclick={() => {
+      SettingStore.update((store) => {
+        store.options.isResizable = false;
+        store.options.isDraggable = false;
+        return store;
+      });
+    }}
+  >
+    Stop Editing
+  </button>
+{/if}
+
+{#if $settingState.wallpaper.activePlugin === "nasa"}
   <div class="NasaTools">
+    {#if $appState.wallpaper.isWallpaperLoading}
+      <div class="SpinnerButton CrispButton blur-thin" data-no-hover>
+        <Spinner height={18} width={18} />
+      </div>
+    {/if}
     <button
-      class="WallpaperDetailsButton BlurBG"
-      class:hearted={isHearted}
+      class="CrispButton blur-thin"
+      data-no-blur
+      data-type="fav"
+      class:favorited={isFavorited}
       onclick={() => {
-        WallpaperManager.toggleHeartWallpaper();
+        if (isFavorited) {
+          WallpaperManager.NASAEngine.removeNasaFavorite(
+            $settingState.wallpaper.plugins.nasa.metadata!.date,
+          );
+        } else {
+          WallpaperManager.NASAEngine.addNasaFavorite(
+            $settingState.wallpaper.plugins.nasa.metadata!.date,
+          );
+        }
       }}
     >
       <Heart size={15} />
     </button>
     <button
-      class="WallpaperDetailsButton BlurBG"
+      class="CrispButton blur-thin"
+      data-no-blur
       class:pinned={isPinned}
+      data-type="pin"
       onclick={() => {
         if (isPinned) {
-          // Unpin: switch to dynamic mode
-          setDynamicWallpaper("dynamic");
+          WallpaperManager.NASAEngine.unpinCurrentNasaAPOD();
         } else {
-          // Pin: switch to static mode with current image date
-          const currentDate =
-            $settingStore.options.wallpaper.metadata.date ||
-            new Date().toISOString().split("T")[0];
-          setDynamicWallpaper("static", currentDate);
+          WallpaperManager.NASAEngine.pinCurrentNasaAPOD();
         }
       }}
     >
@@ -285,33 +205,45 @@
       {/if}
     </button>
     <button
-      class="WallpaperDetailsButton BlurBG"
-      onclick={() => (showNASAWallpaperInfo = true)}
+      id="nasa-info-button"
+      class="CrispButton blur-thin"
+      data-type="info"
+      class:active={showNASAWallpaperInfo}
+      data-no-blur
+      style="anchor-name: --nasa-info-button;"
+      onclick={() => {
+        showNASAWallpaperInfo = true;
+      }}
     >
-      ?
+      <p>?</p>
     </button>
   </div>
 
-  <Modal
-    heading={$settingStore.options.wallpaper.metadata.title}
-    bind:showModal={showNASAWallpaperInfo}
-  >
-    <div class="WallpaperDetails">
-      <p>{$settingStore.options.wallpaper.metadata.explanation}</p>
-      {#if $settingStore.options.wallpaper.metadata.copyright}
-        <p>© {$settingStore.options.wallpaper.metadata.copyright}</p>
-      {/if}
-      <div class="WallpaperDetails--calltoaction">
-        <a
-          href={$settingStore.options.wallpaper.metadata.page_url}
-          target="_blank"
-        >
-          Website
-        </a>
-        <a href={$settingStore.options.wallpaper.metadata.url} target="_blank">
-          View full image
-        </a>
+  {#if showNASAWallpaperInfo}
+    <Modal
+      heading={$settingState.wallpaper.plugins.nasa.metadata!.title}
+      bind:showModal={showNASAWallpaperInfo}
+    >
+      <div class="WallpaperDetails">
+        <p>{$settingState.wallpaper.plugins.nasa.metadata!.explanation}</p>
+        {#if $settingState.wallpaper.plugins.nasa.metadata!.copyright}
+          <p>© {$settingState.wallpaper.plugins.nasa.metadata!.copyright}</p>
+        {/if}
+        <div class="WallpaperDetails--calltoaction">
+          <a
+            href={$settingState.wallpaper.plugins.nasa.metadata!.page_url}
+            target="_blank"
+          >
+            Website
+          </a>
+          <a
+            href={$settingState.wallpaper.plugins.nasa.metadata!.url}
+            target="_blank"
+          >
+            View full image
+          </a>
+        </div>
       </div>
-    </div>
-  </Modal>
+    </Modal>
+  {/if}
 {/if}

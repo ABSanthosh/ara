@@ -37,13 +37,13 @@
   oncontextmenu={(event: MouseEvent) => {
     // Check if the right-click is inside an element with data-isolate-context
     const target = event.target as HTMLElement;
-    const isolatedElement = target.closest('[data-isolate-context]');
-    
+    const isolatedElement = target.closest("[data-isolate-context]");
+
     if (isolatedElement) {
       // Let the isolated element handle its own context menu
       return;
     }
-    
+
     event.preventDefault();
     event.stopPropagation();
     showMenu = true;
@@ -70,7 +70,7 @@
 {#if showMenu}
   <nav
     use:getContextMenuDimension
-    class="context-menu"
+    class="context-menu blur-regular"
     style="position:absolute; top:{pos.y}px; left:{pos.x}px"
   >
     <ul class="context-menu__list">
@@ -104,12 +104,14 @@
 
 <style lang="scss">
   .context-menu {
+    padding: 8px;
     min-width: 210px;
-    padding: 6px;
     border-radius: 10px;
 
-    backdrop-filter: blur(22px) saturate(160%) brightness(1.05);
-    -webkit-backdrop-filter: blur(22px) saturate(160%) brightness(1.05);
+    @supports (corner-shape: squircle) {
+      border-radius: 30px;
+      corner-shape: squircle;
+    }
 
     background: linear-gradient(
         to bottom,
@@ -118,7 +120,7 @@
       ),
       rgba(24, 24, 24, 0.55);
 
-    border: 1px solid rgba(255, 255, 255, 0.18);
+    border: 1px solid var(--separator-secondary);
     box-shadow: 0 6px 14px rgba(0, 0, 0, 0.18);
 
     color: #fff;
@@ -132,6 +134,12 @@
 
     &__item {
       border-radius: 6px;
+
+      @supports (corner-shape: squircle) {
+        border-radius: 20px;
+        corner-shape: squircle;
+      }
+
       overflow: hidden;
 
       &--disabled {
@@ -151,15 +159,17 @@
       cursor: pointer;
       font-size: 16px;
       min-height: 28px;
-      color: #f5f5f7;
       text-align: left;
       padding: 5px 12px;
-      border-radius: 6px;
+      border-radius: 6px;      
       background: transparent;
+      color: var(--vibrant-labels-primary);
 
       &:active,
       &:hover {
-        background: rgba(255, 255, 255, 0.18);
+        // background: rgba(255, 255, 255, 0.18);
+        color: #fff;
+        background: var(--labels-secondary);
       }
 
       &:focus-visible {

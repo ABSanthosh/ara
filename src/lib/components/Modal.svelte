@@ -51,8 +51,6 @@
 {/if}
 
 <style lang="scss">
-  @use "../../styles/mixins.scss" as *;
-
   .ModalWrapper {
     padding: 0;
     border: none;
@@ -60,17 +58,25 @@
     position: fixed;
     @include make-flex();
     background: transparent;
+    max-width: 100vw;
+    max-height: 100vh;
     @include box(100vw, 100vh);
   }
 
   .Modal {
     width: 90%;
     color: #fff;
-    max-width: 600px;
+    max-width: 650px;
     animation: fadeInScale 0.3s ease forwards;
 
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--windows-glass-keyboard);
+    
     border-radius: 20px;
+    @supports (corner-shape: squircle) {
+      border-radius: 50px;
+      corner-shape: squircle;
+    }
+
     background: rgba(0, 0, 0, 0.49);
     box-shadow: 0 0 20px 1px #00000087;
     backdrop-filter: blur(26px) saturate(170%) brightness(1.04);

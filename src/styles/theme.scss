@@ -1,0 +1,68 @@
+.blur {
+  backdrop-filter: blur(30px) saturate(170%) brightness(1.04);
+  background: rgba(0, 0, 0, 0.43);
+}
+
+.blur-recessed {
+  backdrop-filter: blur(30px) saturate(100%) brightness(1.04);
+  background: var(--views-recessed-material-view);
+}
+
+.blur-regular {
+  backdrop-filter: blur(30px) saturate(100%) brightness(1.04);
+  background: var(--views-regular);
+}
+
+.blur-thin {
+  backdrop-filter: blur(30px) saturate(100%) brightness(1);
+  background: var(--views-thin);
+}
+
+// box-shadow: 0 7px 10px 0 rgba(0, 0, 0, 0.09), 0 40px 80px 0 rgba(0, 0, 0, 0.3);
+
+:root {
+  --views-recessed-material-view: rgba(0, 0, 0, 0.18);
+  --views-thin: rgba(255, 255, 255, 0.07);
+  --views-regular: rgba(214, 214, 214, 0.45);
+  --views-thicker: rgba(218, 218, 218, 0.92);
+  --views-stroke-recessed-specular: rgba(0, 0, 0, 0);
+
+  --windows-glass: #8080804d;
+  --windows-glass-keyboard: rgba(128, 128, 128, 0.3);
+  --separator: rgba(255, 255, 255, 0.324);
+  --separator-secondary: rgba(255, 255, 255, 0.109);
+
+  --colors-red: #ff4245;
+  --colors-orange: #ff9230;
+  --colors-yellow: #ffd600;
+  --colors-green: #30d158;
+  --colors-mint: #00dac3;
+  --colors-teal: #00d2e0;
+  --colors-cyan: #3cd3fe;
+  --colors-blue: #0091ff;
+  --colors-indigo: #6d7cff;
+  --colors-purple: #db34f2;
+  --colors-pink: #ff375f;
+  --colors-brown: #b78a66;
+  --colors-gray: #98989d;
+  --colors-black: #000;
+  --colors-white-labels: rgba(255, 255, 255, 0.96);
+
+  --controls-idle: rgba(255, 255, 255, 0.07);
+  --controls-hover: rgba(255, 255, 255, 0.04);
+  --controls-pinch: rgba(255, 255, 255, 0.16);
+  --controls-selected: #fff;
+  --controls-disabled: rgba(255, 255, 255, 0.04);
+
+  --labels-primary: rgba(255, 255, 255, 0.96);
+  --labels-secondary: rgba(255, 255, 255, 0.23);
+  --labels-tertiary: rgba(255, 255, 255, 0.11);
+
+  --vibrant-fills-primary: #333;
+  --vibrant-fills-secondary: #1f1f1f;
+  --vibrant-fills-tertiary: #121212;
+  --vibrant-labels-primary: #f3f0f0;
+  --vibrant-labels-secondary: #999;
+  --vibrant-labels-tertiary: #404040;
+  --vibrant-labels-quaternary: #262626;
+}

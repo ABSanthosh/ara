@@ -1,575 +1,512 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import {
-    draggable,
-    type DraggableOptions,
-  } from "../../actions/draggable.svelte";
-  import {
-    resizable,
-    type ResizableOptions,
-  } from "../../actions/resizable.svelte";
-  import {
-    dissolve,
-  } from "../../actions/dissolve.svelte";
-  import { Minus, PenLine, X } from "@lucide/svelte";
-  import settingStore from "../../stores/setting.store";
-  import type { ChecklistSpan, ChecklistItem } from "../../stores/setting.store";
-
-  interface Props {
-    id: string;
-    pos: {
-      row: number;
-      col: number;
-    };
-    span: ChecklistSpan;
-    settings: {
-      items: ChecklistItem[];
-    };
-    isEditable?: boolean;
-    onDragEnd: (newRow: number, newCol: number) => void;
-    onResize: (newSpan: ChecklistSpan) => void;
-    onRemove?: () => void;
-    openSettings?: (widgetId: string) => void;
-  }
+  import type { ChecklistWidget } from "@/lib/modules/widgets/widgets.types";
+  import { draggable } from "@/lib/modules/widgets/utils/draggable.svelte";
+  import { WidgetEngine } from "@/lib/modules/widgets/widgets.engine";
+  import { nanoid } from "nanoid";
+  import { X } from "@lucide/svelte";
 
   let {
-    id,
-    pos = { row: 1, col: 1 },
-    span = { x: 2, y: 2 },
-    settings,
-    isEditable = false,
-    onDragEnd = (_newRow: number, _newCol: number) => {},
-    onResize = (_newSpan: ChecklistSpan) => {},
-    onRemove,
-    openSettings
-  }: Props = $props();
+    widget,
+  }: {
+    widget: ChecklistWidget & { isDemo?: boolean };
+  } = $props();
 
-  // Current position and size state
-  let currentGridRow = $state(pos.row);
-  let currentGridCol = $state(pos.col);
-  let currentSpanX = $state(span.x);
-  let currentSpanY = $state(span.y);
-
-  // Checklist state
-  let items = $state<ChecklistItem[]>(settings.items || []);
+  let editValue = $state("");
   let showInput = $state(false);
   let inputValue = $state("");
+  let items = $derived(widget.settings.items);
   let inputElement = $state<HTMLInputElement>();
   let editingItemId = $state<string | null>(null);
-  let editValue = $state("");
   let editInputElement = $state<HTMLInputElement>();
-  
-  // Widget element reference for dissolve animation
-  let widgetElement: HTMLElement;
-
-  // Handle drag end to update position
-  function handleDragEnd(newRow: number, newCol: number) {
-    currentGridRow = newRow;
-    currentGridCol = newCol;
-    onDragEnd(newRow, newCol);
-  }
-
-  // Handle resize to update size (only 2x2 allowed)
-  function handleResize(_newSpanX: number, _newSpanY: number) {
-    const newSpan = { x: 2, y: 2 } as ChecklistSpan; // Force 2x2
-    currentSpanX = newSpan.x;
-    currentSpanY = newSpan.y;
-    onResize(newSpan);
-  }
-
-  // Draggable options
-  const draggableOptions: DraggableOptions = {
-    onDragEnd: handleDragEnd,
-  };
-
-  // Resizable options (only 2x2 allowed)
-  const resizableOptions: ResizableOptions = {
-    allowedSizes: ["2x2"],
-    onResize: handleResize,
-  };
-
-  // Function to trigger dissolve effect
-  async function triggerDissolve() {
-    onRemove?.();
-    // if (widgetElement) {
-    //   await dissolve(widgetElement, {
-    //     duration: 300,
-    //     maintainPosition: true,
-    //     onComplete: () => {
-    //     }
-    //   });
-    // }
-  }
-
-  // Show input for adding new item
-  function showAddInput() {
-    showInput = true;
-    // Focus the input after it's rendered
-    setTimeout(() => {
-      inputElement?.focus();
-    }, 0);
-  }
-
-  // Hide input
   function hideInput() {
     showInput = false;
     inputValue = "";
   }
 
-  // Add new item to checklist
-  function addItem() {
-    if (inputValue.trim()) {
-      const newItem: ChecklistItem = {
-        id: Date.now().toString(),
-        text: inputValue.trim(),
-        completed: false,
-      };
-
-      // Add to the beginning of the list
-      items = [newItem, ...items];
-
-      // Update the settings store
-      updateSettings();
-
-      hideInput();
-    }
-  }
-
-  // Toggle item completion
-  function toggleItem(itemId: string) {
-    const item = items.find((i) => i.id === itemId);
-    if (item) {
-      item.completed = !item.completed;
-
-      if (item.completed) {
-        // Add strikethrough, then remove after animation
-        setTimeout(() => {
-          items = items.filter((i) => i.id !== itemId);
-          updateSettings();
-        }, 500);
-      }
-
-      // Trigger reactivity
-      items = [...items];
-      updateSettings();
-    }
-  }
-
-  // Delete item
-  function deleteItem(itemId: string) {
-    items = items.filter((i) => i.id !== itemId);
-    updateSettings();
-  }
-
-  // Start editing an item
-  function startEdit(itemId: string) {
-    const item = items.find((i) => i.id === itemId);
-    if (item) {
-      editingItemId = itemId;
-      editValue = item.text;
-      // Focus the edit input after it's rendered
-      setTimeout(() => {
-        editInputElement?.focus();
-        editInputElement?.select();
-      }, 0);
-    }
-  }
-
-  // Cancel editing
   function cancelEdit() {
-    editingItemId = null;
     editValue = "";
+    editingItemId = null;
   }
 
-  // Save edited item
+  function updateItems(
+    items: { id: string; text: string; completed: boolean }[],
+  ) {
+    WidgetEngine.updateWidget(widget.id!, {
+      settings: { items },
+    });
+  }
+
   function saveEdit() {
     if (editValue.trim() && editingItemId) {
-      const item = items.find((i) => i.id === editingItemId);
+      const item = items.find((it) => it.id === editingItemId);
       if (item) {
         item.text = editValue.trim();
-        items = [...items]; // Trigger reactivity
-        updateSettings();
+        updateItems(
+          widget.settings.items.map((it) =>
+            it.id === editingItemId ? { ...it, text: editValue.trim() } : it,
+          ),
+        );
       }
     }
     cancelEdit();
   }
 
-  // Update settings in store
-  function updateSettings() {
-    settingStore.update((store) => {
-      if (store.widgets[id]) {
-        store.widgets[id].settings = { items };
-      }
-      return store;
-    });
-  }
-
-  // Handle key events for input
-  function handleKeydown(event: KeyboardEvent) {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      addItem();
-    } else if (event.key === "Escape") {
-      event.preventDefault();
-      hideInput();
-    }
-  }
-
-  // Handle key events for edit input
-  function handleEditKeydown(event: KeyboardEvent) {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      saveEdit();
-    } else if (event.key === "Escape") {
-      event.preventDefault();
-      cancelEdit();
-    }
-  }
-
   onMount(() => {
-    // Sync items with settings on mount
-    items = settings.items || [];
+    // svelte-ignore state_referenced_locally
+    const unsubscribe = WidgetEngine.subscribeTo(
+      widget.id!,
+      (updatedWidget) => {
+        widget = updatedWidget as ChecklistWidget;
+      },
+    );
+
+    return () => {
+      unsubscribe();
+    };
   });
 </script>
 
 <div
-  bind:this={widgetElement}
-  {id}
   role="region"
-  class="Checklist BlurBG"
+  use:draggable={{ widgetId: widget.id!, isDemo: widget.isDemo }}
   data-isolate-context="true"
-  use:draggable={draggableOptions}
-  use:resizable={resizableOptions}
+  class="checklist-box blur-thin"
   oncontextmenu={(event: MouseEvent) => {
     event.preventDefault();
-    showAddInput();
+    showInput = true; // Focus the input after it's rendered
+    setTimeout(() => inputElement?.focus(), 0);
   }}
-  class:draggable-widget={$settingStore.options.isDraggable}
-  style="grid-area: {currentGridRow} / {currentGridCol} / {currentGridRow +
-    currentSpanY} / {currentGridCol + currentSpanX};"
+  style="
+    grid-area: {widget.pos.row} / {widget.pos.col} / {widget.pos.row +
+    widget.span.y} / {widget.pos.col + widget.span.x};
+  "
 >
-  <div class="Checklist__container">
-    <!-- Input for new item -->
+  <div class="checklist">
     {#if showInput}
-      <div class="Checklist__input">
+      <div class="checklist-input">
         <input
           type="text"
           onblur={hideInput}
           bind:value={inputValue}
           bind:this={inputElement}
-          onkeydown={handleKeydown}
+          onkeydown={(e: KeyboardEvent) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              if (inputValue.trim()) {
+                const newItem = {
+                  id: nanoid(),
+                  text: inputValue.trim(),
+                  completed: false,
+                };
+                updateItems([...widget.settings.items, newItem]);
+                hideInput();
+              }
+            } else if (e.key === "Escape") hideInput();
+          }}
           placeholder="Enter new task..."
         />
       </div>
     {/if}
-
-    <!-- Items List -->
-    <div class="Checklist__items">
+    <ul class="checklist-items">
       {#each items as item (item.id)}
-        <div class="Checklist__items--item" class:completed={item.completed}>
-          <input
-            type="checkbox"
-            checked={item.completed}
-            onchange={() => toggleItem(item.id)}
-          />
+        <li class:completed={item.completed}>
+          <label for="item-{item.id}" class="sr-only">
+            <input
+              type="checkbox"
+              id="item-{item.id}"
+              checked={item.completed}
+              onchange={() => {
+                updateItems(
+                  widget.settings.items.map((it) =>
+                    it.id === item.id
+                      ? { ...it, completed: !it.completed }
+                      : it,
+                  ),
+                );
+                // Add strikethrough, then remove after animation
+                setTimeout(() => {
+                  updateItems(
+                    widget.settings.items.filter((it) => it.id !== item.id),
+                  );
+                }, 500);
+              }}
+            />
+          </label>
 
           {#if editingItemId === item.id}
             <!-- Edit mode -->
             <input
               type="text"
+              class="edit-input"
               onblur={saveEdit}
               bind:value={editValue}
               bind:this={editInputElement}
-              onkeydown={handleEditKeydown}
+              onkeydown={(event: KeyboardEvent) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  saveEdit();
+                } else if (event.key === "Escape") {
+                  cancelEdit();
+                }
+              }}
             />
           {:else}
             <!-- Normal mode -->
-            <span
+            <p
               tabindex="0"
               role="button"
               class="item-text"
+              title={item.text}
               aria-label={`Edit ${item.text}`}
-              ondblclick={() => startEdit(item.id)}
+              ondblclick={() => {
+                editingItemId = item.id;
+                editValue = item.text;
+                setTimeout(() => {
+                  editInputElement?.focus();
+                  editInputElement?.select();
+                }, 0);
+              }}
             >
               {item.text}
-            </span>
+            </p>
 
             <button
               class="delete-button"
-              onclick={() => deleteItem(item.id)}
+              onclick={() => {
+                updateItems(
+                  widget.settings.items.filter((it) => it.id !== item.id),
+                );
+              }}
               title="Delete item"
             >
               <X size="14" />
             </button>
           {/if}
-        </div>
+        </li>
       {/each}
+    </ul>
 
-      {#if items.length === 0 && !showInput}
-        <div class="empty-state" data-isolate-context="true">
-          <p>No tasks yet</p>
-          <p class="empty-hint">Right-click to add a new task</p>
-        </div>
-      {/if}
-    </div>
+    {#if items.length === 0 && !showInput}
+      <div class="empty-state" data-isolate-context="true">
+        <p>No tasks yet</p>
+        <p class="empty-hint">Right-click to add a new task</p>
+      </div>
+    {/if}
   </div>
-
-  {#if isEditable && onRemove}
-    <div class="EditableOverlay BlurBG">
-      <button
-        class="remove-button BlurBG"
-        onclick={triggerDissolve}
-        title="Remove widget"
-        data-isolate-drag
-      >
-        <Minus size="18" />
-      </button>
-      <button
-        class="edit-button BlurBG"
-        onclick={() => openSettings?.(id)}
-        title="Edit widget"
-        data-isolate-drag
-      >
-        <PenLine size="13" />
-      </button>
-    </div>
-  {/if}
 </div>
 
 <style lang="scss">
-  @use "../../../styles/mixins.scss" as *;
+  .checklist-box {
+    --__background: rgba(255, 255, 255, 0.95);
 
-  .Checklist {
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 20px;
-    backdrop-filter: blur(20px);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    overflow: hidden;
+    @include box();
     position: relative;
-    width: 100%;
-    height: 100%;
+    border-radius: 20px;
+    background: var(--__background);
+    color: var(--vibrant-labels-tertiary);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(168, 168, 168, 0.394);
 
     & > * {
       user-select: none;
     }
 
-    &__container {
-      padding: 10px;
+    .checklist {
       height: 100%;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
+      padding: 10px;
       overflow: hidden;
-    }
+      max-height: 100%;
+      @include make-flex($just: flex-start, $gap: 6px);
+      &:hover {
+        .checklist-items {
+          &::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+          }
+        }
+      }
 
-    &__input {
-      flex-shrink: 0;
-      & > input {
+      .checklist-input {
+        flex-shrink: 0;
+        & > input {
+          width: 100%;
+          outline: none;
+          font-size: 14px;
+          padding: 6px 8px;
+
+          border-radius: 8px;
+          @supports (corner-shape: squircle) {
+            border-radius: 20px;
+            corner-shape: squircle;
+          }
+
+          background: linear-gradient(
+            135deg,
+            var(--colors-background) 0%,
+            var(--colors-background-secondary) 100%
+          );
+          border: 2px solid var(--separator);
+          transition: border-color 0.2s ease;
+
+          &:focus {
+            border-color: var(--colors-blue);
+          }
+
+          &::placeholder {
+            color: var(--vibrant-labels-secondary);
+          }
+        }
+      }
+
+      .checklist-items {
+        flex: 1;
         width: 100%;
-        padding: 8px 12px;
-        border: 2px solid #e5e7eb;
-        border-radius: 8px;
-        font-size: 14px;
-        background: white;
-        color: #374151;
-        outline: none;
-        transition: border-color 0.2s ease;
+        min-height: 0;
+        list-style: none;
+        overflow-y: auto;
+        padding-right: 4px;
+        margin-right: -7px;
+        width: calc(100% + 8px);
+        scrollbar-gutter: stable;
+        @include make-flex($align: flex-start, $just: flex-start, $gap: 6px);
 
-        &:focus {
-          border-color: #10b981;
+        /* Custom scrollbar */
+        &::-webkit-scrollbar {
+          width: 4px;
         }
 
-        &::placeholder {
-          color: #9ca3af;
-        }
-      }
-    }
-
-    &__items {
-      flex: 1;
-      gap: 7px;
-      min-height: 0;
-      display: flex;
-      overflow-y: auto;
-      padding-right: 4px;
-      margin-right: -7px;
-      flex-direction: column;
-      scrollbar-gutter: stable;
-
-      /* Custom scrollbar */
-      &::-webkit-scrollbar {
-        width: 4px;
-      }
-
-      &::-webkit-scrollbar-track {
-        background: transparent;
-      }
-
-      &::-webkit-scrollbar-thumb {
-        background: rgba(0, 0, 0, 0.2);
-        border-radius: 2px;
-      }
-
-      &::-webkit-scrollbar-thumb:hover {
-        background: rgba(0, 0, 0, 0.3);
-      }
-
-      &--item {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 6px 8px;
-        border-radius: 8px;
-        transition: all 0.3s ease;
-        background: rgba(255, 255, 255, 0.5);
-        border: 1px solid rgba(0, 0, 0, 0.1);
-        position: relative;
-
-        &:hover {
-          background: rgba(255, 255, 255, 0.8);
-
-          .delete-button {
-            opacity: 1;
-            visibility: visible;
-          }
+        &::-webkit-scrollbar-track {
+          background: transparent;
         }
 
-        &.completed {
-          opacity: 0.7;
-          transform: scale(0.98);
-
-          .item-text {
-            text-decoration: line-through;
-            color: #6b7280;
-          }
-
-          .item-checkbox {
-            accent-color: #10b981;
-          }
-
-          .delete-button {
-            opacity: 0.5;
-          }
+        &::-webkit-scrollbar-thumb {
+          background: transparent;
+          border-radius: 2px;
         }
 
-        & > input[type="checkbox"] {
-          @include box(13px, 13px);
-          cursor: pointer;
-          accent-color: #10b981;
+        &::-webkit-scrollbar-thumb:hover {
+          background: rgba(0, 0, 0, 0.3);
+        }
+
+        // animation: vertical-scroll-shadow linear;
+        // animation-timeline: scroll(self block);
+
+        & > li {
+          min-height: 32px;
+          @include box(100%, auto);
+          font-size: 14px;
+          padding: 0px 0px 0px 5px;
+          position: relative;
+          // border-radius: 8px;
+          transition: all 0.3s ease;
+          // background: var(--__background);
+
+          padding: 3px 6px;
+          border-radius: 8px;
+          @supports (corner-shape: squircle) {
+            border-radius: 15px;
+            corner-shape: squircle;
+          }
+          background: rgba(255, 255, 255, 0.5);
+          border: 1px solid rgba(0, 0, 0, 0.1);
+
+          // &:has(label input[type="checkbox"]:checked) {
+          //   animation: fadeout 0.5s ease;
+          //   animation-delay: 0.2s;
+          // }
+
+          @include make-flex(
+            $dir: row,
+            $align: center,
+            $just: flex-start,
+            $gap: 4px
+          );
 
           &:hover {
-            transform: scale(1.1);
+            .delete-button {
+              opacity: 1;
+              visibility: visible;
+            }
+          }
+
+          .delete-button {
+            right: 5px;
+            opacity: 0;
+            border: none;
+            flex-shrink: 0;
+            position: absolute;
+            margin-bottom: 1px;
+            visibility: hidden;
+
+            border-radius: 4px;
+            @supports (corner-shape: squircle) {
+              border-radius: 15px;
+              corner-shape: squircle;
+            }
+
+            color: white;
+            cursor: pointer;
+            @include make-flex();
+            @include box(20px, 20px);
+            transition: all 0.2s ease;
+            background: var(--colors-pink);
+
+            &:hover {
+              transform: scale(1.1);
+              background: var(--colors-red);
+            }
+
+            &:active {
+              transform: scale(0.95);
+            }
+          }
+
+          // Text box
+          & > p {
+            flex: 1;
+            outline: none;
+            cursor: text;
+            padding: 0 4px;
+            @include text-ellipsis;
+            @include box($height: 25px);
+            border: 1px solid transparent;
+            @include make-flex($align: flex-start);
+
+            &:focus {
+              border: 1px solid var(--colors-blue);
+              border-radius: 6px;
+            }
+          }
+
+          // Checkbox
+          & > label {
+            flex-shrink: 0;
+            cursor: pointer;
+            border-radius: 50%;
+            position: relative;
+            @include box(17px, 17px);
+            @include make-flex($align: center, $just: center);
+            background: var(--colors-background-secondary);
+            border: 1px solid #abababdc;
+            & > input[type="checkbox"] {
+              opacity: 0;
+              visibility: hidden;
+              position: absolute;
+              @include box(0, 0);
+            }
+
+            &::after {
+              content: "";
+              border-radius: 50%;
+              @include box(11px, 11px);
+              transition: all 0.2s ease;
+              background: var(--colors-background);
+            }
+
+            &:has(input[type="checkbox"]:checked) {
+              border-color: var(--colors-green);
+              &::after {
+                background: var(--colors-green);
+              }
+            }
+          }
+
+          // Edit input
+          & > .edit-input {
+            z-index: 1;
+            // same as checklist-input input
+            width: 100%;
+            outline: none;
+            font-size: 13px;
+            padding: 3px 6px;
+            margin-right: -4px;
+
+            border-radius: 8px;
+            @supports (corner-shape: squircle) {
+              border-radius: 20px;
+              corner-shape: squircle;
+            }
+
+            border: 2px solid var(--separator);
+            transition: border-color 0.2s ease;
+
+            &:focus {
+              border-color: var(--colors-blue);
+            }
+          }
+
+          &.completed {
+            opacity: 0.7;
+            transform: scale(0.98);
+
+            & > p {
+              text-decoration: line-through;
+              color: #6b7280;
+            }
+
+            .delete-button {
+              opacity: 0.5;
+            }
+          }
+        }
+      }
+
+      .empty-state {
+        height: 100%;
+        color: #9ca3af;
+        text-align: center;
+        @include make-flex();
+
+        p {
+          margin: 0;
+
+          &:first-child {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 4px;
+          }
+
+          &.empty-hint {
+            opacity: 0.7;
+            font-size: 12px;
+            margin-bottom: 7px;
           }
         }
       }
     }
   }
 
-  .item-text {
-    flex: 1;
-    font-size: 14px;
-    color: #374151;
-    line-height: 1.4;
-    word-break: break-word;
-    transition: all 0.3s ease;
-    cursor: pointer;
-
-    &:hover {
-      color: #1f2937;
+  @keyframes fadeout {
+    from {
+      opacity: 1;
+      max-height: 30px;
+      overflow: hidden;
+      min-height: auto;
+    }
+    to {
+      opacity: 0;
+      max-height: 0px;
+      overflow: hidden;
+      min-height: auto;
     }
   }
 
-  .edit-item-input {
-    flex: 1;
-    padding: 4px 8px;
-    border: 1px solid #10b981;
-    border-radius: 4px;
-    font-size: 14px;
-    background: white;
-    color: #374151;
-    outline: none;
-    font-family: inherit;
-    @include box(100%, 100%);
-  }
+  // @keyframes vertical-scroll-shadow {
+  //   /* start: content below → shadow at bottom */
+  //   from {
+  //     box-shadow: inset 0 -16px 16px -12px rgb(0 0 0 / 0.35);
+  //   }
 
-  .delete-button {
-    background: #ef4444;
-    border: none;
-    border-radius: 4px;
-    @include box(18px, 18px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    color: white;
-    transition: all 0.2s ease;
-    opacity: 0;
-    visibility: hidden;
-    flex-shrink: 0;
+  //   /* middle: content above + below */
+  //   50% {
+  //     box-shadow:
+  //       inset 0 -16px 16px -12px rgb(0 0 0 / 0.35),
+  //       inset 0 16px 16px -12px rgb(0 0 0 / 0.35);
+  //   }
 
-    &:hover {
-      background: #dc2626;
-      transform: scale(1.1);
-    }
-
-    &:active {
-      transform: scale(0.95);
-    }
-  }
-
-  .empty-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    color: #9ca3af;
-    text-align: center;
-
-    p {
-      margin: 0;
-
-      &:first-child {
-        font-size: 16px;
-        font-weight: 500;
-        margin-bottom: 4px;
-      }
-
-      &.empty-hint {
-        font-size: 12px;
-        opacity: 0.7;
-      }
-    }
-  }
-
-  .remove-button {
-    position: absolute;
-    top: 4px;
-    right: 4px;
-    width: 20px;
-    height: 20px;
-    border: none;
-    border-radius: 50%;
-    background: rgba(255, 59, 48, 0.9);
-    color: white;
-    font-size: 14px;
-    font-weight: bold;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    line-height: 1;
-    transition: all 0.2s ease;
-    z-index: 10;
-
-    &:hover {
-      background: rgba(255, 59, 48, 1);
-      transform: scale(1.1);
-    }
-
-    &:active {
-      transform: scale(0.95);
-    }
-  }
+  //   /* end: content above → shadow at top */
+  //   to {
+  //     box-shadow: inset 0 16px 16px -12px rgb(0 0 0 / 0.35);
+  //   }
+  // }
 </style>
