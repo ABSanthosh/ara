@@ -1,10 +1,29 @@
-# WXT + Svelte
+# ~ara
 
-This template should help get you started developing with Svelte in WXT.
+A customizable browser new tab extension with widgets and dynamic wallpapers.
 
-## Recommended IDE Setup
+## Tech Stack
 
-[VS Code](https://code.visualstudio.com/) + [Svelte](https://marketplace.visualstudio.com/items?itemName=svelte.svelte-vscode).
+- **Framework:** WXT + Svelte 5
+- **Language:** TypeScript
+- **Styling:** SCSS
+
+## Development
+
+```bash
+npm install          # Install dependencies
+npm run dev          # Development mode
+npm run dev:firefox  # Firefox development
+npm run build        # Build for production
+```
+
+## Features
+
+- Customizable widget grid
+- Dynamic NASA APOD wallpapers
+- Multiple widget types (Clock, Calendar, Checklist, etc.)
+- Drag and drop interface
+- Theme customization
 
 ## ToDo
 
@@ -18,7 +37,6 @@ This template should help get you started developing with Svelte in WXT.
   - Temp mail
   - Quote of the Day
   - Weather Widget
-  - More to come!
   - Notes Widget
   - Progress widgets: https://prettyprogress.app/how-to-add-a-countdown-widget-on-your-mac
   - Video recorder with/out webcam
@@ -28,4 +46,4 @@ This template should help get you started developing with Svelte in WXT.
   - Art gallery widget: https://apps.apple.com/us/app/widget-art-gallery/id1541416743
 
 
-https://resourcecalculator.com/minecraft/#oaklog=83&oaktrapdoor=16&sprucestairs=32&sprucefence=84&sprucetrapdoor=35&darkoaklog=296&strippeddarkoaklog=34&darkoakplanks=105&darkoakstairs=197&darkoakslab=272&darkoakfence=162&darkoaktrapdoor=160&stone=170&cobblestone=307&cobblestonewall=80&stonebrickstairs=48&chiseledstonebricks=68&polishedandesite=151&polishedandesitestairs=17&deepslatebricks=62&deepslatebrickstairs=24&deepslatebrickslab=91&deepslatetiles=668&deepslatetilestairs=131&ironbars=13&glasspane=86&coarsedirt=18&spruceleaves=45&ladder=25
+<!-- https://resourcecalculator.com/minecraft/#oaklog=83&oaktrapdoor=16&sprucestairs=32&sprucefence=84&sprucetrapdoor=35&darkoaklog=296&strippeddarkoaklog=34&darkoakplanks=105&darkoakstairs=197&darkoakslab=272&darkoakfence=162&darkoaktrapdoor=160&stone=170&cobblestone=307&cobblestonewall=80&stonebrickstairs=48&chiseledstonebricks=68&polishedandesite=151&polishedandesitestairs=17&deepslatebricks=62&deepslatebrickstairs=24&deepslatebrickslab=91&deepslatetiles=668&deepslatetilestairs=131&ironbars=13&glasspane=86&coarsedirt=18&spruceleaves=45&ladder=25 -->
