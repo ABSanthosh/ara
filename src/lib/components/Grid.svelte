@@ -27,10 +27,10 @@
     gridPadding = 40,
     minWidgetSize = 115,
     maxCellSize,
-    rows,
-    cols,
+    rows = $bindable(),
+    cols = $bindable(),
     minRows = $bindable(),
-    minCols,
+    minCols = $bindable(),
     children,
     onGridUpdate,
   }: Props = $props();
@@ -58,22 +58,29 @@
     const availableHeight = parentHeight - gridPadding * 2;
 
     // Use hardcoded values if provided, otherwise calculate
-    if (rows !== undefined && cols !== undefined) {
+    if (cols !== undefined) {
       gridCols = cols;
-      gridRows = rows;
     } else {
-      // Calculate the number of columns and rows that can fit in the available space
+      // Calculate the number of columns that can fit in the available space
       gridCols = Math.floor(
         (availableWidth + gridGap) / (minWidgetSize + gridGap),
-      );
-      gridRows = Math.floor(
-        (availableHeight + gridGap) / (minWidgetSize + gridGap),
       );
 
       // Apply minimum constraints if provided
       if (minCols !== undefined) {
         gridCols = Math.max(gridCols, minCols);
       }
+    }
+
+    if (rows !== undefined) {
+      gridRows = rows;
+    } else {
+      // Calculate the number of rows that can fit in the available space
+      gridRows = Math.floor(
+        (availableHeight + gridGap) / (minWidgetSize + gridGap),
+      );
+
+      // Apply minimum constraints if provided
       if (minRows !== undefined) {
         gridRows = Math.max(gridRows, minRows);
       }
@@ -127,6 +134,16 @@
         clearTimeout(resizeTimeout);
       }
     };
+  });
+
+  $effect(() => {
+    // if previously set rows/cols are not same as current, recalculate
+    if (
+      (rows !== undefined && rows !== gridRows) ||
+      (cols !== undefined && cols !== gridCols)
+    ) {
+      calculateGrid();
+    }
   });
 </script>
 
