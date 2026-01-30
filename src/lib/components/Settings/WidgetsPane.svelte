@@ -166,15 +166,13 @@
     ];
 
   // Cache filter list to avoid recalculating on every render (must be after ALL_WIDGET_DEMOS)
-  const WIDGET_FILTERS = Array.from(
-    new Set(ALL_WIDGET_DEMOS.map((w) => w.filter)),
-  );
+  const WIDGET_FILTERS = Array.from(new Set(ALL_WIDGET_DEMOS.map((w) => w.filter)));
   const FILTER_COUNT = WIDGET_FILTERS.length;
 
   /**
-   * Optimized compact placement algorithm for demo widgets.
+   * Simple placement algorithm for demo widgets.
    * Returns both placed widgets and minimum rows needed.
-   * Reduced complexity by combining placement and row calculation.
+   * Places widgets in order without sorting or interleaving.
    */
   function placeWidgetsCompactly(
     widgetList: Omit<Widgets, "id" | "pos">[],
@@ -185,14 +183,8 @@
     const occupiedCells = new Set<string>();
     let maxRowUsed = 0;
 
-    // Simplified interleaving: Sort by size descending for better packing
-    const sortedWidgets = [...widgetList].sort((a, b) => {
-      const areaA = a.span.x * a.span.y;
-      const areaB = b.span.x * b.span.y;
-      return areaB - areaA; // Larger widgets first
-    });
-
-    for (const widget of sortedWidgets) {
+    // Place widgets in order without sorting
+    for (const widget of widgetList) {
       const spanX = widget.span.x;
       const spanY = widget.span.y;
 
@@ -260,7 +252,9 @@
         minRequiredRows = cached.minRows;
       } else {
         // Use a high row count for initial calculation to find minimum
-        const result = placeWidgetsCompactly(ALL_WIDGET_DEMOS, 100, cols);
+        // Only show Clock widgets on first load
+        const clockWidgets = ALL_WIDGET_DEMOS.filter((w) => w.filter === "Clock");
+        const result = placeWidgetsCompactly(clockWidgets, 100, cols);
         minRequiredRows = result.minRows;
       }
     }
@@ -285,10 +279,7 @@
       }
 
       // Filter widgets based on active filter
-      const filteredWidgets =
-        activeFilter === "Clock"
-          ? ALL_WIDGET_DEMOS
-          : ALL_WIDGET_DEMOS.filter((w) => w.filter === activeFilter);
+      const filteredWidgets = ALL_WIDGET_DEMOS.filter((w) => w.filter === activeFilter);
 
       // Single call returns both placed widgets and min rows
       const result = placeWidgetsCompactly(filteredWidgets, rows, cols);
