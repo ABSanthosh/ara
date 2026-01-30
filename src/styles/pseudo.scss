@@ -90,8 +90,16 @@
 }
 
 .resize-progress {
-  @include box();
+  --__offset: 11px;
+  top: 0;
+  left: 0;
+  margin: var(--__offset);
+  @include box(
+    calc(100% - var(--__offset) * 2),
+    calc(100% - var(--__offset) * 2)
+  );
   border-radius: 10px;
   @include make-flex();
+  position: absolute;
   border: 4px dotted var(--views-thicker);
 }
