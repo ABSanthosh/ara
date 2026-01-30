@@ -49,7 +49,9 @@ const defaultStore: TSettingStore = {
         category: "apod",
         mode: "dynamic",
         lastUpdate: new Date(new Date().setHours(0, 0, 0, 0)),
-        nasaAPIKey: "44z7IfTy6ctYbetZz0AasrBId43RQdcey4iwhrdX",
+        nasaAPIKey: import.meta.env.PROD
+          ? ""
+          : "44z7IfTy6ctYbetZz0AasrBId43RQdcey4iwhrdX",
         metadata: null,
       },
       presets: [
