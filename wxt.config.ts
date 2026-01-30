@@ -4,6 +4,9 @@ import autoprefixer from 'autoprefixer';
 // See https://wxt.dev/api/config.html
 export default defineConfig({
   srcDir: 'src',
+  zip:{
+    artifactTemplate: "ara-{{packageVersion}}"
+  },
   modules: ['@wxt-dev/module-svelte'],
   vite: () => ({
     css: {
