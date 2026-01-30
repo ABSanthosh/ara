@@ -8,6 +8,7 @@
   } from "@/lib/modules/widgets/widgets.types";
   import dayjs from "dayjs";
   import { GlobalTimer } from "@/lib/modules/widgets/shared-time.store";
+  import { Expand } from "@lucide/svelte";
 
   let {
     widget,
@@ -155,54 +156,69 @@
     widget.span.y} / {widget.pos.col + widget.span.x};
   "
 >
-  <svg viewBox="-52 -52 104 104">
-    <rect x="-50" y="-50" width="100" height="100" rx="5" ry="5" fill="none" />
-    <!-- All ticks rendered from pre-calculated positions -->
-    {#each tickPositions as tick (tick.index)}
-      <line
-        x1={tick.x1}
-        y1={tick.y1}
-        x2={tick.x2}
-        y2={tick.y2}
-        class="SemiDigital__tick"
-        style="opacity: {getTickOpacity(tick.index, timeFormats.seconds)}"
+  {#if config.resizeProgress === "idle"}
+    <svg viewBox="-52 -52 104 104">
+      <rect
+        x="-50"
+        y="-50"
+        width="100"
+        height="100"
+        rx="5"
+        ry="5"
+        fill="none"
       />
-    {/each}
+      <!-- All ticks rendered from pre-calculated positions -->
+      {#each tickPositions as tick (tick.index)}
+        <line
+          x1={tick.x1}
+          y1={tick.y1}
+          x2={tick.x2}
+          y2={tick.y2}
+          class="SemiDigital__tick"
+          style="opacity: {getTickOpacity(tick.index, timeFormats.seconds)}"
+        />
+      {/each}
 
-    <text text-anchor="middle" dominant-baseline="middle" x="0" y="0">
-      <tspan
-        x="0"
-        dy="-30"
-        class="label"
-        font-size={config.size === "large" ? "10" : "13"}
-      >
-        {date.format("dddd")}
-      </tspan>
-      <tspan
-        x="0"
-        dx="2.5"
-        dy={config.size === "large" ? "32" : "36"}
-        font-size={"45px"}
-        class="time"
-      >
-        {date.format("hh:mm")}
-      </tspan>
-      <tspan
-        x="0"
-        dy={config.size === "large" ? "30" : "28"}
-        font-size={config.size === "large" ? "7" : "10"}
-        class="utc"
-      >
-        UTC{date.format("Z")}
-      </tspan>
-    </text>
-  </svg>
+      <text text-anchor="middle" dominant-baseline="middle" x="0" y="0">
+        <tspan
+          x="0"
+          dy="-30"
+          class="label"
+          font-size={config.size === "large" ? "10" : "13"}
+        >
+          {date.format("dddd")}
+        </tspan>
+        <tspan
+          x="0"
+          dx="2.5"
+          dy={config.size === "large" ? "32" : "36"}
+          font-size={"45px"}
+          class="time"
+        >
+          {date.format("hh:mm")}
+        </tspan>
+        <tspan
+          x="0"
+          dy={config.size === "large" ? "30" : "28"}
+          font-size={config.size === "large" ? "7" : "10"}
+          class="utc"
+        >
+          UTC{date.format("Z")}
+        </tspan>
+      </text>
+    </svg>
+  {:else}
+    <div class="resize-progress">
+      <Expand size="24" color="var(--views-thicker)" />
+    </div>
+  {/if}
 </div>
 
 <style lang="scss">
   .SemiDigital {
     padding: 7px;
     @include box();
+    position: relative;
     border-radius: 22px;
     background-color: #fff;
     border: 1px solid var(--separator-secondary);

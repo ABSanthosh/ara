@@ -186,6 +186,7 @@
   .AnalogClock {
     padding: 6px;
     @include box();
+    position: relative;
     border-radius: 22px;
     border: 1px solid var(--separator-secondary);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
