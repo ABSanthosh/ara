@@ -37,10 +37,7 @@ function setPointerEvents(
   // Disable pointer events on all children except the remove button and those with [data-drag-ignore]
   Array.from(el.children).forEach((child) => {
     const childEl = child as HTMLElement;
-    if (
-      childEl !== button &&
-      !childEl.hasAttribute("data-drag-ignore")
-    ) {
+    if (childEl !== button && !childEl.hasAttribute("data-drag-ignore")) {
       childEl.style.pointerEvents = disable ? "none" : "";
       childEl.style.touchAction = disable ? "none" : "";
       childEl.style.userSelect = disable ? "none" : "";
@@ -63,13 +60,12 @@ type DragState =
       offsetY: number;
     };
 
-export function draggable(draggedWidget: HTMLElement, params: string | { widgetId: string; isDemo?: boolean }) {
-  // Handle both old string format and new object format for backwards compatibility
-  const widgetId = typeof params === 'string' ? params : params.widgetId;
-  const isDemo = typeof params === 'string' ? false : (params.isDemo ?? false);
-
+export function draggable(
+  draggedWidget: HTMLElement,
+  options: { widgetId: string; isDemo?: boolean },
+) {
   // If demo mode, do nothing
-  if (isDemo) {
+  if (options.isDemo) {
     return {
       destroy() {},
     };
@@ -79,7 +75,7 @@ export function draggable(draggedWidget: HTMLElement, params: string | { widgetI
   /* Store + derived state               */
   /* ---------------------------------- */
 
-  const removeButton = makeRemoveButton(widgetId);
+  const removeButton = makeRemoveButton(options.widgetId);
 
   function attachRemoveButton() {
     if (!draggedWidget.contains(removeButton)) {
@@ -115,7 +111,7 @@ export function draggable(draggedWidget: HTMLElement, params: string | { widgetI
     }
   });
 
-  const getWidget = () => settings.widgets[widgetId];
+  const getWidget = () => settings.widgets[options.widgetId];
   const getGrid = () => settings.internal.grid;
 
   /* ---------------------------------- */
@@ -143,7 +139,7 @@ export function draggable(draggedWidget: HTMLElement, params: string | { widgetI
     occupiedCells.clear();
 
     Object.values(settings.widgets).forEach((w) => {
-      if (w.id === widgetId) return;
+      if (w.id === options.widgetId) return;
 
       for (let r = w.pos.row; r < w.pos.row + w.span.y; r++) {
         for (let c = w.pos.col; c < w.pos.col + w.span.x; c++) {
@@ -373,7 +369,7 @@ export function draggable(draggedWidget: HTMLElement, params: string | { widgetI
       } / ${final.col + w.span.x}`;
 
       SettingStore.update((s) => {
-        s.widgets[widgetId].pos = final;
+        s.widgets[options.widgetId].pos = final;
         return s;
       });
     }, 300);

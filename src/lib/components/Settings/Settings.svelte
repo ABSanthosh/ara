@@ -3,6 +3,8 @@
   import AppearancePane from "./AppearancePane.svelte";
   import WidgetsPane from "./WidgetsPane.svelte";
   import GeneralPane from "./GeneralPane.svelte";
+  import { SettingsTabs } from "@/lib/modules/settings/settings.types";
+  import { SettingStore } from "@/lib/modules/settings/settings.store";
 
   let {
     showModal = $bindable(),
@@ -12,14 +14,12 @@
 
   let dialog: HTMLDialogElement | undefined = $state();
 
-  type ItemKey = "General" | "Appearance" | "Widgets";
-
   $effect(() => {
     if (dialog && showModal) dialog.showModal();
   });
 
   const items: Record<
-    ItemKey,
+    SettingsTabs,
     {
       name: string;
       icon: typeof Settings | typeof Wallpaper | typeof LayoutDashboard;
@@ -29,7 +29,21 @@
     Appearance: { name: "Appearance", icon: Wallpaper },
     Widgets: { name: "Widgets", icon: LayoutDashboard },
   };
-  let selectedKey: ItemKey = $state("Widgets");
+  let selectedKey: SettingsTabs = $state($SettingStore.internal.settings.lastVisitedTab);
+
+  // Update lastVisitedTab whenever selectedKey changes
+  $effect(() => {
+    SettingStore.update((state) => ({
+      ...state,
+      internal: {
+        ...state.internal,
+        settings: {
+          ...state.internal.settings,
+          lastVisitedTab: selectedKey,
+        },
+      },
+    }));
+  });
 </script>
 
 {#if showModal}
@@ -51,7 +65,7 @@
           {#each Object.entries(items) as [key, item] ([key, item])}
             <li
               class:selected={selectedKey === key}
-              onclick={() => (selectedKey = key as ItemKey)}
+              onclick={() => (selectedKey = key as SettingsTabs)}
             >
               <label>
                 <input

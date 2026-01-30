@@ -8,13 +8,16 @@
   } from "@/lib/modules/widgets/widgets.types";
   import { Expand } from "@lucide/svelte";
   import dayjs from "dayjs";
-  import { fade } from "svelte/transition";
+  import { GlobalTimer } from "@/lib/modules/widgets/shared-time.store";
 
   let {
     widget,
   }: {
     widget: ClockWidgetClassicAnalog & { isDemo?: boolean };
   } = $props();
+
+  // svelte-ignore state_referenced_locally
+  const widgetId = widget.id!;
 
   let date = $state(dayjs());
   const timeFormats = $derived({
@@ -29,14 +32,13 @@
       return;
     }
 
-    const interval = setInterval(() => {
+    GlobalTimer.register(widget.id!, () => {
       date = dayjs();
-      timeFormats.hours = date.hour();
-      timeFormats.minutes = date.minute();
-      timeFormats.seconds = date.second();
-    }, 1000);
+    });
 
-    return () => clearInterval(interval);
+    return () => {
+      GlobalTimer.unregister(widgetId);
+    };
   });
 
   const config = $state<{
@@ -55,7 +57,6 @@
 </script>
 
 <div
-  transition:fade
   data-size={config.size}
   use:draggable={{ widgetId: widget.id!, isDemo: widget.isDemo }}
   class="AnalogClock blur-thin"
@@ -184,6 +185,7 @@
 <style lang="scss">
   .AnalogClock {
     padding: 6px;
+    @include box();
     border-radius: 22px;
     border: 1px solid var(--separator-secondary);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);

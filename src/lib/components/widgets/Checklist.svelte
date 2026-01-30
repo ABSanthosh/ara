@@ -5,7 +5,6 @@
   import { WidgetEngine } from "@/lib/modules/widgets/widgets.engine";
   import { nanoid } from "nanoid";
   import { X } from "@lucide/svelte";
-  import { fade } from "svelte/transition";
 
   let {
     widget,
@@ -70,7 +69,6 @@
 
 <div
   role="region"
-  transition:fade
   use:draggable={{ widgetId: widget.id!, isDemo: widget.isDemo }}
   data-isolate-context="true"
   class="checklist-box blur-thin"
@@ -201,10 +199,12 @@
 <style lang="scss">
   .checklist-box {
     --__background: rgba(255, 255, 255, 0.95);
+
+    @include box();
     position: relative;
     border-radius: 20px;
-    color: var(--vibrant-labels-tertiary);
     background: var(--__background);
+    color: var(--vibrant-labels-tertiary);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
     border: 1px solid rgba(168, 168, 168, 0.394);
 
