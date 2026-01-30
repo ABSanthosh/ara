@@ -141,11 +141,21 @@ class SettingStoreImpl {
       stored.options.isResizable = false;
       stored.options.showGrid = false;
 
-      // Reconstruct non-serializable properties
-      // occupiedCells is runtime state, always initialize as empty Set
-      stored.internal.grid.occupiedCells = new Set<string>();
-      // element is runtime state, initialize with dummy element
-      stored.internal.grid.element = document.createElement("div");
+      // Reconstruct non-serializable properties that were skipped during serialization
+      // The storage layer will have restored occupiedCells as a Set automatically,
+      // but we need to ensure it exists and is empty for runtime state
+      if (!stored.internal?.grid?.occupiedCells) {
+        stored.internal = stored.internal || {};
+        stored.internal.grid = stored.internal.grid || {};
+        stored.internal.grid.occupiedCells = new Set<string>();
+      }
+
+      // element is a DOM node that can't be serialized, always recreate it
+      if (!stored.internal?.grid?.element) {
+        stored.internal = stored.internal || {};
+        stored.internal.grid = stored.internal.grid || {};
+        stored.internal.grid.element = document.createElement("div");
+      }
 
       this.state.set(stored as TSettingStore);
     }
@@ -154,22 +164,9 @@ class SettingStoreImpl {
   }
 
   private async saveToStorage(value: TSettingStore): Promise<void> {
-    // Create a serializable copy by excluding non-serializable properties
-    const serializable = {
-      ...value,
-      internal: {
-        ...value.internal,
-        grid: {
-          rows: value.internal.grid.rows,
-          cols: value.internal.grid.cols,
-          cellSize: value.internal.grid.cellSize,
-          gap: value.internal.grid.gap,
-          // Exclude occupiedCells (Set) and element (DOM node) - these are runtime state
-        },
-      },
-    };
-
-    await storage.setJSON("settingStore", serializable);
+    // The storage layer now handles filtering non-serializable properties automatically
+    // Sets are converted to arrays and DOM elements/functions are skipped
+    await storage.setJSON("settingStore", value);
   }
 }
 
