@@ -3,9 +3,12 @@ import { TActivityStore } from "./activity.types";
 import { storage } from "@/lib/utils/storage";
 
 const defaultStore: TActivityStore = {
+  version: 0,
   sites: {},
   daily: {},
   weekly: {},
+  lastSync: new Date(0),
+  timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
   recentSessions: {},
   settings: {
     dataRetentionDays: 30,

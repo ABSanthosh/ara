@@ -34,11 +34,12 @@ export type Site = {
 };
 
 export type SiteStats = {
+  lastVisit: Date;
+  firstVisit: Date;
+  totalSessions: number;
+  statsLastUpdated: Date;
   totalActiveTime: number;
   totalPassiveTime: number;
-  totalSessions: number;
-  firstVisit: Date;
-  lastVisit: Date;
 };
 
 // ============================================
@@ -153,6 +154,11 @@ export type WeeklyStats = {
 // ROOT STORAGE STRUCTURE
 // ============================================
 export type TActivityStore = {
+  // Meta
+  version: number; // For schema migrations
+  lastSync: Date; // When stats were last computed
+  timezone: string; // Important for day boundaries
+
   // Site metadata (lightweight, all in memory)
   sites: Record<string, Site>;
 
