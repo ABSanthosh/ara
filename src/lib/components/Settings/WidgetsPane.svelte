@@ -170,9 +170,9 @@
   const FILTER_COUNT = WIDGET_FILTERS.length;
 
   /**
-   * Simple placement algorithm for demo widgets.
+   * Compact placement algorithm for demo widgets.
    * Returns both placed widgets and minimum rows needed.
-   * Places widgets in order without sorting or interleaving.
+   * Sorts widgets by size (largest first) for optimal space utilization.
    */
   function placeWidgetsCompactly(
     widgetList: Omit<Widgets, "id" | "pos">[],
@@ -183,8 +183,14 @@
     const occupiedCells = new Set<string>();
     let maxRowUsed = 0;
 
-    // Place widgets in order without sorting
-    for (const widget of widgetList) {
+    // Sort widgets by size descending for compact packing (larger widgets first)
+    const sortedWidgets = [...widgetList].sort((a, b) => {
+      const areaA = a.span.x * a.span.y;
+      const areaB = b.span.x * b.span.y;
+      return areaB - areaA;
+    });
+
+    for (const widget of sortedWidgets) {
       const spanX = widget.span.x;
       const spanY = widget.span.y;
 
