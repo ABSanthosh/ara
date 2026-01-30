@@ -29,7 +29,7 @@
     maxCellSize,
     rows,
     cols,
-    minRows,
+    minRows = $bindable(),
     minCols,
     children,
     onGridUpdate,

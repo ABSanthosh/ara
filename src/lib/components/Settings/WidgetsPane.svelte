@@ -287,8 +287,9 @@
       // Filter widgets based on active filter
       const filteredWidgets = ALL_WIDGET_DEMOS.filter((w) => w.filter === activeFilter);
 
-      // Single call returns both placed widgets and min rows
-      const result = placeWidgetsCompactly(filteredWidgets, rows, cols);
+      // Use a high row count to find the true minimum rows needed
+      // Don't limit by current grid rows to ensure optimal compact placement
+      const result = placeWidgetsCompactly(filteredWidgets, 100, cols);
 
       // Cache the results in SettingStore
       SettingStore.update((state) => {
@@ -309,6 +310,23 @@
     }
   }
 
+  /**
+   * Readjust minrows and grid positions when the number of columns changes.
+   * This clears the cache and recalculates optimal widget placement.
+   */
+  function readjustWidgetsOnColsChange(newCols: number, oldCols: number) {
+    if (newCols === oldCols || newCols <= 0) return;
+
+    // Clear the entire filter cache since column changes affect all filters
+    SettingStore.update((state) => {
+      state.internal.settings.widgetPane.filterCache = {};
+      return state;
+    });
+
+    // Recalculate placement for the current active filter
+    processWidgetPlacement();
+  }
+
   // Track previous grid dimensions and filter to avoid unnecessary updates
   let prevGridDimensions = $state({ rows: 0, cols: 0 });
   let prevFilter = $state("Clock");
@@ -324,7 +342,12 @@
       cols > 0 &&
       (prevGridDimensions.rows !== rows || prevGridDimensions.cols !== cols)
     ) {
-      processWidgetPlacement();
+      // If columns changed, readjust widgets (clears cache and recalculates)
+      if (prevGridDimensions.cols !== cols && prevGridDimensions.cols > 0) {
+        readjustWidgetsOnColsChange(cols, prevGridDimensions.cols);
+      } else {
+        processWidgetPlacement();
+      }
       prevGridDimensions = { rows, cols };
       isInitialized = true;
     }
@@ -376,7 +399,7 @@
       gridGap={16}
       maxCellSize={115}
       onGridUpdate={handleGridUpdate}
-      minRows={minRequiredRows}
+      bind:minRows={minRequiredRows}
     >
       {#each Object.keys(demoWidgets) as widgetId (widgetId)}
         {@const widget = {
