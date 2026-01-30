@@ -5,7 +5,7 @@ import autoprefixer from 'autoprefixer';
 export default defineConfig({
   srcDir: 'src',
   zip:{
-    artifactTemplate: "ara-{{packageVersion}}"
+    artifactTemplate: "ara-{{packageVersion}}.zip"
   },
   modules: ['@wxt-dev/module-svelte'],
   vite: () => ({
