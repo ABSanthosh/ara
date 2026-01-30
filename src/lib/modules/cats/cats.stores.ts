@@ -2,6 +2,7 @@ import { CatEngine } from "./cats.engine";
 import { Magazine } from "@/lib/utils/magazine";
 import { get, Writable, writable } from "svelte/store";
 import { SettingStore } from "../settings/settings.store";
+import { storage } from "@/lib/utils/storage";
 
 export type TCatItem = {
   title: string;
@@ -34,10 +35,12 @@ const defaultStore: TCatStore = {
 };
 
 class CatStoreImpl {
-  public cats = writable<TCatStore>(this.loadFromLocalStorage());
+  public cats = writable<TCatStore>(defaultStore);
   public magazines: Map<string, Magazine<TCatItem>> = new Map();
   private unsubscribe: () => void = () => {};
   private settingsUnsubscribes: Map<string, () => void> = new Map();
+  private initPromise: Promise<void>;
+  private isInitialized = false;
 
   public subscribe: Writable<TCatStore>["subscribe"] = (...args) =>
     this.cats.subscribe(...args);
@@ -46,9 +49,15 @@ class CatStoreImpl {
     this.cats.update(...args);
 
   constructor() {
-    // Every time the store changes, save to localStorage
+    // Initialize async loading
+    this.initPromise = this.loadFromStorage();
+
+    // Subscribe to changes and save to storage
     this.unsubscribe = this.cats.subscribe((value) => {
-      this.saveToLocalStorage(value);
+      // Only save after initial load to avoid overwriting with defaults
+      if (this.isInitialized) {
+        this.saveToStorage(value);
+      }
     });
 
     // Clean up orphaned widget data (widgets that exist in CatStore but not in SettingStore)
@@ -156,18 +165,30 @@ class CatStoreImpl {
     });
   }
 
+  /**
+   * Wait for the store to finish loading from storage
+   */
+  public async init(): Promise<void> {
+    return this.initPromise;
+  }
+
   public destroy() {
     this.unsubscribe();
     this.settingsUnsubscribes.forEach((unsubscribe) => unsubscribe());
   }
 
-  private loadFromLocalStorage(): TCatStore {
-    const stored = window.localStorage.getItem("catStore");
-    return stored ? JSON.parse(stored) : defaultStore;
+  private async loadFromStorage(): Promise<void> {
+    const stored = await storage.getJSON<TCatStore>("catStore");
+
+    if (stored) {
+      this.cats.set(stored);
+    }
+
+    this.isInitialized = true;
   }
 
-  private saveToLocalStorage(value: TCatStore): void {
-    window.localStorage.setItem("catStore", JSON.stringify(value));
+  private async saveToStorage(value: TCatStore): Promise<void> {
+    await storage.setJSON("catStore", value);
   }
 }
 

@@ -1,6 +1,7 @@
 import { Widgets } from "../widgets/widgets.types";
 import { SettingsTabs, TSettingStore } from "./settings.types";
 import { writable, type Writable } from "svelte/store";
+import { storage } from "@/lib/utils/storage";
 
 const defaultStore: TSettingStore = {
   internal: {
@@ -67,9 +68,11 @@ const defaultStore: TSettingStore = {
 };
 
 class SettingStoreImpl {
-  public state = writable<TSettingStore>(this.loadFromLocalStorage());
+  public state = writable<TSettingStore>(defaultStore);
   private saveTimer: NodeJS.Timeout | null = null;
   private unsubscribe: () => void = () => {};
+  private initPromise: Promise<void>;
+  private isInitialized = false;
 
   public subscribe: Writable<TSettingStore>["subscribe"] = (...args) =>
     this.state.subscribe(...args);
@@ -79,14 +82,23 @@ class SettingStoreImpl {
     this.state.update(...args);
 
   constructor() {
+    // Initialize async loading
+    this.initPromise = this.loadFromStorage();
+
+    // Subscribe to changes and save to storage
     this.unsubscribe = this.state.subscribe((value) => {
-      // if (this.saveTimer) {
-      //   clearTimeout(this.saveTimer);
-      // }
-      // this.saveTimer = setTimeout(() => {
-      // }, 1000);
-      window.localStorage.setItem("settingStore", JSON.stringify(value));
+      // Only save after initial load to avoid overwriting with defaults
+      if (this.isInitialized) {
+        this.saveToStorage(value);
+      }
     });
+  }
+
+  /**
+   * Wait for the store to finish loading from storage
+   */
+  public async init(): Promise<void> {
+    return this.initPromise;
   }
 
   public destroy() {
@@ -115,16 +127,22 @@ class SettingStoreImpl {
     });
   }
 
-  private loadFromLocalStorage(): TSettingStore {
-    const stored = window.localStorage.getItem("settingStore");
-    if (!stored) return defaultStore;
+  private async loadFromStorage(): Promise<void> {
+    const stored = await storage.getJSON<TSettingStore>("settingStore");
 
-    // On every load, we reset these flags to false
-    let tempStored = JSON.parse(stored) as TSettingStore;
-    tempStored.options.isDraggable = false;
-    tempStored.options.isResizable = false;
-    tempStored.options.showGrid = false;
-    return tempStored;
+    if (stored) {
+      // On every load, we reset these flags to false
+      stored.options.isDraggable = false;
+      stored.options.isResizable = false;
+      stored.options.showGrid = false;
+      this.state.set(stored);
+    }
+
+    this.isInitialized = true;
+  }
+
+  private async saveToStorage(value: TSettingStore): Promise<void> {
+    await storage.setJSON("settingStore", value);
   }
 }
 
