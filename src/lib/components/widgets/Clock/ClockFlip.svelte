@@ -10,7 +10,6 @@
   import dayjs from "dayjs";
   import NumberFlow, { NumberFlowGroup } from "@number-flow/svelte";
   import { GlobalTimer } from "@/lib/modules/widgets/shared-time.store";
-  import { fade } from "svelte/transition";
 
   let {
     widget,
@@ -18,6 +17,9 @@
     widget: ClockWidgetFlip & { isDemo?: boolean };
   } = $props();
 
+  // You need it to unregister the timer on destroy. For some reason, before we unregister, the value is destroyed so we need a local copy.
+  // svelte-ignore state_referenced_locally
+  const widgetId = widget.id!;
   let widgetElement: HTMLDivElement | null = $state(null);
   let date = $state(dayjs());
 
@@ -81,13 +83,12 @@
     });
 
     return () => {
-      GlobalTimer.unregister(widget.id!);
+      GlobalTimer.unregister(widgetId);
     };
   });
 </script>
 
 <div
-  transition:fade
   data-size={config.size}
   class="FlipClock blur-thin"
   bind:this={widgetElement}

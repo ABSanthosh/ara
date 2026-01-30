@@ -24,7 +24,7 @@
   const settingState = $state(SettingStore.state);
   const appState = $derived(AppStateStore);
 
-  let showSettingModal = $state(true);
+  let showSettingModal = $state(false);
   let showNASAWallpaperInfo = $state(false);
 
   onDestroy(() => {
@@ -213,16 +213,7 @@
       data-no-blur
       style="anchor-name: --nasa-info-button;"
       onclick={() => {
-        // showNASAWallpaperInfo = true;
-        WidgetEngine.addWidget({
-          settings: {
-            city: "America/New_York",
-            showSeconds: true,
-          },
-          type: "flip-clock",
-          span: { x: 2, y: 1 },
-          pos: { col: 1, row: 1 },
-        });
+        showNASAWallpaperInfo = true;
       }}
     >
       <p>?</p>

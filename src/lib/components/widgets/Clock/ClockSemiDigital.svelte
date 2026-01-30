@@ -8,13 +8,15 @@
   } from "@/lib/modules/widgets/widgets.types";
   import dayjs from "dayjs";
   import { GlobalTimer } from "@/lib/modules/widgets/shared-time.store";
-  import { fade } from "svelte/transition";
 
   let {
     widget,
   }: {
     widget: ClockWidgetSemiDigital & { isDemo?: boolean };
   } = $props();
+
+  // svelte-ignore state_referenced_locally
+  const widgetId = widget.id!;
 
   let date = $state(dayjs());
   const timeFormats = $derived({
@@ -34,7 +36,7 @@
     });
 
     return () => {
-      GlobalTimer.unregister(widget.id!);
+      GlobalTimer.unregister(widgetId);
     };
   });
 
@@ -134,7 +136,6 @@
 </script>
 
 <div
-  transition:fade
   data-size={config.size}
   use:draggable={{ widgetId: widget.id!, isDemo: widget.isDemo }}
   class="SemiDigital blur-thin"
@@ -201,6 +202,7 @@
 <style lang="scss">
   .SemiDigital {
     padding: 7px;
+    @include box();
     border-radius: 22px;
     background-color: #fff;
     border: 1px solid var(--separator-secondary);
