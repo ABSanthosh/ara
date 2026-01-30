@@ -134,6 +134,11 @@ export function resizable(
     if (row < 1 || col < 1 || row + sy - 1 > g.rows || col + sx - 1 > g.cols)
       return false;
 
+    // Ensure occupiedCells is a Set (defensive check)
+    if (!(g.occupiedCells instanceof Set)) {
+      return true; // If not initialized, assume all cells are valid
+    }
+
     for (let r = row; r < row + sy; r++) {
       for (let c = col; c < col + sx; c++) {
         if (g.occupiedCells.has(`${r}-${c}`)) return false;
