@@ -3,14 +3,16 @@ import App from "./App.svelte";
 import { SettingStore } from "@/lib/modules/settings/settings.store";
 import { CatStore } from "@/lib/modules/cats/cats.stores";
 import { AppStateStore } from "@/lib/modules/settings/appState.store";
+import { ActivityStore } from "@/lib/modules/activity/activity.store";
 
 // Initialize all stores before mounting the app
 async function initializeApp() {
   // Load all stores from storage in parallel
   await Promise.all([
     SettingStore.init(),
-    CatStore.init(),
     AppStateStore.init(),
+    CatStore.init(),
+    ActivityStore.init(),
   ]);
 
   // Mount the app after stores are initialized
