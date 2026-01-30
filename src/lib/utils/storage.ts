@@ -30,6 +30,14 @@ function isSerializable(value: any): boolean {
  * - Converts Sets to arrays with special marker
  */
 function jsonReplacer(key: string, value: any): any {
+  // Convert Date to ISO string with type marker
+  if (value instanceof Date) {
+    return {
+      __type: "Date",
+      __value: value.toISOString(),
+    };
+  }
+
   // Convert Set to array with type marker
   if (value instanceof Set) {
     return {
@@ -38,7 +46,6 @@ function jsonReplacer(key: string, value: any): any {
     };
   }
 
-  // Skip non-serializable values
   if (!isSerializable(value)) {
     return undefined;
   }
@@ -48,12 +55,18 @@ function jsonReplacer(key: string, value: any): any {
 
 /**
  * Custom JSON reviver that restores special types
- * - Restores Sets from marked arrays
  */
 function jsonReviver(key: string, value: any): any {
-  // Restore Set from marked array
-  if (value && typeof value === "object" && value.__type === "Set") {
-    return new Set(value.__value);
+  if (value && typeof value === "object") {
+    // Restore Date from ISO string
+    if (value.__type === "Date") {
+      return new Date(value.__value);
+    }
+
+    // Restore Set from array
+    if (value.__type === "Set") {
+      return new Set(value.__value);
+    }
   }
 
   return value;
@@ -82,7 +95,7 @@ class LocalStorageAdapter implements StorageAdapter {
 class ChromeStorageAdapter implements StorageAdapter {
   async getItem(key: string): Promise<string | null> {
     const result = await chrome.storage.local.get(key);
-    return result[key] ?? null;
+    return (result[key] as string) ?? null;
   }
 
   async setItem(key: string, value: string): Promise<void> {
