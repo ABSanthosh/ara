@@ -111,6 +111,11 @@ class SettingStoreImpl {
    */
   public updateOccupiedCells(excludeWidgetId?: string) {
     this.update((state) => {
+      // Ensure occupiedCells is a Set (defensive programming)
+      if (!(state.internal.grid.occupiedCells instanceof Set)) {
+        state.internal.grid.occupiedCells = new Set<string>();
+      }
+
       state.internal.grid.occupiedCells.clear();
 
       Object.values(state.widgets).forEach((w) => {
@@ -128,21 +133,43 @@ class SettingStoreImpl {
   }
 
   private async loadFromStorage(): Promise<void> {
-    const stored = await storage.getJSON<TSettingStore>("settingStore");
+    const stored = await storage.getJSON<any>("settingStore");
 
     if (stored) {
       // On every load, we reset these flags to false
       stored.options.isDraggable = false;
       stored.options.isResizable = false;
       stored.options.showGrid = false;
-      this.state.set(stored);
+
+      // Reconstruct non-serializable properties
+      // occupiedCells is runtime state, always initialize as empty Set
+      stored.internal.grid.occupiedCells = new Set<string>();
+      // element is runtime state, initialize with dummy element
+      stored.internal.grid.element = document.createElement("div");
+
+      this.state.set(stored as TSettingStore);
     }
 
     this.isInitialized = true;
   }
 
   private async saveToStorage(value: TSettingStore): Promise<void> {
-    await storage.setJSON("settingStore", value);
+    // Create a serializable copy by excluding non-serializable properties
+    const serializable = {
+      ...value,
+      internal: {
+        ...value.internal,
+        grid: {
+          rows: value.internal.grid.rows,
+          cols: value.internal.grid.cols,
+          cellSize: value.internal.grid.cellSize,
+          gap: value.internal.grid.gap,
+          // Exclude occupiedCells (Set) and element (DOM node) - these are runtime state
+        },
+      },
+    };
+
+    await storage.setJSON("settingStore", serializable);
   }
 }
 
