@@ -25,7 +25,7 @@ export default defineConfig({
     description: "A web experience",
     version: "1.0.0",
     manifest_version: 3,
-    permissions: ["bookmarks", "storage", "tabs", "activeTab", 'history'],
+    permissions: ["bookmarks", "storage", "tabs", "activeTab", 'history', 'alarms'],
     host_permissions: ['<all_urls>']
   }
 });
