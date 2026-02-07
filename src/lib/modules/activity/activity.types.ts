@@ -10,27 +10,13 @@
 // ============================================
 // SITE (Lightweight metadata only)
 // ============================================
-export type SiteCategory =
-  | "productive"
-  | "social"
-  | "entertainment"
-  | "shopping"
-  | "communication"
-  | "reference"
-  | "uncategorized";
 
 export type Site = {
   domain: string;
-  name: string;
-  favicon?: string;
+  favicon: string;
 
   // Incrementally updated (not computed from sessions)
   stats: SiteStats;
-
-  // Settings
-  category: SiteCategory;
-  dailyLimit?: number;
-  isBlocked: boolean;
 };
 
 export type SiteStats = {
@@ -97,9 +83,6 @@ export type DailyStats = {
 
   // Hourly breakdown (for daily graph)
   hourlyActivity: number[]; // 24 elements (active time per hour)
-
-  // Category breakdown
-  categoryTime: Record<SiteCategory, number>;
 
   // Top sites
   topByActiveTime: Array<{ domain: string; time: number }>; // Top 5
