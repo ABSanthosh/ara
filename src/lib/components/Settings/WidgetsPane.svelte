@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from "svelte";
   import Grid from "../Grid.svelte";
   import Cat from "@/lib/components/widgets/Cat.svelte";
   import Calendar from "@/lib/components/widgets/Calendar.svelte";

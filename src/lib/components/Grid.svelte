@@ -1,5 +1,6 @@
 <script lang="ts">
   import { type Snippet } from "svelte";
+  import { onMount } from "svelte";
 
   interface Props {
     gridGap?: number;
