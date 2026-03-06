@@ -21,6 +21,9 @@ export class WallpaperManagerImpl {
     const savedApiKey =
       get(SettingStore).wallpaper.plugins.nasa.nasaAPIKey || "DEMO_KEY";
     this._nasaEngine = new NASAEngineImpl(savedApiKey);
+
+    // Check if dynamic APOD wallpaper needs daily update
+    this.checkDailyUpdate();
   }
 
   get NASAEngine() {
@@ -146,6 +149,43 @@ export class WallpaperManagerImpl {
         state.wallpaper.isWallpaperLoading = false;
         return state;
       });
+    }
+  }
+
+  /**
+   * Check if the APOD wallpaper needs to be updated (for dynamic mode)
+   * Updates the wallpaper if it's a new day since the last update
+   */
+  private async checkDailyUpdate() {
+    const settings = get(SettingStore);
+    
+    // Only check if NASA APOD is active and in dynamic mode
+    if (
+      settings.wallpaper.activePlugin !== "nasa" ||
+      settings.wallpaper.plugins.nasa.mode !== "dynamic"
+    ) {
+      return;
+    }
+
+    const lastUpdate = settings.wallpaper.plugins.nasa.lastUpdate;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Check if lastUpdate exists and if it's a different day
+    if (!lastUpdate || new Date(lastUpdate).getTime() !== today.getTime()) {
+      try {
+        // Fetch the latest APOD
+        const wallpaper = await this._nasaEngine.getAPOD();
+        
+        SettingStore.update((state) => {
+          state.wallpaper.url = wallpaper.hdurl || wallpaper.url;
+          state.wallpaper.plugins.nasa.metadata = wallpaper;
+          state.wallpaper.plugins.nasa.lastUpdate = today;
+          return state;
+        });
+      } catch (error) {
+        console.error("Failed to update daily APOD:", error);
+      }
     }
   }
 }
