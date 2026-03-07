@@ -143,22 +143,6 @@ class SettingStoreImpl {
       stored.options.isResizable = false;
       stored.options.showGrid = false;
 
-      // // Reconstruct non-serializable properties that were skipped during serialization
-      // // The storage layer will have restored occupiedCells as a Set automatically,
-      // // but we need to ensure it exists and is empty for runtime state
-      // if (!stored.internal?.grid?.occupiedCells) {
-      //   stored.internal = stored.internal || {};
-      //   stored.internal.grid = stored.internal.grid || {};
-      //   stored.internal.grid.occupiedCells = new Set<string>();
-      // }
-
-      // // element is a DOM node that can't be serialized, always recreate it
-      // if (!stored.internal?.grid?.element) {
-      //   stored.internal = stored.internal || {};
-      //   stored.internal.grid = stored.internal.grid || {};
-      //   stored.internal.grid.element = document.createElement("div");
-      // }
-
       this.state.set(stored as TSettingStore);
     }
 

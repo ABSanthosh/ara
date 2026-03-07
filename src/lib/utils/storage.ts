@@ -1,10 +1,16 @@
 /**
- * Storage abstraction layer that uses:
- * - localStorage in development (synchronous, easier debugging)
- * - chrome.storage.local in production (recommended for extensions)
+ * Storage abstraction layer with hybrid approach:
+ * - Critical settings (wallpaper, widgets) kept in localStorage for instant sync access
+ * - All settings also synced to chrome.storage.local for persistence
+ * - In development: uses localStorage only
+ * - In production: uses both localStorage (instant reads) + chrome.storage.local (persistence)
  */
 
-const isProd = import.meta.env.PROD;
+// const isProd = import.meta.env.PROD;
+const isProd = true
+
+// Keys that need instant synchronous access on page load
+const INSTANT_ACCESS_KEYS = new Set(['settingStore']);
 
 /**
  * Checks if a value is serializable to JSON
@@ -93,16 +99,103 @@ class LocalStorageAdapter implements StorageAdapter {
 }
 
 class ChromeStorageAdapter implements StorageAdapter {
+  private listenerInitialized = false;
+
+  constructor() {
+    this.initSyncListener();
+  }
+
+  /**
+   * Initialize listener to sync chrome.storage changes to localStorage
+   * This listener catches changes from OTHER contexts (background scripts, other tabs, etc.)
+   * Note: chrome.storage.onChanged doesn't fire for changes made in the same context
+   */
+  private initSyncListener() {
+    if (this.listenerInitialized) return;
+    this.listenerInitialized = true;
+    
+    if (typeof chrome === 'undefined' || !chrome.storage) {
+      console.error('❌ [Storage] chrome.storage API not available!');
+      return;
+    }
+    
+    chrome.storage.onChanged.addListener((changes, areaName) => {
+      if (areaName !== 'local') return;
+
+      // Sync instant-access keys to localStorage from other contexts
+      for (const [key, { newValue }] of Object.entries(changes)) {
+        if (INSTANT_ACCESS_KEYS.has(key)) {
+          try {
+            if (newValue !== undefined) {
+              window.localStorage.setItem(key, newValue as string);
+              console.debug(`🔄 [Storage] Synced ${key} from other context`);
+            } else {
+              window.localStorage.removeItem(key);
+              console.debug(`🗑️ [Storage] Removed ${key} from other context`);
+            }
+          } catch (e) {
+            console.warn(`❌ [Storage] Failed to sync ${key}:`, e);
+          }
+        }
+      }
+    });
+  }
+
   async getItem(key: string): Promise<string | null> {
+    // For instant-access keys, try localStorage first (synchronous)
+    if (INSTANT_ACCESS_KEYS.has(key)) {
+      try {
+        const localValue = window.localStorage.getItem(key);
+        if (localValue !== null) {
+          return localValue;
+        }
+      } catch (e) {
+        console.warn('[Storage] localStorage read failed:', e);
+      }
+    }
+
+    // Fall back to chrome.storage.local
     const result = await chrome.storage.local.get(key);
-    return (result[key] as string) ?? null;
+    const value = (result[key] as string) ?? null;
+
+    // If found in chrome.storage but not in localStorage, sync it
+    if (value !== null && INSTANT_ACCESS_KEYS.has(key)) {
+      try {
+        window.localStorage.setItem(key, value);
+        console.debug(`🔄 [Storage] Synced ${key} from chrome.storage`);
+      } catch (e) {
+        console.warn('[Storage] Failed to sync to localStorage:', e);
+      }
+    }
+
+    return value;
   }
 
   async setItem(key: string, value: string): Promise<void> {
+    // For instant-access keys, write to localStorage immediately (synchronous, fast)
+    if (INSTANT_ACCESS_KEYS.has(key)) {
+      try {
+        window.localStorage.setItem(key, value);
+      } catch (e) {
+        console.warn('[Storage] Failed to sync to localStorage:', e);
+      }
+    }
+    
+    // Write to chrome.storage.local for persistence
     await chrome.storage.local.set({ [key]: value });
   }
 
   async removeItem(key: string): Promise<void> {
+    // For instant-access keys, also remove from localStorage immediately
+    if (INSTANT_ACCESS_KEYS.has(key)) {
+      try {
+        window.localStorage.removeItem(key);
+      } catch (e) {
+        console.warn('[Storage] Failed to remove from localStorage:', e);
+      }
+    }
+    
+    // Remove from chrome.storage.local
     await chrome.storage.local.remove(key);
   }
 }
