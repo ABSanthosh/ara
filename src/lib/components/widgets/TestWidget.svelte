@@ -90,13 +90,6 @@
     @include make-flex();
     text-align: center;
 
-    h3 {
-      margin: 0 0 10px 0;
-      font-size: 18px;
-      font-weight: 600;
-      color: var(--widget-color);
-    }
-
     p {
       margin: 5px 0;
       font-size: 12px;

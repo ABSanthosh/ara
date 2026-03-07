@@ -15,8 +15,8 @@
   } = $props();
 
   // Use widget settings for locale and week start day (default: Sunday)
-  const locale = widget.settings?.locale || "en";
-  const weekStartsOn = widget.settings?.weekStartsOn ?? 0;
+  const locale = $derived(widget.settings?.locale || "en");
+  const weekStartsOn = $derived(widget.settings?.weekStartsOn ?? 0);
 
   const today = dayjs();
   let date = $state(dayjs());
