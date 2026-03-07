@@ -277,12 +277,11 @@
     }
 
     .widget-back-face {
-      @include box();
       @include make-flex();
       position: absolute;
       inset: 0;
-      background: rgba(0, 0, 0, 0.49);
-      backdrop-filter: blur(26px) saturate(170%) brightness(1.04);
+      background: #1a1a1a;
+      @include box(400px, 400px);
       border-radius: 20px;
       backface-visibility: hidden;
       transform: rotateY(180deg);

@@ -117,7 +117,10 @@
 </script>
 
 {#snippet front()}
-  <div class="widget-front-face" style="background-image: url('{currentCat?.imageUrl}');">
+  <div
+    class="widget-front-face"
+    style="background-image: url('{currentCat?.imageUrl}');"
+  >
     {#if !currentCat && tooLong}
       <BlurredSpinner className="cat-spinner">
         {#if config.size === "large"}
@@ -138,22 +141,22 @@
       <h3>Cat Settings</h3>
       <div class="setting-group">
         <label for="magazineSize-{widget.id}">Magazine Size:</label>
-        <input 
-          id="magazineSize-{widget.id}" 
-          type="number" 
-          min="5" 
-          max="20" 
-          value={widget.settings.magazineSize ?? 7} 
+        <input
+          id="magazineSize-{widget.id}"
+          type="number"
+          min="5"
+          max="20"
+          value={widget.settings.magazineSize ?? 7}
         />
       </div>
       <div class="setting-group">
         <label for="maxAccess-{widget.id}">Max Access:</label>
-        <input 
-          id="maxAccess-{widget.id}" 
-          type="number" 
-          min="1" 
-          max="10" 
-          value={widget.settings.maxAccess ?? 1} 
+        <input
+          id="maxAccess-{widget.id}"
+          type="number"
+          min="1"
+          max="10"
+          value={widget.settings.maxAccess ?? 1}
         />
       </div>
     </div>
@@ -208,12 +211,11 @@
     }
 
     .widget-back-face {
-      @include box();
+      @include box(400px, 400px);
       @include make-flex();
       position: absolute;
       inset: 0;
-      background: rgba(0, 0, 0, 0.49);
-      backdrop-filter: blur(26px) saturate(170%) brightness(1.04);
+      background: #1a1a1a;
       border-radius: 20px;
       backface-visibility: hidden;
       transform: rotateY(180deg);
@@ -242,7 +244,8 @@
             opacity: 0.8;
           }
 
-          select, input {
+          select,
+          input {
             width: 100%;
             padding: 8px;
             background: rgba(255, 255, 255, 0.1);
