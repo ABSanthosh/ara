@@ -54,6 +54,22 @@ const defaultStore: TSettingStore = {
           : "44z7IfTy6ctYbetZz0AasrBId43RQdcey4iwhrdX",
         metadata: null,
       },
+      aic: {
+        metadata: null,
+      },
+      getty: {
+        metadata: null,
+      },
+      mauritshuis: {
+        metadata: null,
+      },
+      nga: {
+        metadata: null,
+      },
+      rijksmuseum: {
+        apiKey: "",
+        metadata: null,
+      },
       presets: [
         "/assets/wallpapers/adwaita-d.jpg",
         "/assets/wallpapers/adwaita-l.jpg",

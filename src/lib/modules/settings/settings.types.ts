@@ -1,4 +1,6 @@
 import { APODResponse } from "../image/engines/nasa/nasa.types";
+import { AICArtworkResponse } from "../image/engines/aic.engine";
+import { ImageResponse } from "../image/image.engine";
 import { CatWidget, Widgets } from "../widgets/widgets.types";
 
 export enum SettingsTabs {
@@ -38,7 +40,7 @@ export type TSettingStore = {
   };
   widgets: Record<string, Widgets>;
   wallpaper: {
-    activePlugin: "preset" | "nasa";
+    activePlugin: "preset" | "nasa" | "aic" | "getty" | "mauritshuis" | "nga" | "rijksmuseum";
     url: string;
     plugins: {
       nasa: {
@@ -49,6 +51,27 @@ export type TSettingStore = {
         lastUpdate?: Date; // ISO date string of last wallpaper update
         staticDate?: Date; // ISO date string for static wallpaper selection
         metadata: APODResponse | null; // Store metadata of current NASA APOD
+      };
+      aic: {
+        lastSearch?: string;
+        metadata: AICArtworkResponse | null;
+      };
+      getty: {
+        lastSearch?: string;
+        metadata: ImageResponse | null;
+      };
+      mauritshuis: {
+        lastSearch?: string;
+        metadata: ImageResponse | null;
+      };
+      nga: {
+        lastSearch?: string;
+        metadata: ImageResponse | null;
+      };
+      rijksmuseum: {
+        apiKey?: string;
+        lastSearch?: string;
+        metadata: ImageResponse | null;
       };
       presets: string[]; // Array of preset wallpaper URLs
     };
