@@ -13,25 +13,33 @@
   }: {
     widget: CalendarWidget & { isDemo?: boolean };
   } = $props();
-  // TODO: Let users select different starting day of the week and locale
+
+  // Use widget settings for locale and week start day (default: Sunday)
+  const locale = widget.settings?.locale || "en";
+  const weekStartsOn = widget.settings?.weekStartsOn ?? 0;
+
   const today = dayjs();
   let date = $state(dayjs());
   const dateFormats = $derived({
     weekday: {
       allDays: Array.from({ length: 7 }, (_, i) =>
-        date.startOf("week").add(i, "day").format("ddd"),
+        date.day(weekStartsOn).add(i, "day").format("ddd"),
       ),
       long: date.format("dddd"),
       short: date.format("ddd"),
       narrow: date.format("dd"),
     },
     month: {
-      calendarDays: [
-        ...Array(date.startOf("month").day()).fill(null),
-        ...Array.from({ length: date.daysInMonth() }, (_, i) =>
-          date.date(i + 1).format("D"),
-        ),
-      ],
+      calendarDays: (() => {
+        const firstDayOfMonth = date.startOf("month").day();
+        const offset = (firstDayOfMonth - weekStartsOn + 7) % 7;
+        return [
+          ...Array(offset).fill(null),
+          ...Array.from({ length: date.daysInMonth() }, (_, i) =>
+            date.date(i + 1).format("D"),
+          ),
+        ];
+      })(),
       long: date.format("MMMM"),
       short: date.format("MMM"),
       "2-digit": date.format("MM"),

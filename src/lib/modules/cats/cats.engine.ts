@@ -132,25 +132,53 @@ export class CatEngineImpl {
     throw (lastErr as Error) ?? new Error("Failed to fetch cat image");
   }
 
-  public async addToFavorites(item: TCatItem) {
+  public async addToFavorites(widgetId: string, item: TCatItem) {
     CatStore.update((store) => {
-      // Avoid duplicates - add to global favorites (can be accessed by any widget)
-      // For simplicity, we'll keep favorites global
-      // TODO: If you want per-widget favorites, we need to refactor this
+      if (!store.widgets[widgetId]) {
+        store.widgets[widgetId] = {
+          magazine: [],
+          favorites: [],
+          isPinned: false,
+          timesAccessed: 0,
+        };
+      }
+      
+      // Avoid duplicates by checking imageUrl
+      const exists = store.widgets[widgetId].favorites.some(
+        (fav) => fav.imageUrl === item.imageUrl
+      );
+      
+      if (!exists) {
+        store.widgets[widgetId].favorites.push(item);
+      }
+      
       return store;
     });
   }
 
-  public async removeFromFavorites(item: TCatItem) {
+  public async removeFromFavorites(widgetId: string, item: TCatItem) {
     CatStore.update((store) => {
-      // TODO: Implement favorites per widget if needed
+      if (store.widgets[widgetId]) {
+        store.widgets[widgetId].favorites = store.widgets[widgetId].favorites.filter(
+          (fav) => fav.imageUrl !== item.imageUrl
+        );
+      }
       return store;
     });
   }
 
-  public isFavorite(item: TCatItem): boolean {
-    // TODO: Implement favorites per widget if needed
-    return false;
+  public isFavorite(widgetId: string, item: TCatItem): boolean {
+    const store = get(CatStore);
+    if (!store.widgets[widgetId]) return false;
+    
+    return store.widgets[widgetId].favorites.some(
+      (fav) => fav.imageUrl === item.imageUrl
+    );
+  }
+
+  public getFavorites(widgetId: string): TCatItem[] {
+    const store = get(CatStore);
+    return store.widgets[widgetId]?.favorites ?? [];
   }
 
   public pinCat(widgetId: string) {

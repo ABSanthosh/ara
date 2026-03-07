@@ -37,7 +37,6 @@ class WidgetEngineImpl {
       return;
     }
 
-    // TODO: what is this for? AI slop
     // Copy default settings to the new widget if it's a CatWidget
     if (widget.type === "cat") {
       widget.settings = {
