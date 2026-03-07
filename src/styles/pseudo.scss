@@ -103,3 +103,52 @@
   position: absolute;
   border: 4px dotted var(--views-thicker);
 }
+
+// Flippable widget styles
+.flipping-to-back,
+.flipping-to-front,
+.flipped {
+  transform-style: preserve-3d;
+
+  // Hide backsides during flip
+  > *:not(.widget-back-view) {
+    backface-visibility: hidden;
+  }
+}
+
+.flipped {
+  pointer-events: auto;
+
+  // Hide front view when flipped
+  > *:not(.widget-back-view) {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  // Show back view when flipped
+  .widget-back-view {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  // Hide remove button and resize handle when flipped
+  .widget-remove,
+  .widget-resize-handle {
+    display: none !important;
+  }
+}
+
+.widget-back-view {
+  opacity: 0;
+  width: 500px;
+  height: 500px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  border-radius: inherit;
+  pointer-events: none;
+  transform: rotateY(180deg);
+  backface-visibility: hidden;
+  transition: opacity 0.3s ease;
+}

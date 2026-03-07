@@ -310,6 +310,8 @@ export function resizable(
   function startResize(e: MouseEvent) {
     if (!settings.options.isResizable) return;
     if (e.button !== 0 || resizeState.type !== "idle") return;
+    // Prevent resizing when widget is flipped
+    if (resizedWidget.hasAttribute("data-flipped")) return;
 
     e.preventDefault();
     e.stopPropagation();

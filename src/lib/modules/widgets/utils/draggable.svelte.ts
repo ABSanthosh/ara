@@ -34,10 +34,14 @@ function setPointerEvents(
   disable: boolean,
   button: HTMLButtonElement,
 ) {
-  // Disable pointer events on all children except the remove button and those with [data-drag-ignore]
+  // Disable pointer events on all children except the remove button, back view, and those with [data-drag-ignore]
   Array.from(el.children).forEach((child) => {
     const childEl = child as HTMLElement;
-    if (childEl !== button && !childEl.hasAttribute("data-drag-ignore")) {
+    if (
+      childEl !== button && 
+      !childEl.hasAttribute("data-drag-ignore") &&
+      !childEl.classList.contains("widget-back-view")
+    ) {
       childEl.style.pointerEvents = disable ? "none" : "";
       childEl.style.touchAction = disable ? "none" : "";
       childEl.style.userSelect = disable ? "none" : "";
@@ -288,6 +292,8 @@ export function draggable(
   function startDrag(e: MouseEvent) {
     if (!settings.options.isDraggable) return;
     if (e.button !== 0 || dragState.type !== "idle") return;
+    // Prevent dragging when widget is flipped
+    if (draggedWidget.hasAttribute("data-flipped")) return;
 
     const target = e.target as HTMLElement;
     if (target.closest("[data-drag-ignore]")) return;
