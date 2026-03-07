@@ -2,6 +2,7 @@
   import { onMount } from "svelte";
   import { draggable } from "@/lib/modules/widgets/utils/draggable.svelte";
   import { resizable } from "@/lib/modules/widgets/utils/resizable.svelte";
+  import { flippable } from "@/lib/modules/widgets/utils/flippable.svelte";
   import type {
     ClockWidgetSemiDigital,
     ClockWidgetSemiDigitalSpan,
@@ -54,6 +55,8 @@
     ],
     resizeProgress: "idle" as "idle" | "resizing",
   });
+
+  let isFlipped = $state(false);
 
   const tickHeight = $derived(config.size === "large" ? 5 : 5);
   const tickOffset = 46; // Distance from center to start of ticks
@@ -136,6 +139,90 @@
   }
 </script>
 
+{#snippet front()}
+  <div class="widget-front-face">
+    {#if config.resizeProgress === "idle"}
+      <svg viewBox="-52 -52 104 104">
+        <rect
+          x="-50"
+          y="-50"
+          width="100"
+          height="100"
+          rx="5"
+          ry="5"
+          fill="none"
+        />
+        <!-- All ticks rendered from pre-calculated positions -->
+        {#each tickPositions as tick (tick.index)}
+          <line
+            x1={tick.x1}
+            y1={tick.y1}
+            x2={tick.x2}
+            y2={tick.y2}
+            class="SemiDigital__tick"
+            style="opacity: {getTickOpacity(tick.index, timeFormats.seconds)}"
+          />
+        {/each}
+
+        <text text-anchor="middle" dominant-baseline="middle" x="0" y="0">
+          <tspan
+            x="0"
+            dy="-30"
+            class="label"
+            font-size={config.size === "large" ? "10" : "13"}
+          >
+            {date.format("dddd")}
+          </tspan>
+          <tspan
+            x="0"
+            dx="2.5"
+            dy={config.size === "large" ? "32" : "36"}
+            font-size={"45px"}
+            class="time"
+          >
+            {date.format("hh:mm")}
+          </tspan>
+          <tspan
+            x="0"
+            dy={config.size === "large" ? "30" : "28"}
+            font-size={config.size === "large" ? "7" : "10"}
+            class="utc"
+          >
+            UTC{date.format("Z")}
+          </tspan>
+        </text>
+      </svg>
+    {:else}
+      <div class="resize-progress">
+        <Expand size="24" color="var(--views-thicker)" />
+      </div>
+    {/if}
+  </div>
+{/snippet}
+
+{#snippet back()}
+  <div class="widget-back-face">
+    <div class="widget-back-face__content">
+      <h3>Clock Settings</h3>
+      <div class="setting-group">
+        <label>
+          <input type="checkbox" checked={widget.settings.is12Hour} />
+          12-Hour Format
+        </label>
+      </div>
+      <div class="setting-group">
+        <label for="city-{widget.id}">City:</label>
+        <input
+          id="city-{widget.id}"
+          type="text"
+          value={widget.settings.city || ""}
+          placeholder="City name"
+        />
+      </div>
+    </div>
+  </div>
+{/snippet}
+
 <div
   data-size={config.size}
   use:draggable={{ widgetId: widget.id!, isDemo: widget.isDemo }}
@@ -151,67 +238,19 @@
     },
     isDemo: widget.isDemo,
   }}
+  use:flippable={{
+    widgetId: widget.id!,
+    isDemo: widget.isDemo,
+    onFlip: () => (isFlipped = true),
+    onFlipBack: () => (isFlipped = false),
+  }}
   style="
     grid-area: {widget.pos.row} / {widget.pos.col} / {widget.pos.row +
     widget.span.y} / {widget.pos.col + widget.span.x};
   "
 >
-  {#if config.resizeProgress === "idle"}
-    <svg viewBox="-52 -52 104 104">
-      <rect
-        x="-50"
-        y="-50"
-        width="100"
-        height="100"
-        rx="5"
-        ry="5"
-        fill="none"
-      />
-      <!-- All ticks rendered from pre-calculated positions -->
-      {#each tickPositions as tick (tick.index)}
-        <line
-          x1={tick.x1}
-          y1={tick.y1}
-          x2={tick.x2}
-          y2={tick.y2}
-          class="SemiDigital__tick"
-          style="opacity: {getTickOpacity(tick.index, timeFormats.seconds)}"
-        />
-      {/each}
-
-      <text text-anchor="middle" dominant-baseline="middle" x="0" y="0">
-        <tspan
-          x="0"
-          dy="-30"
-          class="label"
-          font-size={config.size === "large" ? "10" : "13"}
-        >
-          {date.format("dddd")}
-        </tspan>
-        <tspan
-          x="0"
-          dx="2.5"
-          dy={config.size === "large" ? "32" : "36"}
-          font-size={"45px"}
-          class="time"
-        >
-          {date.format("hh:mm")}
-        </tspan>
-        <tspan
-          x="0"
-          dy={config.size === "large" ? "30" : "28"}
-          font-size={config.size === "large" ? "7" : "10"}
-          class="utc"
-        >
-          UTC{date.format("Z")}
-        </tspan>
-      </text>
-    </svg>
-  {:else}
-    <div class="resize-progress">
-      <Expand size="24" color="var(--views-thicker)" />
-    </div>
-  {/if}
+  {@render front()}
+  {@render back()}
 </div>
 
 <style lang="scss">
@@ -224,6 +263,104 @@
     border: 1px solid var(--separator-secondary);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 
+    .widget-front-face {
+      @include box();
+      backface-visibility: hidden;
+      transform: rotateY(0deg);
+      border-radius: 22px;
+
+      & > svg {
+        border-radius: 15px;
+
+        & > text {
+          inset: 0;
+          position: absolute;
+          pointer-events: none;
+          @include make-flex($gap: 6px);
+
+          .label {
+            font-weight: 600;
+            fill: var(--vibrant-labels-secondary);
+          }
+
+          .utc {
+            font-weight: 600;
+            fill: var(--vibrant-labels-secondary);
+          }
+
+          .time {
+            line-height: 1;
+            font-weight: 700;
+            transform-origin: center;
+            fill: var(--vibrant-labels-quaternary);
+            font-family: "Saira Extra Condensed", sans-serif;
+          }
+        }
+      }
+    }
+
+    .widget-back-face {
+      @include box();
+      @include make-flex();
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.49);
+      backdrop-filter: blur(26px) saturate(170%) brightness(1.04);
+      border-radius: 22px;
+      backface-visibility: hidden;
+      transform: rotateY(180deg);
+      pointer-events: none;
+
+      &__content {
+        color: white;
+        padding: 20px;
+        width: 100%;
+        max-height: 100%;
+        overflow-y: auto;
+
+        h3 {
+          margin: 0 0 20px 0;
+          font-size: 18px;
+          font-weight: 600;
+        }
+
+        .setting-group {
+          margin-bottom: 15px;
+
+          label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 5px;
+            font-size: 12px;
+            opacity: 0.8;
+            cursor: pointer;
+
+            input[type="checkbox"] {
+              width: auto;
+            }
+          }
+
+          select,
+          input[type="text"],
+          input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+
+            &:focus {
+              outline: none;
+              border-color: var(--widget-color, #6366f1);
+            }
+          }
+        }
+      }
+    }
+
     & > * {
       user-select: none;
     }
@@ -234,35 +371,6 @@
       & > svg {
         & > line {
           stroke-width: 2;
-        }
-      }
-    }
-
-    & > svg {
-      border-radius: 15px;
-
-      & > text {
-        inset: 0;
-        position: absolute;
-        pointer-events: none;
-        @include make-flex($gap: 6px);
-
-        .label {
-          font-weight: 600;
-          fill: var(--vibrant-labels-secondary);
-        }
-
-        .utc {
-          font-weight: 600;
-          fill: var(--vibrant-labels-secondary);
-        }
-
-        .time {
-          line-height: 1;
-          font-weight: 700;
-          transform-origin: center;
-          fill: var(--vibrant-labels-quaternary);
-          font-family: "Saira Extra Condensed", sans-serif;
         }
       }
     }

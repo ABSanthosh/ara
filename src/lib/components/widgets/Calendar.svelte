@@ -1,5 +1,6 @@
 <script lang="ts">
   import { draggable } from "@/lib/modules/widgets/utils/draggable.svelte";
+  import { flippable } from "@/lib/modules/widgets/utils/flippable.svelte";
   import type {
     CalendarSpan,
     CalendarWidget,
@@ -66,7 +67,113 @@
     ],
     resizeProgress: "idle" as "idle" | "resizing",
   });
+
+  let isFlipped = $state(false);
 </script>
+
+{#snippet front()}
+  <div class="widget-front-face">
+    {#if config.resizeProgress === "idle"}
+      {#if config.size === "large"}
+        <!-- Month Header -->
+        <div class="month-header">
+          <h2 class="month-name">
+            {dateFormats.month.short}. {dateFormats.year.numeric}
+          </h2>
+          <div class="month-controls">
+            <button
+              class="prev-month"
+              onclick={() => (date = date.subtract(1, "month"))}
+            >
+              <ChevronLeft size="15" color="var(--vibrant-fills-secondary)" />
+            </button>
+            <button class="reset-month" onclick={() => (date = dayjs())}>
+              <RotateCcw size="14" color="var(--vibrant-fills-secondary)" />
+            </button>
+            <button
+              class="next-month"
+              onclick={() => (date = date.add(1, "month"))}
+            >
+              <ChevronRight size="15" color="var(--vibrant-fills-secondary)" />
+            </button>
+          </div>
+        </div>
+
+        <!-- Day Header -->
+        <div class="day-header">
+          {#each dateFormats.weekday.allDays as day}
+            <div class="day-name">{day[0]}</div>
+          {/each}
+        </div>
+
+        <!-- Date Grid -->
+        <div
+          class="date-grid"
+          style="--rowCount: {dateFormats.month.calendarDays.length / 7}"
+        >
+          {#each dateFormats.month.calendarDays as day}
+            <div
+              class="date-cell"
+              class:empty={day === null}
+              class:today={day === today.format("DD") &&
+                date.format("MMYYYY") === today.format("MMYYYY")}
+            >
+              {day || ""}
+            </div>
+          {/each}
+        </div>
+      {:else}
+        <div class="compact-calendar">
+          <div class="compact-header">
+            <div class="compact-month">
+              {dateFormats.month.short}
+            </div>
+            <div class="compact-day-name">
+              {dateFormats.weekday.short}
+            </div>
+          </div>
+          <div class="compact-date">{dateFormats.date["2-digit"]}</div>
+        </div>
+      {/if}
+    {:else}
+      <div class="resize-progress">
+        <Expand size="24" color="var(--views-thicker)" />
+      </div>
+    {/if}
+  </div>
+{/snippet}
+
+{#snippet back()}
+  <div class="widget-back-face">
+    <div class="widget-back-face__content">
+      <h3>Calendar Settings</h3>
+      <div class="setting-group">
+        <label for="locale-{widget.id}">Locale:</label>
+        <input
+          id="locale-{widget.id}"
+          type="text"
+          value={widget.settings?.locale || "en"}
+          placeholder="en"
+        />
+      </div>
+      <div class="setting-group">
+        <label for="weekstart-{widget.id}">Week Starts On:</label>
+        <select
+          id="weekstart-{widget.id}"
+          value={widget.settings?.weekStartsOn ?? 0}
+        >
+          <option value="0">Sunday</option>
+          <option value="1">Monday</option>
+          <option value="2">Tuesday</option>
+          <option value="3">Wednesday</option>
+          <option value="4">Thursday</option>
+          <option value="5">Friday</option>
+          <option value="6">Saturday</option>
+        </select>
+      </div>
+    </div>
+  </div>
+{/snippet}
 
 <div
   data-size={config.size}
@@ -82,79 +189,20 @@
     },
     isDemo: widget.isDemo,
   }}
+  use:flippable={{
+    widgetId: widget.id!,
+    isDemo: widget.isDemo,
+    onFlip: () => (isFlipped = true),
+    onFlipBack: () => (isFlipped = false),
+  }}
   class="calendar blur-regular"
   style="
     grid-area: {widget.pos.row} / {widget.pos.col} / {widget.pos.row +
     widget.span.y} / {widget.pos.col + widget.span.x};
   "
 >
-  {#if config.resizeProgress === "idle"}
-    {#if config.size === "large"}
-      <!-- Month Header -->
-      <div class="month-header">
-        <h2 class="month-name">
-          {dateFormats.month.short}. {dateFormats.year.numeric}
-        </h2>
-        <div class="month-controls">
-          <button
-            class="prev-month"
-            onclick={() => (date = date.subtract(1, "month"))}
-          >
-            <ChevronLeft size="15" color="var(--vibrant-fills-secondary)" />
-          </button>
-          <button class="reset-month" onclick={() => (date = dayjs())}>
-            <RotateCcw size="14" color="var(--vibrant-fills-secondary)" />
-          </button>
-          <button
-            class="next-month"
-            onclick={() => (date = date.add(1, "month"))}
-          >
-            <ChevronRight size="15" color="var(--vibrant-fills-secondary)" />
-          </button>
-        </div>
-      </div>
-
-      <!-- Day Header -->
-      <div class="day-header">
-        {#each dateFormats.weekday.allDays as day}
-          <div class="day-name">{day[0]}</div>
-        {/each}
-      </div>
-
-      <!-- Date Grid -->
-      <div
-        class="date-grid"
-        style="--rowCount: {dateFormats.month.calendarDays.length / 7}"
-      >
-        {#each dateFormats.month.calendarDays as day}
-          <div
-            class="date-cell"
-            class:empty={day === null}
-            class:today={day === today.format("DD") &&
-              date.format("MMYYYY") === today.format("MMYYYY")}
-          >
-            {day || ""}
-          </div>
-        {/each}
-      </div>
-    {:else}
-      <div class="compact-calendar">
-        <div class="compact-header">
-          <div class="compact-month">
-            {dateFormats.month.short}
-          </div>
-          <div class="compact-day-name">
-            {dateFormats.weekday.short}
-          </div>
-        </div>
-        <div class="compact-date">{dateFormats.date["2-digit"]}</div>
-      </div>
-    {/if}
-  {:else}
-    <div class="resize-progress">
-      <Expand size="24" color="var(--views-thicker)" />
-    </div>
-  {/if}
+  {@render front()}
+  {@render back()}
 </div>
 
 <style lang="scss">
@@ -165,6 +213,78 @@
     background-color: #fff;
     border: 1px solid var(--separator);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    position: relative;
+
+    &[data-size="large"] {
+      .widget-front-face {
+        @include make-flex(
+          $gap: 5px,
+          $dir: column,
+          $just: flex-start,
+          $align: flex-start
+        );
+      }
+    }
+    .widget-front-face {
+      @include box();
+      backface-visibility: hidden;
+      transform: rotateY(0deg);
+      border-radius: 20px;
+    }
+
+    .widget-back-face {
+      @include box();
+      @include make-flex();
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.49);
+      backdrop-filter: blur(26px) saturate(170%) brightness(1.04);
+      border-radius: 20px;
+      backface-visibility: hidden;
+      transform: rotateY(180deg);
+      pointer-events: none;
+
+      &__content {
+        color: white;
+        padding: 20px;
+        width: 100%;
+        max-height: 100%;
+        overflow-y: auto;
+
+        h3 {
+          margin: 0 0 20px 0;
+          font-size: 18px;
+          font-weight: 600;
+        }
+
+        .setting-group {
+          margin-bottom: 15px;
+
+          label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 12px;
+            opacity: 0.8;
+          }
+
+          select,
+          input {
+            width: 100%;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+
+            &:focus {
+              outline: none;
+              border-color: var(--widget-color, #6366f1);
+            }
+          }
+        }
+      }
+    }
 
     // Hover effect for day headers based on date cell hover
     @for $i from 1 through 7 {
@@ -175,15 +295,6 @@
           transform: scale(1.1);
         }
       }
-    }
-
-    &[data-size="large"] {
-      @include make-flex(
-        $gap: 5px,
-        $dir: column,
-        $just: flex-start,
-        $align: flex-start
-      );
     }
 
     & * {
