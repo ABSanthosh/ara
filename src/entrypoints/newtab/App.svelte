@@ -122,13 +122,7 @@
   {#each Object.keys($settingState.widgets) as widgetId (widgetId)}
     {@const widget = $settingState.widgets[widgetId]}
     {#if widget.type === "test-widget"}
-      <TestWidget
-        {widgetId}
-        gridCol={widget.pos.col}
-        gridRow={widget.pos.row}
-        gridSpanX={widget.span.x}
-        gridSpanY={widget.span.y}
-      />
+      <TestWidget {widget} />
     {:else if widget.type === "calendar"}
       <Calendar {widget} />
     {:else if widget.type === "cat"}

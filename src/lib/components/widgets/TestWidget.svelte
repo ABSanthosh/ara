@@ -1,42 +1,40 @@
 <script lang="ts">
   import { WidgetEngine } from "@/lib/modules/widgets/widgets.engine";
   import { draggable } from "../../modules/widgets/utils/draggable.svelte";
-
-  interface Props {
-    widgetId: string;
-    gridRow?: number;
-    gridCol?: number;
-    gridSpanX?: number;
-    gridSpanY?: number;
-    title?: string;
-    color?: string;
-    isDemo?: boolean;
-  }
+  import { resizable } from "../../modules/widgets/utils/resizable.svelte";
+  import type { TestWidget, TestWidgetSpan } from "@/lib/modules/widgets/widgets.types";
 
   let {
-    widgetId,
-    gridRow = 1,
-    gridCol = 1,
-    gridSpanX = 1,
-    gridSpanY = 1,
-    title = "Widget",
-    color = "#6366f1",
-    isDemo = false,
-  }: Props = $props();
+    widget,
+  }: {
+    widget: TestWidget & { isDemo?: boolean };
+  } = $props();
+
+  const allowedSpans: TestWidgetSpan[] = [
+    { x: 1, y: 1 },
+    { x: 2, y: 2 },
+    { x: 3, y: 3 },
+    { x: 1, y: 2 },
+    { x: 2, y: 1 },
+  ];
 </script>
 
 <div
   class="test-widget BlurBG"
-  use:draggable={{ widgetId, isDemo }}
+  use:draggable={{ widgetId: widget.id!, isDemo: widget.isDemo }}
+  use:resizable={{
+    widgetId: widget.id!,
+    spans: allowedSpans,
+    isDemo: widget.isDemo,
+  }}
   style="
-    grid-area: {gridRow} / {gridCol} / {gridRow + gridSpanY} / {gridCol +
-    gridSpanX};
-    --widget-color: {color};
+    grid-area: {widget.pos.row} / {widget.pos.col} / {widget.pos.row + widget.span.y} / {widget.pos.col + widget.span.x};
+    --widget-color: #6366f1;
   "
 >
-  <p>ID: {widgetId}</p>
-  <p>Position: {gridRow}, {gridCol}</p>
-  <p>Size: {gridSpanX} × {gridSpanY}</p>
+  <p>ID: {widget.id}</p>
+  <p>Position: {widget.pos.row}, {widget.pos.col}</p>
+  <p>Size: {widget.span.x} × {widget.span.y}</p>
 </div>
 
 <style lang="scss">
