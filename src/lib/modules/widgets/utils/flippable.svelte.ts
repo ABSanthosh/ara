@@ -102,9 +102,11 @@ export function flippable(
     const centerX = window.innerWidth / 2;
     const centerY = window.innerHeight / 2;
 
-    // TODO: find a way to make this dynamic 
-    // Get the back view dimensions (500px from CSS)
-    const backViewSize = 500;
+    // Get the back view dimensions dynamically from the element
+    const backViewElement = element.querySelector(".widget-back-face") as HTMLElement;
+    const backViewSize = backViewElement ? 
+      parseInt(getComputedStyle(backViewElement).width) || 500 : 
+      500;
 
     // Add flipping class and set up transform
     element.classList.add("flipping-to-back");

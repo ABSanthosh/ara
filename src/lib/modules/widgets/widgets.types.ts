@@ -86,7 +86,8 @@ export type CalendarWidget = Widget & {
   type: "calendar";
   span: CalendarSpan;
   settings: {
-    // city?: SupportedCityName;
+    locale?: string; // e.g., 'en', 'es', 'fr', etc.
+    weekStartsOn?: 0 | 1 | 2 | 3 | 4 | 5 | 6; // 0 = Sunday, 1 = Monday, etc.
   };
   isDemo?: boolean;
 };

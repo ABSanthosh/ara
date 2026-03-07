@@ -2,6 +2,7 @@
   import { draggable } from "../../modules/widgets/utils/draggable.svelte";
   import { resizable } from "../../modules/widgets/utils/resizable.svelte";
   import { flippable } from "../../modules/widgets/utils/flippable.svelte";
+  import { SettingStore } from "@/lib/modules/settings/settings.store";
   import type {
     TestWidget,
     TestWidgetSpan,
@@ -22,6 +23,7 @@
   ];
 
   let isFlipped = $state(false);
+  let isDraggable = $derived($SettingStore.options.isDraggable);
 </script>
 
 {#snippet front()}
@@ -43,10 +45,9 @@
   </div>
 {/snippet}
 
-<!-- TODO: data-isolate-context only when editing -->
 <div
   class="test-widget BlurBG"
-  data-isolate-context
+  data-isolate-context={isDraggable || undefined}
   use:draggable={{ widgetId: widget.id!, isDemo: widget.isDemo }}
   use:resizable={{
     widgetId: widget.id!,

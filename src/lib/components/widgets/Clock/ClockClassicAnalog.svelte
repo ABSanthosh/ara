@@ -207,13 +207,13 @@
       max-height: 100%;
 
       & > circle {
-        fill: #fff; // TODO: Theme
+        fill: var(--colors-white-labels);
       }
     }
 
     // Clock Face
     &__face {
-      fill: white; // TODO: Theme
+      fill: var(--colors-white-labels);
     }
 
     // Hour Markers
@@ -229,14 +229,14 @@
     }
 
     &__minor {
-      stroke: #999; // TODO: Theme
+      stroke: var(--vibrant-labels-secondary);
       stroke-width: 0.5;
     }
 
     // Hour Numbers
     text {
       font-weight: 600;
-      font-size: clamp(4px, 1.2vw, 8px); // TODO: Theme
+      font-size: clamp(4px, 1.2vw, 8px);
     }
 
     // Hour Hand

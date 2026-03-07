@@ -29,32 +29,6 @@ function makeRemoveButton(widgetId: string) {
   return btn;
 }
 
-function setPointerEvents(
-  el: HTMLElement,
-  disable: boolean,
-  button: HTMLButtonElement,
-) {
-  // TODO: find a way to do this with CSS and data-attributes instead
-  // Disable pointer events on all children except the remove button, back view, and those with [data-drag-ignore]
-  Array.from(el.children).forEach((child) => {
-    const childEl = child as HTMLElement;
-    if (
-      childEl !== button && 
-      !childEl.hasAttribute("data-drag-ignore") &&
-      !childEl.classList.contains("widget-back-face")
-    ) {
-      childEl.style.pointerEvents = disable ? "none" : "";
-      childEl.style.touchAction = disable ? "none" : "";
-      childEl.style.userSelect = disable ? "none" : "";
-    }
-  });
-
-  // Always ensure the button is interactive when attached
-  button.style.pointerEvents = "auto";
-  button.style.touchAction = "auto";
-  button.style.userSelect = "none";
-}
-
 type DragState =
   | { type: "idle" }
   | {
@@ -84,13 +58,11 @@ export function draggable(
     if (!draggedWidget.contains(removeButton)) {
       draggedWidget.appendChild(removeButton);
     }
-    setPointerEvents(draggedWidget, true, removeButton);
     draggedWidget.setAttribute("data-dragging-pane", "true");
   }
 
   function detachRemoveButton() {
     removeButton.remove();
-    setPointerEvents(draggedWidget, false, removeButton);
     draggedWidget.removeAttribute("data-dragging-pane");
   }
 
@@ -320,7 +292,6 @@ export function draggable(
     draggedWidget.style.width = `${rect.width}px`;
     draggedWidget.style.height = `${rect.height}px`;
     draggedWidget.style.zIndex = "1001";
-    setPointerEvents(draggedWidget, true, removeButton);
     // draggedWidget.style.transform = "scale(1.05)";
 
     document.body.classList.add("dragging-in-progress");
@@ -359,7 +330,6 @@ export function draggable(
       draggedWidget.style.width = "";
       draggedWidget.style.height = "";
       draggedWidget.style.zIndex = "";
-      setPointerEvents(draggedWidget, false, removeButton);
       draggedWidget.style.transform = "";
 
       draggedWidget.style.gridArea = `${final.row} / ${final.col} / ${
@@ -388,7 +358,6 @@ export function draggable(
     draggedWidget.style.width = "";
     draggedWidget.style.height = "";
     draggedWidget.style.zIndex = "";
-    setPointerEvents(draggedWidget, false, removeButton);
     draggedWidget.style.transform = "";
 
     shadow?.remove();

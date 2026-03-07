@@ -35,6 +35,20 @@
       cursor: grab;
     }
   }
+
+  // Disable pointer events on all children during drag except remove button and back view
+  > *:not([data-drag-ignore]):not(.widget-back-face) {
+    pointer-events: none;
+    touch-action: none;
+    user-select: none;
+  }
+
+  // Ensure remove button is always interactive
+  > .widget-remove {
+    pointer-events: auto;
+    touch-action: auto;
+  }
+
   // Uncomment to enable jiggle effect
   // &:not(.dragging) {
   //   animation-name: ios-jiggle;

@@ -23,9 +23,8 @@
   }
 
   // Radio group for selecting Static vs Dynamic
-  let oldWallpaper = WallpaperManager.getWallpaper()?.metadata;
   let wallpaperType: "Static" | "Dynamic" | undefined = $state(
-    oldWallpaper?.mode === "static" ? "Static" : "Dynamic",
+    WallpaperManager.getWallpaper()?.metadata?.mode === "static" ? "Static" : "Dynamic",
   );
 
   let localReactiveSettings = $state<TSettingStore>();
@@ -121,18 +120,15 @@
                 },
               });
             }}
-            value={oldWallpaper &&
-            oldWallpaper.mode === "static" &&
-            oldWallpaper.staticDate
-              ? new Date(oldWallpaper.staticDate).toISOString().split("T")[0]
+            value={localReactiveSettings?.wallpaper.plugins.nasa.staticDate
+              ? new Date(localReactiveSettings.wallpaper.plugins.nasa.staticDate).toISOString().split("T")[0]
               : new Date().toISOString().split("T")[0]}
             min="1995-06-16"
             max={new Date().toISOString().split("T")[0]}
           />
-          <!-- TODO: When I roll the dice the date picker isn't showing the new date -->
           <button
             class="CrispButton"
-            onclick={() => WallpaperManager.refreshNASA()}
+            onclick={() => WallpaperManager.refresh()}
             title="Random NASA Wallpaper"
           >
             <Dices />
