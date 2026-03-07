@@ -166,6 +166,38 @@
         filter: "Checklist",
       },
 
+      // Test Widget variants (development only)
+      {
+        type: "test-widget",
+        span: { x: 1, y: 1 },
+        settings: {},
+        filter: "Test",
+      },
+      {
+        type: "test-widget",
+        span: { x: 2, y: 2 },
+        settings: {},
+        filter: "Test",
+      },
+      {
+        type: "test-widget",
+        span: { x: 3, y: 3 },
+        settings: {},
+        filter: "Test",
+      },
+      {
+        type: "test-widget",
+        span: { x: 1, y: 2 },
+        settings: {},
+        filter: "Test",
+      },
+      {
+        type: "test-widget",
+        span: { x: 2, y: 1 },
+        settings: {},
+        filter: "Test",
+      },
+
       // Art Gallery variants - AIC
       {
         type: "art-gallery",
@@ -496,13 +528,7 @@
           "
         >
           {#if widget.type === "test-widget"}
-            <TestWidget
-              {widgetId}
-              gridCol={widget.pos.col}
-              gridRow={widget.pos.row}
-              gridSpanX={widget.span.x}
-              gridSpanY={widget.span.y}
-            />
+            <TestWidget {widget} />
           {:else if widget.type === "calendar"}
             <Calendar {widget} />
           {:else if widget.type === "cat"}
