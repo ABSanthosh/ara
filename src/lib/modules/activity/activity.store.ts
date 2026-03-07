@@ -2,24 +2,10 @@ import { Writable, writable } from "svelte/store";
 import { TActivityStore } from "./activity.types";
 import { storage } from "@/lib/utils/storage";
 
-const defaultStore: TActivityStore = {
-  version: 0,
-  sites: {},
-  daily: {},
-  weekly: {},
-  lastSync: new Date(0),
-  timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-  recentSessions: {},
-  settings: {
-    dataRetentionDays: 30,
-    idleTimeout: 60, // 1 minute
-    trackingEnabled: true,
-  },
-};
+const defaultStore: TActivityStore = {};
 
 class ActivityStoreImpl {
   public state = writable<TActivityStore>(defaultStore);
-  private initPromise: Promise<void>; // Needed for async chrome.storage
   private isInitialized = false;
   private unsubscribe: () => void = () => {};
 
@@ -31,8 +17,7 @@ class ActivityStoreImpl {
     this.state.update(...args);
 
   constructor() {
-    // Initialize async loading
-    this.initPromise = this.loadFromStorage();
+    this.loadFromStorage();
 
     // Subscribe to changes and save to storage
     this.unsubscribe = this.state.subscribe((value) => {
@@ -59,13 +44,6 @@ class ActivityStoreImpl {
 
   public destroy() {
     this.unsubscribe();
-  }
-
-  /**
-   * Wait for the store to finish loading from storage
-   */
-  public async init(): Promise<void> {
-    return this.initPromise;
   }
 }
 
