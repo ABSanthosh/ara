@@ -1,3 +1,4 @@
+
 export interface APODResponse {
   copyright?: string;
   date: string;
@@ -12,9 +13,9 @@ export interface APODResponse {
 }
 
 export interface APODOptions {
-  date?: string; // YYYY-MM-DD format
-  start_date?: string; // YYYY-MM-DD format
-  end_date?: string; // YYYY-MM-DD format
-  count?: number; // Random selection count
-  thumbs?: boolean; // Return thumbnail URL for videos
+  date?: string;        // YYYY-MM-DD format
+  start_date?: string;  // YYYY-MM-DD format
+  end_date?: string;    // YYYY-MM-DD format
+  count?: number;       // Random selection count
+  thumbs?: boolean;     // Return thumbnail URL for videos
 }

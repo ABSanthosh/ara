@@ -1,4 +1,4 @@
-import { APODResponse } from "../wallpaper/nasa/nasa.types";
+import { APODResponse } from "../image/engines/nasa/nasa.types";
 import { CatWidget, Widgets } from "../widgets/widgets.types";
 
 export enum SettingsTabs {
