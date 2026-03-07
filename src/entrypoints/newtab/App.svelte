@@ -24,15 +24,15 @@
   const appState = $derived(AppStateStore);
 
   let showSettingModal = $state(false);
-  let showNASAWallpaperInfo = $state(false);
+  let showWallpaperInfo = $state(false);
 
   onDestroy(() => {
     SettingStore.destroy();
     WallpaperManager.destroy();
   });
 
-  const NasaContextMenu = $derived(
-    $settingState.wallpaper.activePlugin === "nasa"
+  const DynamicWallpaperContextMenu = $derived(
+    $settingState.wallpaper.activePlugin !== "preset"
       ? [
           {
             name: "hr",
@@ -43,7 +43,7 @@
             name: "Refresh Wallpaper",
             displayText: "Refresh Wallpaper",
             onClick: () => {
-              WallpaperManager.refreshNASA();
+              WallpaperManager.refresh();
             },
           },
         ]
@@ -92,7 +92,7 @@
         ? "Stop Editing"
         : "Edit Widgets",
     },
-    ...NasaContextMenu,
+    ...DynamicWallpaperContextMenu,
   ]}
 />
 
@@ -159,91 +159,163 @@
   </button>
 {/if}
 
-{#if $settingState.wallpaper.activePlugin === "nasa"}
-  <div class="NasaTools">
+{#if $settingState.wallpaper.activePlugin !== "preset"}
+  <div class="WallpaperTools">
     {#if $appState.wallpaper.isWallpaperLoading}
       <div class="SpinnerButton CrispButton blur-thin" data-no-hover>
         <Spinner height={18} width={18} />
       </div>
     {/if}
+    {#if $settingState.wallpaper.activePlugin === "nasa"}
+      <button
+        class="CrispButton blur-thin"
+        data-no-blur
+        data-type="fav"
+        class:favorited={isFavorited}
+        onclick={() => {
+          if (isFavorited) {
+            WallpaperManager.NASAEngine.removeNasaFavorite(
+              $settingState.wallpaper.plugins.nasa.metadata!.date,
+            );
+          } else {
+            WallpaperManager.NASAEngine.addNasaFavorite(
+              $settingState.wallpaper.plugins.nasa.metadata!.date,
+            );
+          }
+        }}
+      >
+        <Heart size={15} />
+      </button>
+      <button
+        class="CrispButton blur-thin"
+        data-no-blur
+        class:pinned={isPinned}
+        data-type="pin"
+        onclick={() => {
+          if (isPinned) {
+            WallpaperManager.NASAEngine.unpinCurrentNasaAPOD();
+          } else {
+            WallpaperManager.NASAEngine.pinCurrentNasaAPOD();
+          }
+        }}
+      >
+        {#if isPinned}
+          <PinOff size={15} />
+        {:else}
+          <Pin size={15} />
+        {/if}
+      </button>
+    {/if}
     <button
-      class="CrispButton blur-thin"
-      data-no-blur
-      data-type="fav"
-      class:favorited={isFavorited}
-      onclick={() => {
-        if (isFavorited) {
-          WallpaperManager.NASAEngine.removeNasaFavorite(
-            $settingState.wallpaper.plugins.nasa.metadata!.date,
-          );
-        } else {
-          WallpaperManager.NASAEngine.addNasaFavorite(
-            $settingState.wallpaper.plugins.nasa.metadata!.date,
-          );
-        }
-      }}
-    >
-      <Heart size={15} />
-    </button>
-    <button
-      class="CrispButton blur-thin"
-      data-no-blur
-      class:pinned={isPinned}
-      data-type="pin"
-      onclick={() => {
-        if (isPinned) {
-          WallpaperManager.NASAEngine.unpinCurrentNasaAPOD();
-        } else {
-          WallpaperManager.NASAEngine.pinCurrentNasaAPOD();
-        }
-      }}
-    >
-      {#if isPinned}
-        <PinOff size={15} />
-      {:else}
-        <Pin size={15} />
-      {/if}
-    </button>
-    <button
-      id="nasa-info-button"
+      id="wallpaper-info-button"
       class="CrispButton blur-thin"
       data-type="info"
-      class:active={showNASAWallpaperInfo}
+      class:active={showWallpaperInfo}
       data-no-blur
-      style="anchor-name: --nasa-info-button;"
+      style="anchor-name: --wallpaper-info-button;"
       onclick={() => {
-        showNASAWallpaperInfo = true;
+        showWallpaperInfo = true;
       }}
     >
       <p>?</p>
     </button>
   </div>
 
-  {#if showNASAWallpaperInfo}
-    <Modal
-      heading={$settingState.wallpaper.plugins.nasa.metadata!.title}
-      bind:showModal={showNASAWallpaperInfo}
-    >
-      <div class="WallpaperDetails">
-        <p>{$settingState.wallpaper.plugins.nasa.metadata!.explanation}</p>
-        {#if $settingState.wallpaper.plugins.nasa.metadata!.copyright}
-          <p>© {$settingState.wallpaper.plugins.nasa.metadata!.copyright}</p>
-        {/if}
-        <div class="WallpaperDetails--calltoaction">
-          <a
-            href={$settingState.wallpaper.plugins.nasa.metadata!.page_url}
-            target="_blank"
-          >
-            Website
-          </a>
-          <a
-            href={$settingState.wallpaper.plugins.nasa.metadata!.url}
-            target="_blank"
-          >
-            View full image
-          </a>
-        </div>
-      </div>
-    </Modal>
+  {#if showWallpaperInfo}
+    {@const plugin = $settingState.wallpaper.activePlugin}
+    {#if plugin === "nasa"}
+      {@const metadata = $settingState.wallpaper.plugins.nasa.metadata}
+      {#if metadata}
+        <Modal heading={metadata.title} bind:showModal={showWallpaperInfo}>
+          <div class="WallpaperDetails">
+            <p>{metadata.explanation}</p>
+            {#if metadata.copyright}
+              <p>© {metadata.copyright}</p>
+            {/if}
+            <div class="WallpaperDetails--calltoaction">
+              <a href={metadata.page_url} target="_blank">Website</a>
+              <a href={metadata.url} target="_blank">View full image</a>
+            </div>
+          </div>
+        </Modal>
+      {/if}
+    {:else if plugin === "aic"}
+      {@const metadata = $settingState.wallpaper.plugins.aic.metadata}
+      {#if metadata}
+        <Modal
+          heading={metadata.title || "Artwork Details"}
+          bind:showModal={showWallpaperInfo}
+        >
+          <div class="WallpaperDetails">
+            {#if metadata.artist}
+              <p><strong>Artist:</strong> {metadata.artist}</p>
+            {/if}
+            {#if metadata.date}
+              <p><strong>Date:</strong> {metadata.date}</p>
+            {/if}
+            {#if metadata.thumbnail?.alt_text}
+              <p><strong>Description:</strong> {metadata.thumbnail.alt_text}</p>
+            {/if}
+            {#if metadata.description}
+              <p>{metadata.description}</p>
+            {/if}
+            {#if metadata.tags && metadata.tags.length > 0}
+              <p><strong>Tags:</strong> {metadata.tags.join(", ")}</p>
+            {/if}
+            {#if metadata.source}
+              <p><strong>Source:</strong> {metadata.source.toUpperCase()}</p>
+            {/if}
+            <div class="WallpaperDetails--calltoaction">
+              {#if metadata.sourceUrl}
+                <a href={metadata.sourceUrl} target="_blank"
+                  >View on Museum Website</a
+                >
+              {/if}
+              {#if metadata.downloadUrl}
+                <a href={metadata.downloadUrl} target="_blank"
+                  >Download High-Res</a
+                >
+              {/if}
+              {#if metadata.imageUrl && !metadata.downloadUrl}
+                <a href={metadata.imageUrl} target="_blank">View full image</a>
+              {/if}
+            </div>
+          </div>
+        </Modal>
+      {/if}
+    {:else if plugin === "getty" || plugin === "mauritshuis" || plugin === "nga" || plugin === "rijksmuseum"}
+      {@const metadata = $settingState.wallpaper.plugins[plugin].metadata}
+      {#if metadata}
+        <Modal
+          heading={metadata.title || "Artwork Details"}
+          bind:showModal={showWallpaperInfo}
+        >
+          <div class="WallpaperDetails">
+            {#if metadata.artist}
+              <p><strong>Artist:</strong> {metadata.artist}</p>
+            {/if}
+            {#if metadata.date}
+              <p><strong>Date:</strong> {metadata.date}</p>
+            {/if}
+            {#if metadata.tags && metadata.tags.length > 0}
+              <p><strong>Tags:</strong> {metadata.tags.join(", ")}</p>
+            {/if}
+            {#if metadata.source}
+              <p><strong>Source:</strong> {metadata.source.toUpperCase()}</p>
+            {/if}
+            <div class="WallpaperDetails--calltoaction">
+              {#if metadata.sourceUrl}
+                <a href={metadata.sourceUrl} target="_blank">
+                  View on Museum Website
+                </a>
+              {/if}
+              {#if metadata.imageUrl}
+                <a href={metadata.imageUrl} target="_blank">View full image</a>
+              {/if}
+            </div>
+          </div>
+        </Modal>
+      {/if}
+    {/if}
   {/if}
 {/if}

@@ -1,6 +1,11 @@
 import { get } from "svelte/store";
 import { SettingStore } from "../settings/settings.store";
 import { NASAEngineImpl } from "../image/engines/nasa/nasa.engine";
+import { AICEngineImpl } from "../image/engines/aic.engine";
+import { GettyEngineImpl } from "../image/engines/getty.engine";
+import { MauritshuisEngineImpl } from "../image/engines/mauritshuis.engine";
+import { NGAEngineImpl } from "../image/engines/nga.engine";
+import { RijksEngineImpl } from "../image/engines/rijks.engine";
 import { AppStateStore } from "../settings/appState.store";
 
 /**
@@ -11,6 +16,11 @@ import { AppStateStore } from "../settings/appState.store";
 export class WallpaperManagerImpl {
   private unsubscribe: () => void;
   private _nasaEngine = new NASAEngineImpl("DEMO_KEY");
+  private _aicEngine = new AICEngineImpl();
+  private _gettyEngine = new GettyEngineImpl();
+  private _mauritshuisEngine = new MauritshuisEngineImpl();
+  private _ngaEngine = new NGAEngineImpl();
+  private _rijksEngine = new RijksEngineImpl("");
 
   constructor() {
     this.unsubscribe = SettingStore.subscribe((settings) => {
@@ -28,6 +38,26 @@ export class WallpaperManagerImpl {
 
   get NASAEngine() {
     return this._nasaEngine;
+  }
+
+  get AICEngine() {
+    return this._aicEngine;
+  }
+
+  get GettyEngine() {
+    return this._gettyEngine;
+  }
+
+  get MauritshuisEngine() {
+    return this._mauritshuisEngine;
+  }
+
+  get NGAEngine() {
+    return this._ngaEngine;
+  }
+
+  get RijksEngine() {
+    return this._rijksEngine;
   }
 
   /**
@@ -65,6 +95,10 @@ export class WallpaperManagerImpl {
               category: "apod";
               date: Date;
             };
+      }
+    | {
+        type: "aic" | "getty" | "mauritshuis" | "nga" | "rijksmuseum";
+        options: { searchTag: string };
       }) {
     if (type === "preset") {
       const presetUrl = options.url;
@@ -107,6 +141,43 @@ export class WallpaperManagerImpl {
           return state;
         });
       }
+    } else if (
+      type === "aic" ||
+      type === "getty" ||
+      type === "mauritshuis" ||
+      type === "nga" ||
+      type === "rijksmuseum"
+    ) {
+      let engine;
+      switch (type) {
+        case "aic":
+          engine = this._aicEngine;
+          break;
+        case "getty":
+          engine = this._gettyEngine;
+          break;
+        case "mauritshuis":
+          engine = this._mauritshuisEngine;
+          break;
+        case "nga":
+          engine = this._ngaEngine;
+          break;
+        case "rijksmuseum":
+          engine = this._rijksEngine;
+          break;
+      }
+
+      const results = await engine.getRandom(options.searchTag, 1);
+      if (results.length > 0) {
+        const wallpaper = results[0];
+        SettingStore.update((state) => {
+          state.wallpaper.activePlugin = type;
+          state.wallpaper.url = wallpaper.imageUrl || "";
+          state.wallpaper.plugins[type].metadata = wallpaper;
+          state.wallpaper.plugins[type].lastSearch = options.searchTag;
+          return state;
+        });
+      }
     }
   }
 
@@ -130,37 +201,93 @@ export class WallpaperManagerImpl {
   }
 
   /**
-   * Refresh nasa wallpaper if the active plugin is nasa and mode is dynamic
+   * Refresh the current wallpaper by fetching a new random image from the active engine
    */
-  public async refreshNASA() {
+  public async refresh() {
     const settings = get(SettingStore);
-    if (settings.wallpaper.activePlugin === "nasa") {
-      AppStateStore.update((state) => {
-        state.wallpaper.isWallpaperLoading = true;
-        return state;
-      });
+    const activePlugin = settings.wallpaper.activePlugin;
 
-      const results = await this._nasaEngine.getRandom("", 1);
-      const wallpaper = results[0];
-      SettingStore.update((state) => {
-        state.wallpaper.url = wallpaper.imageUrl || "";
-        state.wallpaper.plugins.nasa.metadata = wallpaper.raw;
+    // Don't refresh preset wallpapers
+    if (activePlugin === "preset") {
+      return;
+    }
+
+    AppStateStore.update((state) => {
+      state.wallpaper.isWallpaperLoading = true;
+      return state;
+    });
+
+    try {
+      if (activePlugin === "nasa") {
+        const results = await this._nasaEngine.getRandom("", 1);
+        const wallpaper = results[0];
+        SettingStore.update((state) => {
+          state.wallpaper.url = wallpaper.imageUrl || "";
+          state.wallpaper.plugins.nasa.metadata = wallpaper.raw;
+          
+          // When refreshing, always set to dynamic mode and clear static date
+          state.wallpaper.plugins.nasa.mode = "dynamic";
+          delete state.wallpaper.plugins.nasa.staticDate;
+          state.wallpaper.plugins.nasa.lastUpdate = new Date(
+            new Date().setHours(0, 0, 0, 0),
+          );
+
+          return state;
+        });
+      } else if (
+        activePlugin === "aic" ||
+        activePlugin === "getty" ||
+        activePlugin === "mauritshuis" ||
+        activePlugin === "nga" ||
+        activePlugin === "rijksmuseum"
+      ) {
+        let engine;
+        switch (activePlugin) {
+          case "aic":
+            engine = this._aicEngine;
+            break;
+          case "getty":
+            engine = this._gettyEngine;
+            break;
+          case "mauritshuis":
+            engine = this._mauritshuisEngine;
+            break;
+          case "nga":
+            engine = this._ngaEngine;
+            break;
+          case "rijksmuseum":
+            engine = this._rijksEngine;
+            break;
+        }
+
+        // Use the last search tag or a default one
+        const searchTag = settings.wallpaper.plugins[activePlugin].lastSearch || "art";
+        const results = await engine.getRandom(searchTag, 1);
         
-        // When refreshing, always set to dynamic mode and clear static date
-        state.wallpaper.plugins.nasa.mode = "dynamic";
-        delete state.wallpaper.plugins.nasa.staticDate;
-        state.wallpaper.plugins.nasa.lastUpdate = new Date(
-          new Date().setHours(0, 0, 0, 0),
-        );
-
-        return state;
-      });
-
+        if (results.length > 0) {
+          const wallpaper = results[0];
+          SettingStore.update((state) => {
+            state.wallpaper.url = wallpaper.imageUrl || "";
+            state.wallpaper.plugins[activePlugin].metadata = wallpaper;
+            return state;
+          });
+        }
+      }
+    } catch (error) {
+      console.error(`Failed to refresh ${activePlugin} wallpaper:`, error);
+    } finally {
       AppStateStore.update((state) => {
         state.wallpaper.isWallpaperLoading = false;
         return state;
       });
     }
+  }
+
+  /**
+   * @deprecated Use refresh() instead. Kept for backward compatibility.
+   */
+  public async refreshNASA() {
+    return this.refresh();
   }
 
   /**

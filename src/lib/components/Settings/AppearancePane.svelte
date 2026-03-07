@@ -166,7 +166,70 @@
       </p>
     </div>
 
-    <!-- Add your appearance settings UI here -->
+    <!-- Art Museum Wallpapers -->
+    <div class="Museums blur-thin">
+      <div class="Museums__header">
+        <h4>Art Museum Wallpapers</h4>
+        <p>Random artwork from major art museums</p>
+      </div>
+      <div class="Museums__options">
+        <button
+          class="CrispButton"
+          onclick={async () => {
+            await WallpaperManager.setWallpaper({
+              type: "aic",
+              options: { searchTag: "landscape" },
+            });
+          }}
+        >
+          Art Institute of Chicago
+        </button>
+        <button
+          class="CrispButton"
+          onclick={async () => {
+            await WallpaperManager.setWallpaper({
+              type: "getty",
+              options: { searchTag: "painting" },
+            });
+          }}
+        >
+          Getty Museum
+        </button>
+        <button
+          class="CrispButton"
+          onclick={async () => {
+            await WallpaperManager.setWallpaper({
+              type: "mauritshuis",
+              options: { searchTag: "art" },
+            });
+          }}
+        >
+          Mauritshuis
+        </button>
+        <button
+          class="CrispButton"
+          onclick={async () => {
+            await WallpaperManager.setWallpaper({
+              type: "nga",
+              options: { searchTag: "landscape" },
+            });
+          }}
+        >
+          National Gallery of Art
+        </button>
+        <button
+          class="CrispButton"
+          onclick={async () => {
+            await WallpaperManager.setWallpaper({
+              type: "rijksmuseum",
+              options: { searchTag: "painting" },
+            });
+          }}
+        >
+          Rijksmuseum
+        </button>
+      </div>
+    </div>
   </section>
 
   <section class="Appearance__preset">
@@ -391,6 +454,59 @@
         font-weight: 500;
         text-decoration: underline;
         color: var(--colors-cyan);
+      }
+    }
+  }
+
+  .Museums {
+    width: 100%;
+    padding: 10px;
+    margin-top: 20px;
+    border-radius: 20px;
+    border: 1px solid var(--separator-secondary);
+
+    @supports (corner-shape: squircle) {
+      border-radius: 40px;
+      corner-shape: squircle;
+    }
+    @include box($height: auto, $width: 100%);
+    @include make-flex($dir: column, $align: flex-start, $just: flex-start);
+
+    &__header {
+      width: 100%;
+      padding: 0 8px;
+      margin-bottom: 10px;
+      @include make-flex(
+        $dir: column,
+        $align: flex-start,
+        $just: center,
+        $gap: 4px
+      );
+
+      & > h4 {
+        font-size: 20px;
+        font-weight: 600;
+        color: var(--vibrant-labels-primary);
+      }
+
+      & > p {
+        font-size: 14px;
+        color: var(--vibrant-labels-secondary);
+      }
+    }
+
+    &__options {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 8px;
+
+      & > button.CrispButton {
+        width: 100%;
+        height: auto;
+        padding: 12px 16px;
+        font-size: 14px;
+        text-align: left;
       }
     }
   }
