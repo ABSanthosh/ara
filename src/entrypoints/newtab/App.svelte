@@ -18,6 +18,7 @@
   import ClockFlip from "@/lib/components/widgets/Clock/ClockFlip.svelte";
   import ClockClassicAnalog from "@/lib/components/widgets/Clock/ClockClassicAnalog.svelte";
   import ClockSemiDigital from "@/lib/components/widgets/Clock/ClockSemiDigital.svelte";
+  import ArtGallery from "@/lib/components/widgets/ArtGallery.svelte";
 
   // Init modules
   const settingState = $state(SettingStore.state);
@@ -140,6 +141,8 @@
       <ClockSemiDigital {widget} />
     {:else if widget.type === "flip-clock"}
       <ClockFlip {widget} />
+    {:else if widget.type === "art-gallery"}
+      <ArtGallery {widget} />
     {/if}
   {/each}
 </Grid>

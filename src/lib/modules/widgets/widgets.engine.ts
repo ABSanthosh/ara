@@ -1,6 +1,7 @@
 import { get } from "svelte/store";
 import nanoid from "@/lib/utils/nanoid";
 import { CatStore } from "../cats/cats.stores";
+import { ImageStore } from "../image/image.store";
 import { TSettingStore } from "../settings/settings.types";
 import type { Widgets } from "@/lib/modules/widgets/widgets.types";
 import { SettingStore } from "@/lib/modules/settings/settings.store";
@@ -88,10 +89,13 @@ class WidgetEngineImpl {
   public removeWidget(widgetId: string) {
     const widget = this.widgets[widgetId];
 
-    // Clean up widget-specific resources
-    if (widget && widget.type === "cat") {
-      // Import CatStore dynamically to avoid circular dependency
-      CatStore.removeMagazine(widgetId);
+    // Clean up widget-specific resources BEFORE removing from store
+    if (widget) {
+      if (widget.type === "cat") {
+        CatStore.removeMagazine(widgetId);
+      } else if (widget.type === "art-gallery") {
+        ImageStore.removeMagazine(widgetId);
+      }
     }
 
     SettingStore.update((state) => {
