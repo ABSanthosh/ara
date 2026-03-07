@@ -2,6 +2,7 @@
   import { onMount } from "svelte";
   import { draggable } from "@/lib/modules/widgets/utils/draggable.svelte";
   import { resizable } from "@/lib/modules/widgets/utils/resizable.svelte";
+  import { flippable } from "@/lib/modules/widgets/utils/flippable.svelte";
   import type {
     ClockWidgetFlip,
     ClockWidgetFlipSpan,
@@ -72,6 +73,8 @@
     resizeProgress: "idle",
   });
 
+  let isFlipped = $state(false);
+
   onMount(() => {
     // Skip timer registration if in demo mode
     if (widget.isDemo) {
@@ -87,6 +90,71 @@
     };
   });
 </script>
+
+{#snippet front()}
+  <div class="widget-front-face">
+    {#if config.resizeProgress === "idle"}
+      <NumberFlowGroup>
+        <div class="clock-box">
+          <div class="segment">
+            <NumberFlow
+              value={hh}
+              format={{ minimumIntegerDigits: 2 }}
+              trend={0}
+            />
+          </div>
+          <div class="colon">:</div>
+          <div class="segment">
+            <NumberFlow
+              value={mm}
+              format={{ minimumIntegerDigits: 2 }}
+              digits={{ 1: { max: 5 } }}
+              trend={0}
+            />
+          </div>
+          <div class="colon">:</div>
+          <div class="segment">
+            <NumberFlow
+              value={ss}
+              format={{ minimumIntegerDigits: 2 }}
+              digits={{ 1: { max: 5 } }}
+              trend={0}
+            />
+          </div>
+        </div>
+      </NumberFlowGroup>
+      <div class="date-display">
+        {dateFormats.weekday.short},
+        {dateFormats.month.short}
+        {dateFormats.date["2-digit"]},{" "}
+        {dateFormats.year.numeric}
+      </div>
+    {/if}
+  </div>
+{/snippet}
+
+{#snippet back()}
+  <div class="widget-back-face">
+    <div class="widget-back-face__content">
+      <h3>Clock Settings</h3>
+      <div class="setting-group">
+        <label>
+          <input type="checkbox" checked={widget.settings.showSeconds} />
+          Show Seconds
+        </label>
+      </div>
+      <div class="setting-group">
+        <label for="city-{widget.id}">City:</label>
+        <input
+          id="city-{widget.id}"
+          type="text"
+          value={widget.settings.city || ""}
+          placeholder="City name"
+        />
+      </div>
+    </div>
+  </div>
+{/snippet}
 
 <div
   data-size={config.size}
@@ -104,6 +172,12 @@
     },
     isDemo: widget.isDemo,
   }}
+  use:flippable={{
+    widgetId: widget.id!,
+    isDemo: widget.isDemo,
+    onFlip: () => (isFlipped = true),
+    onFlipBack: () => (isFlipped = false),
+  }}
   style="
     grid-area: {widget.pos.row} / {widget.pos.col} / {widget.pos.row +
     widget.span.y} / {widget.pos.col + widget.span.x};
@@ -114,43 +188,9 @@
     : '40px'};
   "
 >
-  {#if config.resizeProgress === "idle"}
-    <NumberFlowGroup>
-      <div class="clock-box">
-        <div class="segment">
-          <NumberFlow
-            value={hh}
-            format={{ minimumIntegerDigits: 2 }}
-            trend={0}
-          />
-        </div>
-        <div class="colon">:</div>
-        <div class="segment">
-          <NumberFlow
-            value={mm}
-            format={{ minimumIntegerDigits: 2 }}
-            digits={{ 1: { max: 5 } }}
-            trend={0}
-          />
-        </div>
-        <div class="colon">:</div>
-        <div class="segment">
-          <NumberFlow
-            value={ss}
-            format={{ minimumIntegerDigits: 2 }}
-            digits={{ 1: { max: 5 } }}
-            trend={0}
-          />
-        </div>
-      </div>
-    </NumberFlowGroup>
-    <div class="date-display">
-      {dateFormats.weekday.short},
-      {dateFormats.month.short}
-      {dateFormats.date["2-digit"]},{" "}
-      {dateFormats.year.numeric}
-    </div>
-  {:else}
+  {@render front()}
+  {@render back()}
+  {#if config.resizeProgress === "resizing"}
     <div class="resize-progress">
       <Expand size="24" color="var(--views-thicker)" />
     </div>
@@ -165,39 +205,114 @@
     @include make-flex();
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
     border: 1px solid var(--separator-secondary);
+    position: relative;
+
+    .widget-front-face {
+      @include box();
+      @include make-flex();
+      backface-visibility: hidden;
+      transform: rotateY(0deg);
+      border-radius: 20px;
+    }
+
+    .widget-back-face {
+      @include box();
+      @include make-flex();
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.49);
+      backdrop-filter: blur(26px) saturate(170%) brightness(1.04);
+      border-radius: 20px;
+      backface-visibility: hidden;
+      transform: rotateY(180deg);
+      pointer-events: none;
+
+      &__content {
+        color: white;
+        padding: 20px;
+        width: 100%;
+        max-height: 100%;
+        overflow-y: auto;
+
+        h3 {
+          margin: 0 0 20px 0;
+          font-size: 18px;
+          font-weight: 600;
+        }
+
+        .setting-group {
+          margin-bottom: 15px;
+
+          label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 5px;
+            font-size: 12px;
+            opacity: 0.8;
+            cursor: pointer;
+
+            input[type="checkbox"] {
+              width: auto;
+            }
+          }
+
+          select,
+          input[type="text"],
+          input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+
+            &:focus {
+              outline: none;
+              border-color: var(--widget-color, #6366f1);
+            }
+          }
+        }
+      }
+    }
 
     & > * {
       user-select: none;
     }
 
     &[data-size="horizontal"] {
-      gap: 15px;
+      .widget-front-face {
+        gap: 15px;
 
-      .clock-box {
-        gap: 8px;
-        flex-direction: row;
-      }
-      .segment {
-        font-size: 45px;
-      }
-      .colon {
-        margin-top: -6px;
-        font-size: var(--segment-width);
+        .clock-box {
+          gap: 8px;
+          flex-direction: row;
+        }
+        .segment {
+          font-size: 45px;
+        }
+        .colon {
+          margin-top: -6px;
+          font-size: var(--segment-width);
+        }
       }
     }
 
     &[data-size="vertical"] {
-      .clock-box {
-        gap: 4px;
-        height: 100%;
-        flex-direction: column;
-      }
-      .segment {
-        height: 50px;
-        font-size: 45px;
-      }
-      .colon {
-        display: none;
+      .widget-front-face {
+        .clock-box {
+          gap: 4px;
+          height: 100%;
+          flex-direction: column;
+        }
+        .segment {
+          height: 50px;
+          font-size: 45px;
+        }
+        .colon {
+          display: none;
+        }
       }
     }
   }

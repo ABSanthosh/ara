@@ -5,6 +5,7 @@
   import BlurredSpinner from "../Spinner/BlurredSpinner.svelte";
   import { draggable } from "@/lib/modules/widgets/utils/draggable.svelte";
   import { resizable } from "@/lib/modules/widgets/utils/resizable.svelte";
+  import { flippable } from "@/lib/modules/widgets/utils/flippable.svelte";
   import type { CatWidget, CatSpan } from "@/lib/modules/widgets/widgets.types";
 
   let {
@@ -31,6 +32,7 @@
   let timer: ReturnType<typeof setTimeout> | undefined;
   let storeUnsubscribe: (() => void) | undefined;
   let hasIncrementedOnMount = $state(false);
+  let isFlipped = $state(false);
 
   // Reactively get the current cat from the store without incrementing timesAccessed
   // If demoImageUrl is provided, use that instead
@@ -114,6 +116,50 @@
   });
 </script>
 
+{#snippet front()}
+  <div class="widget-front-face" style="background-image: url('{currentCat?.imageUrl}');">
+    {#if !currentCat && tooLong}
+      <BlurredSpinner className="cat-spinner">
+        {#if config.size === "large"}
+          <h3>
+            <em>Cats are napping,<br /> please wait...</em>
+          </h3>
+        {/if}
+      </BlurredSpinner>
+    {:else if !currentCat}
+      <BlurredSpinner className="cat-spinner" />
+    {/if}
+  </div>
+{/snippet}
+
+{#snippet back()}
+  <div class="widget-back-face">
+    <div class="widget-back-face__content">
+      <h3>Cat Settings</h3>
+      <div class="setting-group">
+        <label for="magazineSize-{widget.id}">Magazine Size:</label>
+        <input 
+          id="magazineSize-{widget.id}" 
+          type="number" 
+          min="5" 
+          max="20" 
+          value={widget.settings.magazineSize ?? 7} 
+        />
+      </div>
+      <div class="setting-group">
+        <label for="maxAccess-{widget.id}">Max Access:</label>
+        <input 
+          id="maxAccess-{widget.id}" 
+          type="number" 
+          min="1" 
+          max="10" 
+          value={widget.settings.maxAccess ?? 1} 
+        />
+      </div>
+    </div>
+  </div>
+{/snippet}
+
 <div
   class="cat-box blur-thin"
   use:draggable={{ widgetId: widget.id!, isDemo: widget.isDemo }}
@@ -128,23 +174,19 @@
     },
     isDemo: widget.isDemo,
   }}
+  use:flippable={{
+    widgetId: widget.id!,
+    isDemo: widget.isDemo,
+    onFlip: () => (isFlipped = true),
+    onFlipBack: () => (isFlipped = false),
+  }}
   style="
     grid-area: {widget.pos.row} / {widget.pos.col} / {widget.pos.row +
     widget.span.y} / {widget.pos.col + widget.span.x};
-    background-image: url('{currentCat?.imageUrl}');
   "
 >
-  {#if !currentCat && tooLong}
-    <BlurredSpinner className="cat-spinner">
-      {#if config.size === "large"}
-        <h3>
-          <em>Cats are napping,<br /> please wait...</em>
-        </h3>
-      {/if}
-    </BlurredSpinner>
-  {:else if !currentCat}
-    <BlurredSpinner className="cat-spinner" />
-  {/if}
+  {@render front()}
+  {@render back()}
 </div>
 
 <style lang="scss">
@@ -152,9 +194,71 @@
     @include box();
     border-radius: 20px;
     @include make-flex();
-    background-size: cover;
-    background-position: center;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    position: relative;
+
+    .widget-front-face {
+      @include box();
+      @include make-flex();
+      background-size: cover;
+      background-position: center;
+      border-radius: 20px;
+      backface-visibility: hidden;
+      transform: rotateY(0deg);
+    }
+
+    .widget-back-face {
+      @include box();
+      @include make-flex();
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.49);
+      backdrop-filter: blur(26px) saturate(170%) brightness(1.04);
+      border-radius: 20px;
+      backface-visibility: hidden;
+      transform: rotateY(180deg);
+      pointer-events: none;
+
+      &__content {
+        color: white;
+        padding: 20px;
+        width: 100%;
+        max-height: 100%;
+        overflow-y: auto;
+
+        h3 {
+          margin: 0 0 20px 0;
+          font-size: 18px;
+          font-weight: 600;
+        }
+
+        .setting-group {
+          margin-bottom: 15px;
+
+          label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 12px;
+            opacity: 0.8;
+          }
+
+          select, input {
+            width: 100%;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+
+            &:focus {
+              outline: none;
+              border-color: var(--widget-color, #6366f1);
+            }
+          }
+        }
+      }
+    }
 
     :global(.cat-spinner) {
       padding: 20px;

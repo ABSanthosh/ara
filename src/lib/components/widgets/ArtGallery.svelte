@@ -14,6 +14,7 @@
   import BlurredSpinner from "../Spinner/BlurredSpinner.svelte";
   import { draggable } from "@/lib/modules/widgets/utils/draggable.svelte";
   import { resizable } from "@/lib/modules/widgets/utils/resizable.svelte";
+  import { flippable } from "@/lib/modules/widgets/utils/flippable.svelte";
   import type {
     ArtGalleryWidget,
     ArtGallerySpan,
@@ -52,6 +53,7 @@
   let timer: ReturnType<typeof setTimeout> | undefined;
   let storeUnsubscribe: (() => void) | undefined;
   let hasIncrementedOnMount = $state(false);
+  let isFlipped = $state(false);
 
   // Get the appropriate engine based on widget settings
   const engine = $derived(
@@ -168,6 +170,56 @@
   });
 </script>
 
+{#snippet front()}
+  <div class="widget-front-face" style="background-image: url('{currentArtwork?.imageUrl}');">
+    {#if !currentArtwork && tooLong}
+      <BlurredSpinner className="art-spinner">
+        {#if config.size !== "standard"}
+          <h3>
+            <em>Loading artwork,<br /> please wait...</em>
+          </h3>
+        {/if}
+      </BlurredSpinner>
+    {:else if !currentArtwork}
+      <BlurredSpinner className="art-spinner" />
+    {:else}
+      <div class="artwork-info">
+        <div class="artwork-title">{currentArtwork.title}</div>
+        {#if currentArtwork.artist}
+          <div class="artwork-artist">{currentArtwork.artist}</div>
+        {/if}
+        {#if currentArtwork.date}
+          <div class="artwork-date">{currentArtwork.date}</div>
+        {/if}
+      </div>
+    {/if}
+  </div>
+{/snippet}
+
+{#snippet back()}
+  <div class="widget-back-face">
+    <div class="widget-back-face__content">
+      <h3>Art Gallery Settings</h3>
+      <div class="setting-group">
+        <label for="source-{widget.id}">Source:</label>
+        <select id="source-{widget.id}" value={widget.settings.source}>
+          <option value="aic">Art Institute of Chicago</option>
+          <option value="nga">National Gallery of Art</option>
+        </select>
+      </div>
+      <div class="setting-group">
+        <label for="refresh-{widget.id}">Refresh:</label>
+        <select id="refresh-{widget.id}" value={widget.settings.refreshInterval}>
+          <option value="newTab">On New Tab</option>
+          <option value="10 min">10 Minutes</option>
+          <option value="30 min">30 Minutes</option>
+          <option value="24 hr">24 Hours</option>
+        </select>
+      </div>
+    </div>
+  </div>
+{/snippet}
+
 <div
   class="art-gallery blur-thin"
   data-size={config.size}
@@ -188,33 +240,19 @@
     },
     isDemo: widget.isDemo,
   }}
+  use:flippable={{
+    widgetId: widget.id!,
+    isDemo: widget.isDemo,
+    onFlip: () => (isFlipped = true),
+    onFlipBack: () => (isFlipped = false),
+  }}
   style="
     grid-area: {widget.pos.row} / {widget.pos.col} / {widget.pos.row +
     widget.span.y} / {widget.pos.col + widget.span.x};
-    background-image: url('{currentArtwork?.imageUrl}');
   "
 >
-  {#if !currentArtwork && tooLong}
-    <BlurredSpinner className="art-spinner">
-      {#if config.size !== "standard"}
-        <h3>
-          <em>Loading artwork,<br /> please wait...</em>
-        </h3>
-      {/if}
-    </BlurredSpinner>
-  {:else if !currentArtwork}
-    <BlurredSpinner className="art-spinner" />
-  {:else}
-    <div class="artwork-info">
-      <div class="artwork-title">{currentArtwork.title}</div>
-      {#if currentArtwork.artist}
-        <div class="artwork-artist">{currentArtwork.artist}</div>
-      {/if}
-      {#if currentArtwork.date}
-        <div class="artwork-date">{currentArtwork.date}</div>
-      {/if}
-    </div>
-  {/if}
+  {@render front()}
+  {@render back()}
 </div>
 
 <style lang="scss">
@@ -222,13 +260,74 @@
     @include box();
     border-radius: 20px;
     @include make-flex();
-    background-size: cover;
-    background-position: center;
     position: relative;
     
     // Use inset shadow instead of regular shadow to avoid overflow:hidden
     box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1),
                 inset 0 2px 8px rgba(0, 0, 0, 0.15);
+
+    .widget-front-face {
+      @include box();
+      @include make-flex();
+      background-size: cover;
+      background-position: center;
+      border-radius: 20px;
+      backface-visibility: hidden;
+      transform: rotateY(0deg);
+    }
+
+    .widget-back-face {
+      @include box();
+      @include make-flex();
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.49);
+      backdrop-filter: blur(26px) saturate(170%) brightness(1.04);
+      border-radius: 20px;
+      backface-visibility: hidden;
+      transform: rotateY(180deg);
+      pointer-events: none;
+
+      &__content {
+        color: white;
+        padding: 20px;
+        width: 100%;
+        max-height: 100%;
+        overflow-y: auto;
+
+        h3 {
+          margin: 0 0 20px 0;
+          font-size: 18px;
+          font-weight: 600;
+        }
+
+        .setting-group {
+          margin-bottom: 15px;
+
+          label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 12px;
+            opacity: 0.8;
+          }
+
+          select, input {
+            width: 100%;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+
+            &:focus {
+              outline: none;
+              border-color: var(--widget-color, #6366f1);
+            }
+          }
+        }
+      }
+    }
 
     :global(.art-spinner) {
       padding: 20px;
