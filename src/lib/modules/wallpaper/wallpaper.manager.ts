@@ -1,6 +1,6 @@
 import { get } from "svelte/store";
 import { SettingStore } from "../settings/settings.store";
-import { NASAEngineImpl } from "./nasa/nasa.engine";
+import { NASAEngineImpl } from "../image/engines/nasa/nasa.engine";
 import { AppStateStore } from "../settings/appState.store";
 
 /**
@@ -75,13 +75,15 @@ export class WallpaperManagerImpl {
       });
     } else if (type === "nasa") {
       if (options.mode === "dynamic") {
-        const wallpaper = await this._nasaEngine.getAPOD();
+        // Don't specify a date - let NASA API return the latest available APOD
+        const results = await this._nasaEngine.search("", 1, {});
+        const wallpaper = results[0];
         SettingStore.update((state) => {
           state.wallpaper.activePlugin = "nasa";
 
           // if the hdurl exists, use that else use url
-          state.wallpaper.url = wallpaper.hdurl || wallpaper.url;
-          state.wallpaper.plugins.nasa.metadata = wallpaper;
+          state.wallpaper.url = wallpaper.imageUrl || "";
+          state.wallpaper.plugins.nasa.metadata = wallpaper.raw;
           state.wallpaper.plugins.nasa.mode = "dynamic";
           state.wallpaper.plugins.nasa.category = "apod";
           state.wallpaper.plugins.nasa.lastUpdate = new Date(
@@ -92,11 +94,12 @@ export class WallpaperManagerImpl {
         });
       } else if (options.mode === "static") {
         const dateStr = options.date.toISOString().split("T")[0];
-        const wallpaper = await this._nasaEngine.getAPOD({ date: dateStr });
+        const results = await this._nasaEngine.search("", 1, { date: dateStr });
+        const wallpaper = results[0];
         SettingStore.update((state) => {
           state.wallpaper.activePlugin = "nasa";
-          state.wallpaper.url = wallpaper.hdurl || wallpaper.url;
-          state.wallpaper.plugins.nasa.metadata = wallpaper;
+          state.wallpaper.url = wallpaper.imageUrl || "";
+          state.wallpaper.plugins.nasa.metadata = wallpaper.raw;
           state.wallpaper.plugins.nasa.mode = "static";
           state.wallpaper.plugins.nasa.category = "apod";
           state.wallpaper.plugins.nasa.staticDate = options.date;
@@ -137,10 +140,18 @@ export class WallpaperManagerImpl {
         return state;
       });
 
-      const wallpaper = await this._nasaEngine.getRandomAPOD();
+      const results = await this._nasaEngine.getRandom("", 1);
+      const wallpaper = results[0];
       SettingStore.update((state) => {
-        state.wallpaper.url = wallpaper.hdurl || wallpaper.url;
-        state.wallpaper.plugins.nasa.metadata = wallpaper;
+        state.wallpaper.url = wallpaper.imageUrl || "";
+        state.wallpaper.plugins.nasa.metadata = wallpaper.raw;
+        
+        // When refreshing, always set to dynamic mode and clear static date
+        state.wallpaper.plugins.nasa.mode = "dynamic";
+        delete state.wallpaper.plugins.nasa.staticDate;
+        state.wallpaper.plugins.nasa.lastUpdate = new Date(
+          new Date().setHours(0, 0, 0, 0),
+        );
 
         return state;
       });
@@ -158,7 +169,7 @@ export class WallpaperManagerImpl {
    */
   private async checkDailyUpdate() {
     const settings = get(SettingStore);
-    
+
     // Only check if NASA APOD is active and in dynamic mode
     if (
       settings.wallpaper.activePlugin !== "nasa" ||
@@ -174,12 +185,13 @@ export class WallpaperManagerImpl {
     // Check if lastUpdate exists and if it's a different day
     if (!lastUpdate || new Date(lastUpdate).getTime() !== today.getTime()) {
       try {
-        // Fetch the latest APOD
-        const wallpaper = await this._nasaEngine.getAPOD();
-        
+        // Fetch the latest APOD - don't specify date to avoid future date issues
+        const results = await this._nasaEngine.search("", 1, {});
+        const wallpaper = results[0];
+
         SettingStore.update((state) => {
-          state.wallpaper.url = wallpaper.hdurl || wallpaper.url;
-          state.wallpaper.plugins.nasa.metadata = wallpaper;
+          state.wallpaper.url = wallpaper.imageUrl || "";
+          state.wallpaper.plugins.nasa.metadata = wallpaper.raw;
           state.wallpaper.plugins.nasa.lastUpdate = today;
           return state;
         });

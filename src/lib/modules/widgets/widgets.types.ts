@@ -31,6 +31,13 @@ export type CatSpan =
 
 export type ChecklistSpan = { x: 2; y: 2 }; // Only 2x2 size allowed
 
+export type ArtGallerySpan =
+  | { x: 2; y: 2 } // Standard widget
+  | { x: 3; y: 2 }
+  | { x: 3; y: 3 }
+  | { x: 4; y: 3 }
+  | { x: 4; y: 4 }; // Large widget
+
 export type TestWidgetSpan =
   | { x: 1; y: 1 }
   | { x: 2; y: 2 }
@@ -107,6 +114,18 @@ export type TestWidget = Widget & {
   type: "test-widget";
   span: TestWidgetSpan;
   settings: {};
+  isDemo?: boolean;
+};
+
+// ========= ArtGallery Widget Types =========
+
+export type ArtGalleryWidget = Widget & {
+  type: "art-gallery";
+  span: ArtGallerySpan;
+  settings: {
+    category: string;
+    favorites: string[]; // Array of favorite artwork IDs
+  };
   isDemo?: boolean;
 };
 

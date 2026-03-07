@@ -1,3 +1,7 @@
+<!-- Options
+- Frames: None, some good frames 
+
+-->
 <script lang="ts">
   import { draggable } from "@/lib/modules/widgets/utils/draggable.svelte";
   import { resizable } from "@/lib/modules/widgets/utils/resizable.svelte";
