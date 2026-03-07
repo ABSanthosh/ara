@@ -2,10 +2,7 @@ import { get } from "svelte/store";
 import { SettingStore } from "../settings/settings.store";
 import { NASAEngineImpl } from "../image/engines/nasa/nasa.engine";
 import { AICEngineImpl } from "../image/engines/aic.engine";
-import { GettyEngineImpl } from "../image/engines/getty.engine";
-import { MauritshuisEngineImpl } from "../image/engines/mauritshuis.engine";
 import { NGAEngineImpl } from "../image/engines/nga.engine";
-import { RijksEngineImpl } from "../image/engines/rijks.engine";
 import { AppStateStore } from "../settings/appState.store";
 
 /**
@@ -17,10 +14,7 @@ export class WallpaperManagerImpl {
   private unsubscribe: () => void;
   private _nasaEngine = new NASAEngineImpl("DEMO_KEY");
   private _aicEngine = new AICEngineImpl();
-  private _gettyEngine = new GettyEngineImpl();
-  private _mauritshuisEngine = new MauritshuisEngineImpl();
   private _ngaEngine = new NGAEngineImpl();
-  private _rijksEngine = new RijksEngineImpl("");
 
   constructor() {
     this.unsubscribe = SettingStore.subscribe((settings) => {
@@ -44,20 +38,8 @@ export class WallpaperManagerImpl {
     return this._aicEngine;
   }
 
-  get GettyEngine() {
-    return this._gettyEngine;
-  }
-
-  get MauritshuisEngine() {
-    return this._mauritshuisEngine;
-  }
-
   get NGAEngine() {
     return this._ngaEngine;
-  }
-
-  get RijksEngine() {
-    return this._rijksEngine;
   }
 
   /**
@@ -97,7 +79,7 @@ export class WallpaperManagerImpl {
             };
       }
     | {
-        type: "aic" | "getty" | "mauritshuis" | "nga" | "rijksmuseum";
+        type: "aic" | "nga";
         options: { searchTag: string };
       }) {
     if (type === "preset") {
@@ -141,29 +123,14 @@ export class WallpaperManagerImpl {
           return state;
         });
       }
-    } else if (
-      type === "aic" ||
-      type === "getty" ||
-      type === "mauritshuis" ||
-      type === "nga" ||
-      type === "rijksmuseum"
-    ) {
+    } else if (type === "aic" || type === "nga") {
       let engine;
       switch (type) {
         case "aic":
           engine = this._aicEngine;
           break;
-        case "getty":
-          engine = this._gettyEngine;
-          break;
-        case "mauritshuis":
-          engine = this._mauritshuisEngine;
-          break;
         case "nga":
           engine = this._ngaEngine;
-          break;
-        case "rijksmuseum":
-          engine = this._rijksEngine;
           break;
       }
 
@@ -234,29 +201,14 @@ export class WallpaperManagerImpl {
 
           return state;
         });
-      } else if (
-        activePlugin === "aic" ||
-        activePlugin === "getty" ||
-        activePlugin === "mauritshuis" ||
-        activePlugin === "nga" ||
-        activePlugin === "rijksmuseum"
-      ) {
+      } else if (activePlugin === "aic" || activePlugin === "nga") {
         let engine;
         switch (activePlugin) {
           case "aic":
             engine = this._aicEngine;
             break;
-          case "getty":
-            engine = this._gettyEngine;
-            break;
-          case "mauritshuis":
-            engine = this._mauritshuisEngine;
-            break;
           case "nga":
             engine = this._ngaEngine;
-            break;
-          case "rijksmuseum":
-            engine = this._rijksEngine;
             break;
         }
 

@@ -40,7 +40,7 @@ export type TSettingStore = {
   };
   widgets: Record<string, Widgets>;
   wallpaper: {
-    activePlugin: "preset" | "nasa" | "aic" | "getty" | "mauritshuis" | "nga" | "rijksmuseum";
+    activePlugin: "preset" | "nasa" | "aic" | "nga";
     url: string;
     plugins: {
       nasa: {
@@ -56,20 +56,7 @@ export type TSettingStore = {
         lastSearch?: string;
         metadata: AICArtworkResponse | null;
       };
-      getty: {
-        lastSearch?: string;
-        metadata: ImageResponse | null;
-      };
-      mauritshuis: {
-        lastSearch?: string;
-        metadata: ImageResponse | null;
-      };
       nga: {
-        lastSearch?: string;
-        metadata: ImageResponse | null;
-      };
-      rijksmuseum: {
-        apiKey?: string;
         lastSearch?: string;
         metadata: ImageResponse | null;
       };
