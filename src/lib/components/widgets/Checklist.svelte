@@ -153,9 +153,8 @@
             />
           {:else}
             <!-- Normal mode -->
-            <p
-              tabindex="0"
-              role="button"
+            <button
+              type="button"
               class="item-text"
               title={item.text}
               aria-label={`Edit ${item.text}`}
@@ -169,7 +168,7 @@
               }}
             >
               {item.text}
-            </p>
+            </button>
 
             <button
               class="delete-button"
@@ -362,11 +361,14 @@
           }
 
           // Text box
-          & > p {
+          & > button.item-text {
             flex: 1;
+            border: none;
             outline: none;
             cursor: text;
             padding: 0 4px;
+            background: transparent;
+            text-align: left;
             @include text-ellipsis;
             @include box($height: 25px);
             border: 1px solid transparent;
@@ -439,7 +441,7 @@
             opacity: 0.7;
             transform: scale(0.98);
 
-            & > p {
+            & > button.item-text {
               text-decoration: line-through;
               color: #6b7280;
             }

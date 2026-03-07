@@ -66,6 +66,14 @@
             <li
               class:selected={selectedKey === key}
               onclick={() => (selectedKey = key as SettingsTabs)}
+              onkeydown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  selectedKey = key as SettingsTabs;
+                }
+              }}
+              role="tab"
+              tabindex="0"
             >
               <label>
                 <input
