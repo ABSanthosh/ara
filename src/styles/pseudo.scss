@@ -21,22 +21,20 @@
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.dragging-pane {
+[data-dragging-pane="true"] {
   user-select: none;
   position: relative;
-
-  &:hover {
-    cursor: grab;
-  }
-}
-
-.dragging-pane {
-  transform-origin: 50% 60%;
-  animation-iteration-count: infinite;
-  animation-direction: alternate;
-  animation-timing-function: ease-in-out;
   will-change: transform;
+  transform-origin: 50% 60%;
+  animation-direction: alternate;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in-out;
 
+  &:not([data-flipped="true"]) {
+    &:hover {
+      cursor: grab;
+    }
+  }
   // Uncomment to enable jiggle effect
   // &:not(.dragging) {
   //   animation-name: ios-jiggle;
@@ -111,7 +109,7 @@
   transform-style: preserve-3d;
 
   // Hide backsides during flip
-  > *:not(.widget-back-view) {
+  > *:not(.widget-back-face) {
     backface-visibility: hidden;
   }
 }
@@ -120,13 +118,13 @@
   pointer-events: auto;
 
   // Hide front view when flipped
-  > *:not(.widget-back-view) {
+  > *:not(.widget-back-face) {
     opacity: 0;
     pointer-events: none;
   }
 
   // Show back view when flipped
-  .widget-back-view {
+  .widget-back-face {
     opacity: 1;
     pointer-events: auto;
   }
@@ -138,17 +136,28 @@
   }
 }
 
-.widget-back-view {
+.widget-front-face {
+  @include make-flex();
+  backface-visibility: hidden;
+  transition: opacity 0.3s ease;
+}
+
+.widget-back-face {
   opacity: 0;
-  width: 500px;
-  height: 500px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   position: absolute;
-  border-radius: inherit;
+  @include make-flex();
   pointer-events: none;
+  border-radius: inherit;
+  @include box(500px, 500px);
   transform: rotateY(180deg);
   backface-visibility: hidden;
   transition: opacity 0.3s ease;
+
+  &__content {
+    padding: 20px;
+    @include box();
+    border-radius: inherit;
+    @include make-flex($align: stretch);
+    backdrop-filter: blur(30px) saturate(180%) brightness(1.1);
+  }
 }

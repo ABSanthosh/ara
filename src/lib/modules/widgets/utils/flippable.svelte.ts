@@ -37,7 +37,7 @@ export function flippable(
   }
 
   let flipState: FlipState = { type: "front" };
-  
+
   let settings = get(SettingStore);
   const unsubscribe = SettingStore.subscribe((v) => {
     settings = v;
@@ -102,6 +102,7 @@ export function flippable(
     const centerX = window.innerWidth / 2;
     const centerY = window.innerHeight / 2;
 
+    // TODO: find a way to make this dynamic 
     // Get the back view dimensions (500px from CSS)
     const backViewSize = 500;
 
@@ -132,7 +133,7 @@ export function flippable(
     element.style.maxWidth = `${backViewSize}px`;
     element.style.maxHeight = `${backViewSize}px`;
     element.style.transform = "rotateY(180deg)";
-    
+
     // Immediately add flipped class and data attribute to show back view during animation
     element.classList.add("flipped");
     element.setAttribute("data-flipped", "true");
@@ -145,7 +146,9 @@ export function flippable(
       // Some browsers evaluate backface-visibility:hidden against the element's LOCAL
       // transform (rotateY(180deg)) rather than the accumulated transform (0deg net),
       // causing the back-view to be non-interactive even when facing the viewer.
-      const backView = element.querySelector(".widget-back-view") as HTMLElement | null;
+      const backView = element.querySelector(
+        ".widget-back-face",
+      ) as HTMLElement | null;
       if (backView) {
         backView.style.backfaceVisibility = "visible";
         backView.style.pointerEvents = "auto";
@@ -168,11 +171,19 @@ export function flippable(
   function flipBack() {
     if (flipState.type !== "flipped") return;
 
-    const { originalRect, originalGridArea, originalZIndex, originalPosition, originalTransition } = flipState;
+    const {
+      originalRect,
+      originalGridArea,
+      originalZIndex,
+      originalPosition,
+      originalTransition,
+    } = flipState;
 
     // Restore backface-visibility BEFORE the animation so the flip-back renders correctly
     // (back-view should hide itself mid-animation as it rotates away from the viewer)
-    const backView = element.querySelector(".widget-back-view") as HTMLElement | null;
+    const backView = element.querySelector(
+      ".widget-back-face",
+    ) as HTMLElement | null;
     if (backView) {
       backView.style.backfaceVisibility = "";
       backView.style.pointerEvents = "";

@@ -34,13 +34,14 @@ function setPointerEvents(
   disable: boolean,
   button: HTMLButtonElement,
 ) {
+  // TODO: find a way to do this with CSS and data-attributes instead
   // Disable pointer events on all children except the remove button, back view, and those with [data-drag-ignore]
   Array.from(el.children).forEach((child) => {
     const childEl = child as HTMLElement;
     if (
       childEl !== button && 
       !childEl.hasAttribute("data-drag-ignore") &&
-      !childEl.classList.contains("widget-back-view")
+      !childEl.classList.contains("widget-back-face")
     ) {
       childEl.style.pointerEvents = disable ? "none" : "";
       childEl.style.touchAction = disable ? "none" : "";
@@ -84,13 +85,13 @@ export function draggable(
       draggedWidget.appendChild(removeButton);
     }
     setPointerEvents(draggedWidget, true, removeButton);
-    draggedWidget.classList.add("dragging-pane");
+    draggedWidget.setAttribute("data-dragging-pane", "true");
   }
 
   function detachRemoveButton() {
     removeButton.remove();
     setPointerEvents(draggedWidget, false, removeButton);
-    draggedWidget.classList.remove("dragging-pane");
+    draggedWidget.removeAttribute("data-dragging-pane");
   }
 
   let settings = get(SettingStore);
