@@ -283,7 +283,7 @@
           </div>
         </Modal>
       {/if}
-    {:else if plugin === "getty" || plugin === "mauritshuis" || plugin === "nga" || plugin === "rijksmuseum"}
+    {:else if plugin === "nga"}
       {@const metadata = $settingState.wallpaper.plugins[plugin].metadata}
       {#if metadata}
         <Modal

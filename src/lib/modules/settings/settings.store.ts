@@ -57,17 +57,7 @@ const defaultStore: TSettingStore = {
       aic: {
         metadata: null,
       },
-      getty: {
-        metadata: null,
-      },
-      mauritshuis: {
-        metadata: null,
-      },
       nga: {
-        metadata: null,
-      },
-      rijksmuseum: {
-        apiKey: "",
         metadata: null,
       },
       presets: [

@@ -188,45 +188,12 @@
           class="CrispButton"
           onclick={async () => {
             await WallpaperManager.setWallpaper({
-              type: "getty",
-              options: { searchTag: "painting" },
-            });
-          }}
-        >
-          Getty Museum
-        </button>
-        <button
-          class="CrispButton"
-          onclick={async () => {
-            await WallpaperManager.setWallpaper({
-              type: "mauritshuis",
-              options: { searchTag: "art" },
-            });
-          }}
-        >
-          Mauritshuis
-        </button>
-        <button
-          class="CrispButton"
-          onclick={async () => {
-            await WallpaperManager.setWallpaper({
               type: "nga",
               options: { searchTag: "landscape" },
             });
           }}
         >
           National Gallery of Art
-        </button>
-        <button
-          class="CrispButton"
-          onclick={async () => {
-            await WallpaperManager.setWallpaper({
-              type: "rijksmuseum",
-              options: { searchTag: "painting" },
-            });
-          }}
-        >
-          Rijksmuseum
         </button>
       </div>
     </div>
