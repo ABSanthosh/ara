@@ -1,33 +1,9 @@
 // ============================================================
 // NASAEngineImpl — extends ImageEngine<NASAImageResponse>
 // ============================================================
+import { ImageEngine } from "../../image.engine";
 import { SettingStore } from "../../../settings/settings.store";
-import { ImageEngine, ImageResponse } from "../../image.engine";
-import { APODOptions, APODResponse } from "./nasa.types";
-
-/**
- * NASA's ImageResponse extension.
- * Preserves all APODResponse fields while conforming to the shared base.
- *
- * ImageResponse fields map as:
- *   imageUrl      → hdurl ?? url
- *   thumbnailUrl  → thumbnail_url ?? url
- *   artist        → copyright
- *   date          → date
- *   tags          → ["space", "astronomy", "apod"]
- */
-export interface NASAImageResponse extends ImageResponse {
-  source: "nasa";
-  // NASA-specific fields from APODResponse
-  explanation: string;
-  mediaType: "image" | "video";
-  copyright: string | null; // maps to artist, also kept here for clarity
-  hdurl: string | null;
-  thumbnailUrl: string | null;
-  serviceVersion: string;
-  // The raw APODResponse, intact, if you need any field not mapped above
-  raw: APODResponse;
-}
+import { APODOptions, APODResponse, NASAImageResponse } from "./nasa.types";
 
 // ── Implementation ───────────────────────────────────────────
 
@@ -62,14 +38,14 @@ export class NASAEngineImpl extends ImageEngine<NASAImageResponse> {
   async search(
     tag: string,
     limit: number,
-    options?: APODOptions
+    options?: APODOptions,
   ): Promise<NASAImageResponse[]> {
     // If options provided, use them directly
     if (options) {
       const response = await this.getAPOD(options);
       return this.toImageResponse(response);
     }
-    
+
     // Otherwise, use tag/limit logic
     const isDate = /^\d{4}-\d{2}-\d{2}$/.test(tag);
     const apodOptions: APODOptions = isDate
@@ -88,7 +64,7 @@ export class NASAEngineImpl extends ImageEngine<NASAImageResponse> {
   override async getRandom(
     _tag = "",
     limit = 1,
-    options?: APODOptions
+    options?: APODOptions,
   ): Promise<NASAImageResponse[]> {
     // If options provided, use them directly
     if (options) {
@@ -213,25 +189,27 @@ export class NASAEngineImpl extends ImageEngine<NASAImageResponse> {
 
   /** Maps an APODResponse to NASAImageResponse */
   private toImageResponse = (apod: APODResponse): NASAImageResponse[] => {
-    return [{
-      // ImageResponse base fields
-      id: `nasa-apod-${apod.date}`,
-      source: "nasa",
-      title: apod.title,
-      artist: apod.copyright ?? null,
-      date: apod.date,
-      imageUrl: apod.hdurl ?? apod.url,
-      thumbnailUrl: apod.thumbnail_url ?? apod.url,
-      tags: ["space", "astronomy", "apod"],
-      sourceUrl: apod.page_url ?? null,
-      // NASAImageResponse extension fields
-      explanation: apod.explanation,
-      mediaType: apod.media_type,
-      copyright: apod.copyright ?? null,
-      hdurl: apod.hdurl ?? null,
-      serviceVersion: apod.service_version,
-      raw: apod,
-    }];
+    return [
+      {
+        // ImageResponse base fields
+        id: `nasa-apod-${apod.date}`,
+        source: "nasa",
+        title: apod.title,
+        artist: apod.copyright ?? null,
+        date: apod.date,
+        imageUrl: apod.hdurl ?? apod.url,
+        thumbnailUrl: apod.thumbnail_url ?? apod.url,
+        tags: ["space", "astronomy", "apod"],
+        sourceUrl: apod.page_url ?? null,
+        // NASAImageResponse extension fields
+        explanation: apod.explanation,
+        mediaType: apod.media_type,
+        copyright: apod.copyright ?? null,
+        hdurl: apod.hdurl ?? null,
+        serviceVersion: apod.service_version,
+        raw: apod,
+      },
+    ];
   };
 
   private buildPageURL(date: string): string {
