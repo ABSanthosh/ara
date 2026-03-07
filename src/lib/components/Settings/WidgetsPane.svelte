@@ -4,6 +4,7 @@
   import Cat from "@/lib/components/widgets/Cat.svelte";
   import Calendar from "@/lib/components/widgets/Calendar.svelte";
   import Checklist from "@/lib/components/widgets/Checklist.svelte";
+  import ArtGallery from "@/lib/components/widgets/ArtGallery.svelte";
   import type { Widgets } from "@/lib/modules/widgets/widgets.types";
   import { WidgetEngine } from "@/lib/modules/widgets/widgets.engine";
   import { SettingStore } from "@/lib/modules/settings/settings.store";
@@ -163,6 +164,68 @@
           ],
         },
         filter: "Checklist",
+      },
+
+      // Art Gallery variants - AIC
+      {
+        type: "art-gallery",
+        span: { x: 2, y: 2 },
+        settings: {
+          source: "aic",
+          favorites: [],
+          refreshInterval: "newTab",
+          magazineSize: 10,
+          maxAccess: 1,
+        },
+        filter: "Art Gallery",
+      },
+      {
+        type: "art-gallery",
+        span: { x: 3, y: 2 },
+        settings: {
+          source: "aic",
+          favorites: [],
+          refreshInterval: "24 hr",
+          magazineSize: 15,
+          maxAccess: 2,
+        },
+        filter: "Art Gallery",
+      },
+      {
+        type: "art-gallery",
+        span: { x: 3, y: 3 },
+        settings: {
+          source: "aic",
+          favorites: [],
+          refreshInterval: "newTab",
+          magazineSize: 20,
+          maxAccess: 1,
+        },
+        filter: "Art Gallery",
+      },
+      {
+        type: "art-gallery",
+        span: { x: 4, y: 3 },
+        settings: {
+          source: "nga",
+          favorites: [],
+          refreshInterval: "newTab",
+          magazineSize: 10,
+          maxAccess: 1,
+        },
+        filter: "Art Gallery",
+      },
+      {
+        type: "art-gallery",
+        span: { x: 4, y: 4 },
+        settings: {
+          source: "nga",
+          favorites: [],
+          refreshInterval: "24 hr",
+          magazineSize: 15,
+          maxAccess: 2,
+        },
+        filter: "Art Gallery",
       },
     ];
 
@@ -446,6 +509,8 @@
             <Cat {widget} />
           {:else if widget.type === "checklist"}
             <Checklist {widget} />
+          {:else if widget.type === "art-gallery"}
+            <ArtGallery {widget} />
           {:else if widget.type === "analog-clock"}
             <ClockClassicAnalog {widget} />
           {:else if widget.type === "semi-digital-clock"}

@@ -6,6 +6,7 @@ import {
   CatSpan,
   ChecklistSpan,
   ClockWidgetFlipSpan,
+  WidgetSpans,
 } from "../widgets.types";
 
 /**
@@ -51,12 +52,7 @@ export function resizable(
   resizedWidget: HTMLElement,
   options: {
     widgetId: string;
-    spans:
-      | CatSpan[]
-      | CalendarSpan[]
-      | ClockWidgetFlipSpan[]
-      | ChecklistSpan[]
-      | ClockWidgetClassicAnalogSpan[];
+    spans: WidgetSpans[]
     onResize?: (newSpan: { x: number; y: number }) => void;
     onResizeStateChange?: (resizeState: ResizeState) => void;
     isDemo?: boolean;

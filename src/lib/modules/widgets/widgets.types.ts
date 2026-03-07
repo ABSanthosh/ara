@@ -8,6 +8,12 @@ export type Widget = {
   isDemo?: boolean;
 };
 
+// Shared magazine settings for widgets that use Magazine utility
+export type MagazineSettings = {
+  magazineSize?: number;
+  maxAccess?: number; // Number of times to show the same item before moving to next (1-10)
+};
+
 // Define valid span combinations for each widget type
 export type ClockWidgetClassicAnalogSpan =
   | { x: 1; y: 1 } // Small widget
@@ -88,11 +94,8 @@ export type CalendarWidget = Widget & {
 export type CatWidget = Widget & {
   type: "cat";
   span: CatSpan;
-  settings: {
-    // TODO: should I decouple these settings from widgetDefaults?
+  settings: MagazineSettings & {
     subreddit?: string[];
-    magazineSize?: number;
-    maxAccess?: number; // Number of times to show the same cat before moving to next (1-10)
   };
   isDemo?: boolean;
 };
@@ -122,12 +125,23 @@ export type TestWidget = Widget & {
 export type ArtGalleryWidget = Widget & {
   type: "art-gallery";
   span: ArtGallerySpan;
-  settings: {
-    category: string;
+  settings: MagazineSettings & {
+    source: "aic" | "nga"; // Source of artworks
     favorites: string[]; // Array of favorite artwork IDs
+    refreshInterval: "newTab" | "24 hr" | "10 min" | "30 min";
   };
   isDemo?: boolean;
 };
+
+export type WidgetSpans = 
+  | ClockWidgetClassicAnalogSpan
+  | ClockWidgetSemiDigitalSpan
+  | ClockWidgetFlipSpan
+  | CalendarSpan
+  | CatSpan
+  | ChecklistSpan
+  | ArtGallerySpan
+  | TestWidgetSpan;
 
 export type Widgets =
   | ClockWidgetClassicAnalog
@@ -136,5 +150,6 @@ export type Widgets =
   | CalendarWidget
   | CatWidget
   | ChecklistWidget
+  | ArtGalleryWidget
   | TestWidget;
 export type WidgetTypes = Widgets["type"];
