@@ -1,13 +1,13 @@
-import { defineConfig } from 'wxt';
-import autoprefixer from 'autoprefixer';
+import { defineConfig } from "wxt";
+import autoprefixer from "autoprefixer";
 
 // See https://wxt.dev/api/config.html
 export default defineConfig({
-  srcDir: 'src',
-  zip:{
-    artifactTemplate: "ara-{{packageVersion}}.zip"
+  srcDir: "src",
+  zip: {
+    artifactTemplate: "ara-{{packageVersion}}.zip",
   },
-  modules: ['@wxt-dev/module-svelte'],
+  modules: ["@wxt-dev/module-svelte"],
   vite: () => ({
     css: {
       preprocessorOptions: {
@@ -16,16 +16,23 @@ export default defineConfig({
         },
       },
       postcss: {
-        plugins: [autoprefixer()]
-      }
+        plugins: [autoprefixer()],
+      },
     },
   }),
   manifest: {
-    name: process.env.NODE_ENV === "production" ? "Ara" : "Ara Dev",
+    name: process.env.NODE_ENV === "production" ? "ara" : "ara Dev",
     description: "A web experience",
     version: "1.0.0",
     manifest_version: 3,
-    permissions: ["bookmarks", "storage", "tabs", "activeTab", 'history', 'alarms'],
-    host_permissions: ['<all_urls>']
-  }
+    permissions: [
+      "tabs",
+      "alarms",
+      "storage",
+      "history",
+      "bookmarks",
+      "activeTab",
+    ],
+    host_permissions: ["<all_urls>"],
+  },
 });
