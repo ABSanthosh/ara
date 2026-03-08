@@ -56,6 +56,17 @@ html {
 
 // For some reason, style in App.svelte is not applied, so moved here
 
+.info-editing {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  font-size: 14px;
+  // color: var(--vibrant-labels-secondary);
+  z-index: 20;
+  font-style: italic;
+  // italicize
+}
+
 .stop-editing.CrispButton {
   top: 10px;
   right: 10px;

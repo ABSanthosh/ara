@@ -142,6 +142,7 @@
 </Grid>
 
 {#if $settingState.options.isResizable}
+  <span class="info-editing">Right click on widget for options</span>
   <button
     class="stop-editing CrispButton"
     onclick={() => {
