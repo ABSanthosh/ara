@@ -7,6 +7,7 @@
     TestWidget,
     TestWidgetSpan,
   } from "@/lib/modules/widgets/widgets.types";
+  import { WidgetEngine } from "@/lib/modules/widgets/widgets.engine";
 
   let {
     widget,
@@ -40,7 +41,24 @@
 {#snippet back()}
   <div class="widget-back-face">
     <div class="widget-back-face__content">
-      <input type="color" />
+      <h3>Test Widget Settings</h3>
+      <label class="CrispLabel" data-justify="space-between">
+        <span data-mandatory style="color: inherit;"> Widget Color: </span>
+        <input
+          class="CrispInput"
+          type="color"
+          value="#6366f1"
+          onchange={(e: Event) => {
+            const input = e.currentTarget as HTMLInputElement;
+            WidgetEngine.updateWidget(widget.id!, {
+              settings: {
+                ...widget.settings,
+                color: input.value,
+              },
+            });
+          }}
+        />
+      </label>
     </div>
   </div>
 {/snippet}
@@ -95,6 +113,36 @@
       font-size: 12px;
       opacity: 0.8;
       font-family: "JetBrains Mono", monospace;
+    }
+
+    .widget-back-face {
+      @include make-flex();
+      position: absolute;
+      inset: 0;
+      background: #1a1a1a;
+      border-radius: 25px;
+      backface-visibility: hidden;
+      transform: rotateY(180deg);
+      pointer-events: none;
+
+      &__content {
+        color: white;
+        padding: 20px;
+        width: 100%;
+        max-height: 100%;
+        overflow-y: auto;
+
+        h3 {
+          margin: 0 0 20px 0;
+          font-size: 18px;
+          font-weight: 600;
+        }
+      }
+    }
+
+    .widget-front-face {
+      backface-visibility: hidden;
+      transform: rotateY(0deg);
     }
   }
 </style>

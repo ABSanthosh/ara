@@ -10,6 +10,7 @@
   import { Expand } from "@lucide/svelte";
   import dayjs from "dayjs";
   import { GlobalTimer } from "@/lib/modules/widgets/shared-time.store";
+  import { WidgetEngine } from "@/lib/modules/widgets/widgets.engine";
 
   let {
     widget,
@@ -57,6 +58,11 @@
   });
 
   let isFlipped = $state(false);
+
+  // settings
+  // city
+  // show numbers toggle
+  // show seconds hand toggle
 </script>
 
 {#snippet front()}
@@ -98,7 +104,12 @@
 
         <!-- City name and timezone offset in center -->
         {#if widget.settings.city && config.size === "large"}
-          <text x="0" y="-12" text-anchor="middle" class="AnalogClock__city-text">
+          <text
+            x="0"
+            y="-12"
+            text-anchor="middle"
+            class="AnalogClock__city-text"
+          >
             <!-- {cityAbbr} -->
           </text>
           <text
@@ -132,7 +143,8 @@
         <!-- minute hand -->
         <g
           class="AnalogClock__minute"
-          transform="rotate({6 * timeFormats.minutes + timeFormats.seconds / 10})"
+          transform="rotate({6 * timeFormats.minutes +
+            timeFormats.seconds / 10})"
         >
           <line
             class="AnalogClock__minute--base"
@@ -171,23 +183,73 @@
 {#snippet back()}
   <div class="widget-back-face">
     <div class="widget-back-face__content">
-      <h3>Clock Settings</h3>
-      <div class="setting-group">
-        <label>
-          <input type="checkbox" checked={widget.settings.showNumbers} />
-          Show Numbers
-        </label>
-      </div>
-      <div class="setting-group">
-        <label>
-          <input type="checkbox" checked={widget.settings.showSecondsHand} />
-          Show Seconds Hand
-        </label>
-      </div>
-      <div class="setting-group">
-        <label for="city-{widget.id}">City:</label>
-        <input id="city-{widget.id}" type="text" value={widget.settings.city} placeholder="City name" />
-      </div>
+      <h3>Analog Clock Settings</h3>
+      <label class="CrispLabel" data-justify="space-between">
+        <span data-mandatory style="color: inherit;"> Timezone: </span>
+        <select
+          class="CrispSelect"
+          value={widget.settings.city}
+          onchange={(e: Event) => {
+            const select = e.currentTarget as HTMLSelectElement;
+            // TODO: make a proper timezone selector from right list
+            WidgetEngine.updateWidget(widget.id!, {
+              settings: {
+                ...widget.settings,
+                city: select.value,
+              },
+            });
+          }}
+        >
+          <option value="local">Local Timezone</option>
+          <option value="UTC">UTC</option>
+          <option value="America/New_York">New York (GMT-4)</option>
+          <option value="Europe/London">London (GMT+1)</option>
+        </select>
+      </label>
+
+      <label
+        class="CrispLabel"
+        data-direction="row"
+        data-justify="space-between"
+      >
+        <span style="color: inherit;"> Show Hour Numbers: </span>
+        <input
+          class="CrispInput"
+          type="checkbox"
+          checked={widget.settings.showNumbers}
+          onchange={(e: Event) => {
+            const checkbox = e.currentTarget as HTMLInputElement;
+            WidgetEngine.updateWidget(widget.id!, {
+              settings: {
+                ...widget.settings,
+                showNumbers: checkbox.checked,
+              },
+            });
+          }}
+        />
+      </label>
+
+      <label
+        class="CrispLabel"
+        data-direction="row"
+        data-justify="space-between"
+      >
+        <span style="color: inherit;"> Show Seconds Hand: </span>
+        <input
+          class="CrispInput"
+          type="checkbox"
+          checked={widget.settings.showSecondsHand}
+          onchange={(e: Event) => {
+            const checkbox = e.currentTarget as HTMLInputElement;
+            WidgetEngine.updateWidget(widget.id!, {
+              settings: {
+                ...widget.settings,
+                showSecondsHand: checkbox.checked,
+              },
+            });
+          }}
+        />
+      </label>
     </div>
   </div>
 {/snippet}
@@ -239,7 +301,6 @@
     }
 
     .widget-back-face {
-      @include box(400px, 400px);
       @include make-flex();
       position: absolute;
       inset: -1px 0 0 -1px;
@@ -279,7 +340,9 @@
             }
           }
 
-          select, input[type="text"], input[type="number"] {
+          select,
+          input[type="text"],
+          input[type="number"] {
             width: 100%;
             padding: 8px;
             background: rgba(255, 255, 255, 0.1);

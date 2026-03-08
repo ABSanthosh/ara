@@ -1,0 +1,168 @@
+// https://una.im/select-updates/
+@use "../mixins" as *;
+
+.CrispSelect {
+  /* ─────────────────────────────
+   VisionOS Material Tokens
+  ───────────────────────────── */
+  --crp-select-radius: 12px;
+
+  --t-crp-select-downArrow: url("data:image/svg+xml;utf8,<svg fill='white' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
+  --crp-select-bg: var(--views-thin);
+  --crp-select-bg-hover: var(--views-recessed-material-view);
+  --crp-select-bg-disabled: rgba(255, 255, 255, 0.03);
+
+  --crp-select-border: 1px solid rgba(255, 255, 255, 0.12);
+  --crp-select-border-hover: 1px solid rgba(255, 255, 255, 0.22);
+
+  --crp-select-color: var(--labels-primary);
+  --crp-select-color-disabled: var(--labels-tertiary);
+
+  --crp-select-shadow:
+    inset 0 0.5px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -0.5px 0 rgba(0, 0, 0, 0.35), 0 12px 30px rgba(0, 0, 0, 0.35);
+
+  --crp-select-font-size: 16px;
+  --crp-select-width: 100%;
+  --crp-select-min-width: 150px;
+
+  /* ─────────────────────────────
+   Layout
+  ───────────────────────────── */
+  --crp-select-padding: 8px 35px 8px 12px;
+  --crp-select-height: 32px;
+
+  --crp-select-icon: var(--t-crp-select-downArrow);
+  --crp-select-background-size: 18px 18px;
+  --crp-select-background-position: right 10px center;
+
+  /* ─────────────────────────────
+   Base Style
+  ───────────────────────────── */
+  outline: none;
+  border: var(--crp-select-border);
+  background: var(--crp-select-bg);
+  backdrop-filter: blur(30px) saturate(120%) brightness(1.04);
+
+  color: var(--crp-select-color);
+  font-size: var(--crp-select-font-size);
+  padding: var(--crp-select-padding);
+  // box-shadow: var(--crp-select-shadow);
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+
+  min-width: var(--crp-select-min-width);
+  @include box(var(--crp-select-width), var(--crp-select-height));
+
+  // appearance: base-select;
+
+  // Custom style
+  // &::picker(select) {
+  //   appearance: base-select;
+  // }
+
+  // &::picker(select) {
+  //   background-color: aqua;
+  // }
+
+  // & > ::picker-icon(select) {
+  //   content: "";
+  // }
+
+  /* ─────────────────────────────
+   Squircle / Continuous Corners
+  ───────────────────────────────── */
+  border-radius: var(--crp-select-radius);
+
+  @supports (corner-shape: squircle) {
+    border-radius: calc(var(--crp-select-radius) + 15px);
+    corner-shape: squircle;
+  }
+
+  /* ─────────────────────────────
+   Dropdown Icon
+  ───────────────────────────── */
+  appearance: none;
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  background-image: var(--crp-select-icon);
+  background-size: var(--crp-select-background-size);
+  background-repeat: no-repeat;
+  background-position: var(--crp-select-background-position);
+
+  /* ─────────────────────────────
+   Hover / Focus
+  ───────────────────────────── */
+  @media (any-hover: hover) {
+    &:hover:not(:disabled),
+    &:focus-visible:not(:disabled) {
+      background-color: var(--crp-select-bg-hover);
+      border: var(--crp-select-border-hover);
+      // box-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.45),
+      //   0 18px 40px rgba(0, 0, 0, 0.45);
+    }
+  }
+
+  /* ─────────────────────────────
+   Disabled
+  ───────────────────────────── */
+  &:disabled {
+    background: var(--crp-select-bg-disabled);
+    color: var(--crp-select-color-disabled);
+    border-color: rgba(255, 255, 255, 0.06);
+    cursor: not-allowed;
+  }
+}
+
+.CrispSelect,
+::picker(select) {
+  appearance: base-select;
+}
+
+::picker(select) {
+  margin-top: 8px;
+  border: var(--crp-select-border);
+  background: var(--crp-select-bg);
+  color: var(--crp-select-color);
+  outline: none;
+  border-radius: calc(var(--crp-select-radius) - 4px);
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s var(--ease-out-3),
+    display 0.2s allow-discrete,
+    overlay 0.2s allow-discrete;
+  @supports (corner-shape: squircle) {
+    border-radius: calc(var(--crp-select-radius) + 8px);
+    corner-shape: squircle;
+  }
+}
+
+.CrispSelect {
+  option {
+    outline: none;
+    height: var(--crp-select-height);
+    color: var(--crp-select-color);
+    background: var(--crp-select-bg);
+    transition: background 0.2s ease;
+    &::checkmark {
+      padding-left: 8px;
+      color: var(--crp-select-color);
+    }
+    &:hover {
+      background: var(--crp-select-bg-hover);
+    }
+  }
+
+  &:not(:open)::picker(.CrispSelect) {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  &::picker-icon {
+    content: "";
+		display: none;
+  }
+}

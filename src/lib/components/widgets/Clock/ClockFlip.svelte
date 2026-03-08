@@ -11,6 +11,7 @@
   import dayjs from "dayjs";
   import NumberFlow, { NumberFlowGroup } from "@number-flow/svelte";
   import { GlobalTimer } from "@/lib/modules/widgets/shared-time.store";
+  import { WidgetEngine } from "@/lib/modules/widgets/widgets.engine";
 
   let {
     widget,
@@ -137,21 +138,46 @@
   <div class="widget-back-face">
     <div class="widget-back-face__content">
       <h3>Clock Settings</h3>
-      <div class="setting-group">
-        <label>
-          <input type="checkbox" checked={widget.settings.showSeconds} />
-          Show Seconds
-        </label>
-      </div>
-      <div class="setting-group">
-        <label for="city-{widget.id}">City:</label>
+      <label
+        class="CrispLabel"
+        data-direction="row"
+        data-justify="space-between"
+      >
+        <span style="color: inherit;"> Show Seconds: </span>
         <input
-          id="city-{widget.id}"
+          class="CrispInput"
+          type="checkbox"
+          checked={widget.settings.showSeconds}
+          onchange={(e: Event) => {
+            const checkbox = e.currentTarget as HTMLInputElement;
+            WidgetEngine.updateWidget(widget.id!, {
+              settings: {
+                ...widget.settings,
+                showSeconds: checkbox.checked,
+              },
+            });
+          }}
+        />
+      </label>
+
+      <label class="CrispLabel" data-justify="space-between">
+        <span data-mandatory style="color: inherit;"> City: </span>
+        <input
+          class="CrispInput"
           type="text"
           value={widget.settings.city || ""}
           placeholder="City name"
+          onchange={(e: Event) => {
+            const input = e.currentTarget as HTMLInputElement;
+            WidgetEngine.updateWidget(widget.id!, {
+              settings: {
+                ...widget.settings,
+                city: input.value,
+              },
+            });
+          }}
         />
-      </div>
+      </label>
     </div>
   </div>
 {/snippet}
@@ -216,7 +242,6 @@
     }
 
     .widget-back-face {
-      @include box(400px, 400px);
       @include make-flex();
       position: absolute;
       inset: -1px 0 0 -1px;
@@ -237,41 +262,6 @@
           margin: 0 0 20px 0;
           font-size: 18px;
           font-weight: 600;
-        }
-
-        .setting-group {
-          margin-bottom: 15px;
-
-          label {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 5px;
-            font-size: 12px;
-            opacity: 0.8;
-            cursor: pointer;
-
-            input[type="checkbox"] {
-              width: auto;
-            }
-          }
-
-          select,
-          input[type="text"],
-          input[type="number"] {
-            width: 100%;
-            padding: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
-            color: white;
-            font-size: 14px;
-
-            &:focus {
-              outline: none;
-              border-color: var(--widget-color, #6366f1);
-            }
-          }
         }
       }
     }
