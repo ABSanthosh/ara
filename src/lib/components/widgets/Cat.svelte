@@ -7,6 +7,7 @@
   import { resizable } from "@/lib/modules/widgets/utils/resizable.svelte";
   import { flippable } from "@/lib/modules/widgets/utils/flippable.svelte";
   import type { CatWidget, CatSpan } from "@/lib/modules/widgets/widgets.types";
+  import { WidgetEngine } from "@/lib/modules/widgets/widgets.engine";
 
   let {
     widget,
@@ -139,26 +140,45 @@
   <div class="widget-back-face">
     <div class="widget-back-face__content">
       <h3>Cat Settings</h3>
-      <div class="setting-group">
-        <label for="magazineSize-{widget.id}">Magazine Size:</label>
+      <label class="CrispLabel" data-justify="space-between">
+        <span data-mandatory style="color: inherit;"> Magazine Size: </span>
         <input
-          id="magazineSize-{widget.id}"
+          class="CrispInput"
           type="number"
           min="5"
           max="20"
           value={widget.settings.magazineSize ?? 7}
+          onchange={(e: Event) => {
+            const input = e.currentTarget as HTMLInputElement;
+            WidgetEngine.updateWidget(widget.id!, {
+              settings: {
+                ...widget.settings,
+                magazineSize: parseInt(input.value),
+              },
+            });
+          }}
         />
-      </div>
-      <div class="setting-group">
-        <label for="maxAccess-{widget.id}">Max Access:</label>
+      </label>
+
+      <label class="CrispLabel" data-justify="space-between">
+        <span data-mandatory style="color: inherit;"> Max Access: </span>
         <input
-          id="maxAccess-{widget.id}"
+          class="CrispInput"
           type="number"
           min="1"
           max="10"
           value={widget.settings.maxAccess ?? 1}
+          onchange={(e: Event) => {
+            const input = e.currentTarget as HTMLInputElement;
+            WidgetEngine.updateWidget(widget.id!, {
+              settings: {
+                ...widget.settings,
+                maxAccess: parseInt(input.value),
+              },
+            });
+          }}
         />
-      </div>
+      </label>
     </div>
   </div>
 {/snippet}
@@ -211,7 +231,6 @@
     }
 
     .widget-back-face {
-      @include box(400px, 400px);
       @include make-flex();
       position: absolute;
       inset: 0;
@@ -232,33 +251,6 @@
           margin: 0 0 20px 0;
           font-size: 18px;
           font-weight: 600;
-        }
-
-        .setting-group {
-          margin-bottom: 15px;
-
-          label {
-            display: block;
-            margin-bottom: 5px;
-            font-size: 12px;
-            opacity: 0.8;
-          }
-
-          select,
-          input {
-            width: 100%;
-            padding: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
-            color: white;
-            font-size: 14px;
-
-            &:focus {
-              outline: none;
-              border-color: var(--widget-color, #6366f1);
-            }
-          }
         }
       }
     }

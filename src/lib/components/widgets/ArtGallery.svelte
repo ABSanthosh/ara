@@ -19,7 +19,7 @@
     ArtGalleryWidget,
     ArtGallerySpan,
   } from "@/lib/modules/widgets/widgets.types";
-  import { Expand } from "@lucide/svelte";
+  import { WidgetEngine } from "@/lib/modules/widgets/widgets.engine";
 
   let {
     widget,
@@ -53,7 +53,7 @@
   let timer: ReturnType<typeof setTimeout> | undefined;
   let storeUnsubscribe: (() => void) | undefined;
   let hasIncrementedOnMount = $state(false);
-  let isFlipped = $state(false);
+  let isFlipped = $state(true);
 
   // Get the appropriate engine based on widget settings
   const engine = $derived(
@@ -168,10 +168,17 @@
       storeUnsubscribe();
     }
   });
+
+  // settings
+  // - Source selection (AIC vs NGA)
+  // - Refresh interval (on new tab, every 10 min, every 30 min
 </script>
 
 {#snippet front()}
-  <div class="widget-front-face" style="background-image: url('{currentArtwork?.imageUrl}');">
+  <div
+    class="widget-front-face"
+    style="background-image: url('{currentArtwork?.imageUrl}');"
+  >
     {#if !currentArtwork && tooLong}
       <BlurredSpinner className="art-spinner">
         {#if config.size !== "standard"}
@@ -200,22 +207,49 @@
   <div class="widget-back-face">
     <div class="widget-back-face__content">
       <h3>Art Gallery Settings</h3>
-      <div class="setting-group">
-        <label for="source-{widget.id}">Source:</label>
-        <select id="source-{widget.id}" value={widget.settings.source}>
+      <label class="CrispLabel" data-justify="space-between">
+        <span data-mandatory style="color: inherit;"> Source </span>
+        <select
+          class="CrispSelect"
+          id="source-{widget.id}"
+          onchange={(e: Event) => {
+            const select = e.currentTarget as HTMLSelectElement;
+            WidgetEngine.updateWidget(widget.id!, {
+              settings: {
+                ...widget.settings,
+                source: select.value,
+              },
+            });
+          }}
+          value={widget.settings.source}
+        >
           <option value="aic">Art Institute of Chicago</option>
           <option value="nga">National Gallery of Art</option>
         </select>
-      </div>
-      <div class="setting-group">
-        <label for="refresh-{widget.id}">Refresh:</label>
-        <select id="refresh-{widget.id}" value={widget.settings.refreshInterval}>
+      </label>
+
+      <label class="CrispLabel" data-justify="space-between">
+        <span data-mandatory style="color: inherit;"> Refresh Interval </span>
+        <select
+          class="CrispSelect"
+          id="refresh-{widget.id}"
+          onchange={(e: Event) => {
+            const select = e.currentTarget as HTMLSelectElement;
+            WidgetEngine.updateWidget(widget.id!, {
+              settings: {
+                ...widget.settings,
+                refreshInterval: select.value,
+              },
+            });
+          }}
+          value={widget.settings.refreshInterval}
+        >
           <option value="newTab">On New Tab</option>
-          <option value="10 min">10 Minutes</option>
-          <option value="30 min">30 Minutes</option>
-          <option value="24 hr">24 Hours</option>
+          <option value="10 min">Every 10 Minutes</option>
+          <option value="30 min">Every 30 Minutes</option>
+          <option value="24 hr">Every 24 Hours</option>
         </select>
-      </div>
+      </label>
     </div>
   </div>
 {/snippet}
@@ -261,10 +295,11 @@
     border-radius: 20px;
     @include make-flex();
     position: relative;
-    
+
     // Use inset shadow instead of regular shadow to avoid overflow:hidden
-    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1),
-                inset 0 2px 8px rgba(0, 0, 0, 0.15);
+    box-shadow:
+      inset 0 0 0 1px rgba(0, 0, 0, 0.1),
+      inset 0 2px 8px rgba(0, 0, 0, 0.15);
 
     .widget-front-face {
       @include box();
@@ -281,68 +316,14 @@
       position: absolute;
       inset: 0;
       background: #1a1a1a;
-      @include box(400px, 400px);
       border-radius: 20px;
       backface-visibility: hidden;
       transform: rotateY(180deg);
       pointer-events: none;
-
-      &__content {
-        color: white;
-        padding: 20px;
-        width: 100%;
-        max-height: 100%;
-        overflow-y: auto;
-
-        h3 {
-          margin: 0 0 20px 0;
-          font-size: 18px;
-          font-weight: 600;
-        }
-
-        .setting-group {
-          margin-bottom: 15px;
-
-          label {
-            display: block;
-            margin-bottom: 5px;
-            font-size: 12px;
-            opacity: 0.8;
-          }
-
-          select, input {
-            width: 100%;
-            padding: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
-            color: white;
-            font-size: 14px;
-
-            &:focus {
-              outline: none;
-              border-color: var(--widget-color, #6366f1);
-            }
-          }
-        }
-      }
     }
 
     :global(.art-spinner) {
       padding: 20px;
-    }
-
-    h3 {
-      padding: 0 10px;
-      text-align: center;
-
-      em {
-        font-weight: 400;
-        line-height: 1.4;
-        font-style: normal;
-        margin-bottom: -2px;
-      }
-      color: var(--colors-red);
     }
 
     .artwork-info {

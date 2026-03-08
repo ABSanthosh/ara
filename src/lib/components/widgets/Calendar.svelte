@@ -8,6 +8,7 @@
   import dayjs from "dayjs";
   import { ChevronLeft, ChevronRight, Expand, RotateCcw } from "@lucide/svelte";
   import { resizable } from "@/lib/modules/widgets/utils/resizable.svelte";
+  import { WidgetEngine } from "@/lib/modules/widgets/widgets.engine";
 
   let {
     widget,
@@ -147,20 +148,39 @@
   <div class="widget-back-face">
     <div class="widget-back-face__content">
       <h3>Calendar Settings</h3>
-      <div class="setting-group">
-        <label for="locale-{widget.id}">Locale:</label>
+      <label class="CrispLabel" data-justify="space-between">
+        <span data-mandatory style="color: inherit;"> Locale: </span>
         <input
-          id="locale-{widget.id}"
+          class="CrispInput"
           type="text"
           value={widget.settings?.locale || "en"}
+          onchange={(e: Event) => {
+            const input = e.currentTarget as HTMLInputElement;
+            WidgetEngine.updateWidget(widget.id!, {
+              settings: {
+                ...widget.settings,
+                locale: input.value,
+              },
+            });
+          }}
           placeholder="en"
         />
-      </div>
-      <div class="setting-group">
-        <label for="weekstart-{widget.id}">Week Starts On:</label>
+      </label>
+
+      <label class="CrispLabel" data-justify="space-between">
+        <span data-mandatory style="color: inherit;"> Week Starts On: </span>
         <select
-          id="weekstart-{widget.id}"
+          class="CrispSelect"
           value={widget.settings?.weekStartsOn ?? 0}
+          onchange={(e: Event) => {
+            const select = e.currentTarget as HTMLSelectElement;
+            WidgetEngine.updateWidget(widget.id!, {
+              settings: {
+                ...widget.settings,
+                weekStartsOn: parseInt(select.value),
+              },
+            });
+          }}
         >
           <option value="0">Sunday</option>
           <option value="1">Monday</option>
@@ -170,7 +190,7 @@
           <option value="5">Friday</option>
           <option value="6">Saturday</option>
         </select>
-      </div>
+      </label>
     </div>
   </div>
 {/snippet}
@@ -233,7 +253,6 @@
     }
 
     .widget-back-face {
-      @include box(400px, 400px);
       @include make-flex();
       position: absolute;
       inset: -1px 0 0 -1px;
@@ -254,33 +273,6 @@
           margin: 0 0 20px 0;
           font-size: 18px;
           font-weight: 600;
-        }
-
-        .setting-group {
-          margin-bottom: 15px;
-
-          label {
-            display: block;
-            margin-bottom: 5px;
-            font-size: 12px;
-            opacity: 0.8;
-          }
-
-          select,
-          input {
-            width: 100%;
-            padding: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
-            color: white;
-            font-size: 14px;
-
-            &:focus {
-              outline: none;
-              border-color: var(--widget-color, #6366f1);
-            }
-          }
         }
       }
     }
