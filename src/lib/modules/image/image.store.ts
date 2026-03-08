@@ -9,6 +9,7 @@ type TWidgetImageState<T extends ImageResponse = ImageResponse> = {
   favorites: T[];
   magazine: T[];
   timesAccessed: number;
+  lastRefreshed?: number; // Timestamp of last refresh
 };
 
 type TImageStore = {
@@ -20,6 +21,7 @@ const defaultWidgetState: TWidgetImageState = {
   favorites: [],
   isPinned: false,
   timesAccessed: 0,
+  lastRefreshed: undefined,
 };
 
 const defaultStore: TImageStore = {
@@ -72,6 +74,51 @@ class ImageStoreImpl {
   }
 
   /**
+   * Check if widget needs refresh based on refresh interval setting
+   * @param widgetId - Widget identifier
+   * @param refreshInterval - Refresh interval setting
+   * @returns true if refresh is needed
+   */
+  private shouldRefresh(
+    widgetId: string,
+    refreshInterval: "newTab" | "24 hr" | "10 min" | "30 min" = "10 min"
+  ): boolean {
+    const widgetStore = get(this.images).widgets[widgetId];
+    if (!widgetStore || !widgetStore.lastRefreshed) {
+      return true; // First time, needs refresh
+    }
+
+    const now = Date.now();
+    const lastRefreshed = widgetStore.lastRefreshed;
+    const elapsed = now - lastRefreshed;
+
+    switch (refreshInterval) {
+      case "newTab":
+        return true; // Always refresh on new tab
+      case "24 hr":
+        return elapsed >= 24 * 60 * 60 * 1000; // 24 hours
+      case "30 min":
+        return elapsed >= 30 * 60 * 1000; // 30 minutes
+      case "10 min":
+      default:
+        return elapsed >= 10 * 60 * 1000; // 10 minutes
+    }
+  }
+
+  /**
+   * Mark widget as refreshed
+   * @param widgetId - Widget identifier
+   */
+  private markAsRefreshed(widgetId: string) {
+    this.images.update((store) => {
+      if (store.widgets[widgetId]) {
+        store.widgets[widgetId].lastRefreshed = Date.now();
+      }
+      return store;
+    });
+  }
+
+  /**
    * Initialize a magazine for a specific widget
    * @param widgetId - Unique widget identifier
    * @param settings - Magazine configuration
@@ -80,7 +127,7 @@ class ImageStoreImpl {
    */
   public initMagazine<T extends ImageResponse = ImageResponse>(
     widgetId: string,
-    settings: { magazineSize: number; maxAccess: number },
+    settings: { magazineSize: number; maxAccess: number; refreshInterval?: "newTab" | "24 hr" | "10 min" | "30 min" },
     engine: ImageEngine<T>,
     fetchParams?: { tag?: string; options?: unknown }
   ) {
@@ -91,6 +138,15 @@ class ImageStoreImpl {
       if (magazine) {
         magazine.updateMaxAccess(settings.maxAccess);
       }
+      
+      // Check if refresh is needed based on interval
+      const refreshInterval = settings.refreshInterval || "10 min";
+      if (this.shouldRefresh(widgetId, refreshInterval)) {
+        // Clear magazine and mark for refresh
+        magazine?.clearMagazine();
+        this.markAsRefreshed(widgetId);
+      }
+      
       return;
     }
 
@@ -103,12 +159,25 @@ class ImageStoreImpl {
     });
 
     const widgetStore = get(this.images).widgets[widgetId];
+    
+    // Check if we need to refresh based on interval
+    const refreshInterval = settings.refreshInterval || "10 min";
+    const needsRefresh = this.shouldRefresh(widgetId, refreshInterval);
+    
+    // If refresh is needed, clear existing magazine data
+    const preloadMagazine = needsRefresh ? [] : widgetStore.magazine;
+    const preloadTimesAccessed = needsRefresh ? 0 : widgetStore.timesAccessed;
+    
+    // Mark as refreshed if we're starting fresh
+    if (needsRefresh) {
+      this.markAsRefreshed(widgetId);
+    }
 
     const magazine = new Magazine<ImageResponse>({
       size: settings.magazineSize,
       maxAccess: settings.maxAccess,
-      preload: widgetStore.magazine,
-      preloadTimesAccessed: widgetStore.timesAccessed,
+      preload: preloadMagazine,
+      preloadTimesAccessed: preloadTimesAccessed,
       fetchNewItem: async (count) => {
         const tag = fetchParams?.tag || "";
         const options = fetchParams?.options;
