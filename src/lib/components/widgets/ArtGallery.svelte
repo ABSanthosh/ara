@@ -114,6 +114,7 @@
       {
         magazineSize: widget.settings.magazineSize ?? 10,
         maxAccess: widget.settings.maxAccess ?? 1,
+        refreshInterval: widget.settings.refreshInterval ?? "10 min",
       },
       engine,
       { tag: "", options: {} }, // Empty tag for random selection
@@ -238,11 +239,11 @@
             WidgetEngine.updateWidget(widget.id!, {
               settings: {
                 ...widget.settings,
-                refreshInterval: select.value,
+                refreshInterval: select.value as "newTab" | "24 hr" | "10 min" | "30 min",
               },
             });
           }}
-          value={widget.settings.refreshInterval}
+          value={widget.settings.refreshInterval ?? "10 min"}
         >
           <option value="newTab">On New Tab</option>
           <option value="10 min">Every 10 Minutes</option>

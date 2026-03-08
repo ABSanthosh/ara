@@ -12,6 +12,7 @@ export type Widget = {
 export type MagazineSettings = {
   magazineSize?: number;
   maxAccess?: number; // Number of times to show the same item before moving to next (1-10)
+  refreshInterval?: "newTab" | "24 hr" | "10 min" | "30 min"; // How often to refresh images
 };
 
 // Define valid span combinations for each widget type

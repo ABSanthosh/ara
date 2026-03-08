@@ -62,6 +62,7 @@
     CatStore.initMagazine(widget.id!, {
       magazineSize: widget.settings.magazineSize ?? 7,
       maxAccess: widget.settings.maxAccess ?? 1,
+      refreshInterval: widget.settings.refreshInterval ?? "10 min",
     });
 
     // Immediately increment timesAccessed if magazine already has items
@@ -178,6 +179,33 @@
             });
           }}
         />
+      </label>
+
+      <label class="CrispLabel" data-justify="space-between">
+        <span data-mandatory style="color: inherit;"> Refresh Interval </span>
+        <select
+          class="CrispSelect"
+          id="refresh-{widget.id}"
+          onchange={(e: Event) => {
+            const select = e.currentTarget as HTMLSelectElement;
+            WidgetEngine.updateWidget(widget.id!, {
+              settings: {
+                ...widget.settings,
+                refreshInterval: select.value as
+                  | "newTab"
+                  | "24 hr"
+                  | "10 min"
+                  | "30 min",
+              },
+            });
+          }}
+          value={widget.settings.refreshInterval ?? "10 min"}
+        >
+          <option value="newTab">On New Tab</option>
+          <option value="10 min">Every 10 Minutes</option>
+          <option value="30 min">Every 30 Minutes</option>
+          <option value="24 hr">Every 24 Hours</option>
+        </select>
       </label>
     </div>
   </div>

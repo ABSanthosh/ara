@@ -23,6 +23,7 @@ const defaultStore: TSettingStore = {
       CatWidget: {
         magazineSize: 7,
         maxAccess: 1,
+        refreshInterval: "10 min",
         subreddit: [
           "catpics",
           "CatsInHats",
