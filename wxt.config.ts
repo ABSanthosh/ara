@@ -4,6 +4,7 @@ import autoprefixer from "autoprefixer";
 // See https://wxt.dev/api/config.html
 export default defineConfig({
   srcDir: "src",
+  manifestVersion: 3,
   zip: {
     artifactTemplate: "ara-{{packageVersion}}.zip",
   },
