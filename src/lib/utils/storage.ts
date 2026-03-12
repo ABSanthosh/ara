@@ -6,8 +6,7 @@
  * - In production: uses both localStorage (instant reads) + chrome.storage.local (persistence)
  */
 
-// const isProd = import.meta.env.PROD;
-const isProd = true
+const isProd = import.meta.env.PROD;
 
 // Keys that need instant synchronous access on page load
 const INSTANT_ACCESS_KEYS = new Set(['settingStore']);
@@ -115,7 +114,7 @@ class ChromeStorageAdapter implements StorageAdapter {
     this.listenerInitialized = true;
     
     if (typeof chrome === 'undefined' || !chrome.storage) {
-      console.error('❌ [Storage] chrome.storage API not available!');
+      console.warn('[Storage] chrome.storage API not available yet, sync listener not initialized');
       return;
     }
     
@@ -154,21 +153,43 @@ class ChromeStorageAdapter implements StorageAdapter {
       }
     }
 
-    // Fall back to chrome.storage.local
-    const result = await chrome.storage.local.get(key);
-    const value = (result[key] as string) ?? null;
-
-    // If found in chrome.storage but not in localStorage, sync it
-    if (value !== null && INSTANT_ACCESS_KEYS.has(key)) {
+    // Check if chrome.storage is available
+    if (typeof chrome === 'undefined' || !chrome.storage || !chrome.storage.local) {
+      console.warn('[Storage] chrome.storage.local not available, falling back to localStorage');
       try {
-        window.localStorage.setItem(key, value);
-        console.debug(`🔄 [Storage] Synced ${key} from chrome.storage`);
+        return window.localStorage.getItem(key);
       } catch (e) {
-        console.warn('[Storage] Failed to sync to localStorage:', e);
+        console.error('[Storage] All storage methods failed:', e);
+        return null;
       }
     }
 
-    return value;
+    // Fall back to chrome.storage.local
+    try {
+      const result = await chrome.storage.local.get(key);
+      const value = (result[key] as string) ?? null;
+
+      // If found in chrome.storage but not in localStorage, sync it
+      if (value !== null && INSTANT_ACCESS_KEYS.has(key)) {
+        try {
+          window.localStorage.setItem(key, value);
+          console.debug(`🔄 [Storage] Synced ${key} from chrome.storage`);
+        } catch (e) {
+          console.warn('[Storage] Failed to sync to localStorage:', e);
+        }
+      }
+
+      return value;
+    } catch (e) {
+      console.error('[Storage] chrome.storage.local.get failed:', e);
+      // Final fallback to localStorage
+      try {
+        return window.localStorage.getItem(key);
+      } catch (localError) {
+        console.error('[Storage] localStorage fallback failed:', localError);
+        return null;
+      }
+    }
   }
 
   async setItem(key: string, value: string): Promise<void> {
@@ -181,8 +202,31 @@ class ChromeStorageAdapter implements StorageAdapter {
       }
     }
     
-    // Write to chrome.storage.local for persistence
-    await chrome.storage.local.set({ [key]: value });
+    // Write to chrome.storage.local for persistence if available
+    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+      try {
+        await chrome.storage.local.set({ [key]: value });
+      } catch (e) {
+        console.error('[Storage] chrome.storage.local.set failed:', e);
+        // Fallback to localStorage
+        if (!INSTANT_ACCESS_KEYS.has(key)) {
+          try {
+            window.localStorage.setItem(key, value);
+          } catch (localError) {
+            console.error('[Storage] localStorage fallback failed:', localError);
+          }
+        }
+      }
+    } else {
+      // Chrome storage not available, use localStorage as fallback
+      if (!INSTANT_ACCESS_KEYS.has(key)) {
+        try {
+          window.localStorage.setItem(key, value);
+        } catch (e) {
+          console.error('[Storage] localStorage fallback failed:', e);
+        }
+      }
+    }
   }
 
   async removeItem(key: string): Promise<void> {
@@ -195,8 +239,31 @@ class ChromeStorageAdapter implements StorageAdapter {
       }
     }
     
-    // Remove from chrome.storage.local
-    await chrome.storage.local.remove(key);
+    // Remove from chrome.storage.local if available
+    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+      try {
+        await chrome.storage.local.remove(key);
+      } catch (e) {
+        console.error('[Storage] chrome.storage.local.remove failed:', e);
+        // Fallback to localStorage
+        if (!INSTANT_ACCESS_KEYS.has(key)) {
+          try {
+            window.localStorage.removeItem(key);
+          } catch (localError) {
+            console.error('[Storage] localStorage fallback failed:', localError);
+          }
+        }
+      }
+    } else {
+      // Chrome storage not available, use localStorage as fallback
+      if (!INSTANT_ACCESS_KEYS.has(key)) {
+        try {
+          window.localStorage.removeItem(key);
+        } catch (e) {
+          console.error('[Storage] localStorage fallback failed:', e);
+        }
+      }
+    }
   }
 }
 

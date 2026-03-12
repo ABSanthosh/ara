@@ -9,7 +9,7 @@ export default defineConfig({
     artifactTemplate: "ara-{{packageVersion}}.zip",
   },
   modules: ["@wxt-dev/module-svelte"],
-  runner: {
+  webExt: {
     chromiumArgs: ["--new-window"],
     startUrls: ["chrome://newtab"],
   },
