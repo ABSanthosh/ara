@@ -47,3 +47,7 @@ npm run build        # Build for production
   - iOS like focus modes. you can create different modes like work, personal, study etc and have different sites blocked, different wallpapers and different widgets for each mode.
 
 <!-- https://resourcecalculator.com/minecraft/#oaklog=83&oaktrapdoor=16&sprucestairs=32&sprucefence=84&sprucetrapdoor=35&darkoaklog=296&strippeddarkoaklog=34&darkoakplanks=105&darkoakstairs=197&darkoakslab=272&darkoakfence=162&darkoaktrapdoor=160&stone=170&cobblestone=307&cobblestonewall=80&stonebrickstairs=48&chiseledstonebricks=68&polishedandesite=151&polishedandesitestairs=17&deepslatebricks=62&deepslatebrickstairs=24&deepslatebrickslab=91&deepslatetiles=668&deepslatetilestairs=131&ironbars=13&glasspane=86&coarsedirt=18&spruceleaves=45&ladder=25 -->
+
+<!-- Errors in /tmp/tmp-web-ext-* -->
+<!-- If the EPIPE error ever comes back, run this first to kill any stuck Chrome processes: -->
+<!-- pkill -f "chromium.*remote-debugging" 2>/dev/null; pkill -f "chromium.*load-extension" 2>/dev/null -->
