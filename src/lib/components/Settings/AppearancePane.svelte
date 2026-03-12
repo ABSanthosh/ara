@@ -398,10 +398,6 @@
           background: var(--labels-secondary);
           // background-color: #338cec;
           color: #fff;
-
-          svg {
-            color: #fff;
-          }
         }
       }
     }

@@ -568,15 +568,6 @@
       }
     }
 
-    &__subheader {
-      width: 100%;
-
-      font-size: 23px;
-      font-weight: 500;
-      margin-bottom: 12px;
-      color: var(--vibrant-labels-primary);
-    }
-
     :global(.grid-container) {
       padding: 0;
       @include box($height: auto);

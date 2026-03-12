@@ -356,12 +356,6 @@
 
     &[data-size="compact"] {
       padding: 4px;
-
-      & > svg {
-        & > line {
-          stroke-width: 2;
-        }
-      }
     }
 
     &__tick {

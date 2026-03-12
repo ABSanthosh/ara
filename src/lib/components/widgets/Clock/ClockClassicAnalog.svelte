@@ -368,18 +368,6 @@
       padding: 4px;
     }
 
-    // SVG Container
-    & > svg {
-      @include box();
-      aspect-ratio: 1;
-      max-width: 100%;
-      max-height: 100%;
-
-      & > circle {
-        fill: var(--colors-white-labels);
-      }
-    }
-
     // Clock Face
     &__face {
       fill: var(--colors-white-labels);

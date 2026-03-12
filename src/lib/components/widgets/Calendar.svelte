@@ -329,10 +329,6 @@
           corner-shape: squircle;
         }
 
-        & > svg {
-          color: var(--colors-red) !important;
-        }
-
         &:hover {
           background-color: var(--views-recessed-material-view);
         }

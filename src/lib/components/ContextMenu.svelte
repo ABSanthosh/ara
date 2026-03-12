@@ -186,28 +186,6 @@
       border: 0.2px solid rgba(255, 255, 255, 0.13);
     }
 
-    &__button-content {
-      gap: 8px;
-      display: flex;
-      align-items: center;
-
-      &-icon {
-        width: 16px;
-        height: 16px;
-        opacity: 0.9;
-        filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.25));
-      }
-
-      &-label {
-        flex: 1;
-      }
-
-      &-shortcut {
-        font-feature-settings: "tnum";
-        color: rgba(255, 255, 255, 0.7);
-      }
-    }
-
     &--light {
       background: linear-gradient(
           to bottom,
@@ -218,23 +196,6 @@
       color: #111;
       border-color: rgba(255, 255, 255, 0.18);
       box-shadow: 0 18px 40px rgba(0, 0, 0, 0.16);
-
-      .context-menu__button {
-        color: #111;
-
-        &:hover {
-          background: rgba(0, 0, 0, 0.06);
-        }
-      }
-
-      .context-menu__separator {
-        background: linear-gradient(
-          to right,
-          rgba(0, 0, 0, 0.06),
-          rgba(0, 0, 0, 0.18),
-          rgba(0, 0, 0, 0.06)
-        );
-      }
     }
   }
 </style>

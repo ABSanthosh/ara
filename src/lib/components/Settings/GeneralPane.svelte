@@ -24,14 +24,5 @@
         font-weight: 600;
       }
     }
-
-    &__subheader {
-      width: 100%;
-
-      font-size: 23px;
-      font-weight: 500;
-      margin-bottom: 12px;
-      color: var(--vibrant-labels-primary);
-    }
   }
 </style>

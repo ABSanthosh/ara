@@ -361,9 +361,5 @@
       opacity: 0.7;
       margin-top: 2px;
     }
-
-    .resize-progress {
-      @include make-flex();
-    }
   }
 </style>

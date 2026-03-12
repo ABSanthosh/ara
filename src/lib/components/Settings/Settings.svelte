@@ -62,7 +62,7 @@
       <aside class="Settings__sidebar blur-recessed">
         <h2>Settings</h2>
         <ul>
-          {#each Object.entries(items) as [key, item] ([key, item])}
+          {#each Object.entries(items) as [key, item] (key)}
             <li
               class:selected={selectedKey === key}
               onclick={() => (selectedKey = key as SettingsTabs)}
@@ -179,10 +179,6 @@
             &:has(input:checked) {
               color: #fff;
               background: var(--labels-secondary);
-
-              svg {
-                color: #fff;
-              }
             }
           }
         }
@@ -236,11 +232,6 @@
 
     &[open] > .Settings {
       animation: modal-zoom 0.25s ease-out;
-
-      &__sidebar,
-      &__content {
-        animation: modal-fade 0.18s ease-out;
-      }
     }
 
     &[open]::backdrop {
