@@ -185,17 +185,5 @@
       margin: 6px auto;
       border: 0.2px solid rgba(255, 255, 255, 0.13);
     }
-
-    &--light {
-      background: linear-gradient(
-          to bottom,
-          rgba(255, 255, 255, 0.65),
-          rgba(255, 255, 255, 0.55)
-        ),
-        rgba(245, 245, 247, 0.65);
-      color: #111;
-      border-color: rgba(255, 255, 255, 0.18);
-      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.16);
-    }
   }
 </style>

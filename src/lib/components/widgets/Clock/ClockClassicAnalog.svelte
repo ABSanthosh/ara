@@ -322,41 +322,6 @@
           font-size: 18px;
           font-weight: 600;
         }
-
-        .setting-group {
-          margin-bottom: 15px;
-
-          label {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 5px;
-            font-size: 12px;
-            opacity: 0.8;
-            cursor: pointer;
-
-            input[type="checkbox"] {
-              width: auto;
-            }
-          }
-
-          select,
-          input[type="text"],
-          input[type="number"] {
-            width: 100%;
-            padding: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
-            color: white;
-            font-size: 14px;
-
-            &:focus {
-              outline: none;
-              border-color: var(--widget-color, #6366f1);
-            }
-          }
-        }
       }
     }
 
