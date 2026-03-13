@@ -1,5 +1,5 @@
 import { get } from "svelte/store";
-import { CatStore, TCatItem } from "./cats.stores";
+import { CatStore, TCatItem } from "./cats.store";
 import { SettingStore } from "../settings/settings.store";
 
 interface RedditListingResponse {

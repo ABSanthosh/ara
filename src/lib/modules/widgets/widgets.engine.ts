@@ -1,6 +1,6 @@
 import { get } from "svelte/store";
 import nanoid from "@/lib/utils/nanoid";
-import { CatStore } from "../cats/cats.stores";
+import { CatStore } from "../cats/cats.store";
 import { ImageStore } from "../image/image.store";
 import { TSettingStore } from "../settings/settings.types";
 import type { Widgets } from "@/lib/modules/widgets/widgets.types";

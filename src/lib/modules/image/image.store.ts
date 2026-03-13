@@ -1,8 +1,8 @@
 import { ImageEngine, ImageResponse } from "./image.engine";
 import { Magazine } from "@/lib/utils/magazine";
-import { get, Writable, writable } from "svelte/store";
+import { get } from "svelte/store";
 import { SettingStore } from "../settings/settings.store";
-import { storage } from "@/lib/utils/storage";
+import { StoreImpl } from "@/lib/utils/store";
 
 type TWidgetImageState<T extends ImageResponse = ImageResponse> = {
   isPinned: boolean;
@@ -28,49 +28,43 @@ const defaultStore: TImageStore = {
   widgets: {},
 };
 
-class ImageStoreImpl {
-  public images = writable<TImageStore>(defaultStore);
+class ImageStoreImpl extends StoreImpl<TImageStore> {
+  protected readonly storageKey = "imageStore";
   public magazines: Map<string, Magazine<ImageResponse>> = new Map();
-  private unsubscribe: () => void = () => {};
   private settingsUnsubscribes: Map<string, () => void> = new Map();
-  private initPromise: Promise<void>;
-  private isInitialized = false;
-
-  public subscribe: Writable<TImageStore>["subscribe"] = (...args) =>
-    this.images.subscribe(...args);
-  public set: Writable<TImageStore>["set"] = (...args) => this.images.set(...args);
-  public update: Writable<TImageStore>["update"] = (...args) =>
-    this.images.update(...args);
+  private cleanupOrphansUnsubscribe: () => void = () => {};
 
   constructor() {
-    // Initialize async loading
-    this.initPromise = this.loadFromStorage();
-
-    // Subscribe to changes and save to storage
-    this.unsubscribe = this.images.subscribe((value) => {
-      // Only save after initial load to avoid overwriting with defaults
-      if (this.isInitialized) {
-        this.saveToStorage(value);
-      }
-    });
+    super(defaultStore);
 
     // Clean up orphaned widget data (widgets that exist in ImageStore but not in SettingStore)
     // This prevents memory leaks from deleted widgets
-    const cleanupOrphans = () => {
-      const settings = get(SettingStore);
-      const imageStoreState = get(this.images);
-      
-      Object.keys(imageStoreState.widgets).forEach((widgetId) => {
-        if (!settings.widgets[widgetId]) {
-          // Widget was deleted but its data remains in ImageStore
-          this.removeMagazine(widgetId);
-        }
-      });
-    };
+    this.cleanupOrphansUnsubscribe = SettingStore.subscribe(() => {
+      this.cleanupOrphans();
+    });
+  }
 
-    // Run cleanup on initialization and when settings change
-    cleanupOrphans();
-    SettingStore.subscribe(cleanupOrphans);
+  protected override normalize(value: TImageStore): TImageStore {
+    return {
+      ...value,
+      widgets: value.widgets ?? {},
+    };
+  }
+
+  public override async init(): Promise<void> {
+    await super.init();
+    this.cleanupOrphans();
+  }
+
+  private cleanupOrphans() {
+    const settings = get(SettingStore);
+    const imageStoreState = get(this);
+
+    Object.keys(imageStoreState.widgets).forEach((widgetId) => {
+      if (!settings.widgets[widgetId]) {
+        this.removeMagazine(widgetId);
+      }
+    });
   }
 
   /**
@@ -83,7 +77,7 @@ class ImageStoreImpl {
     widgetId: string,
     refreshInterval: "newTab" | "24 hr" | "10 min" | "30 min" = "10 min"
   ): boolean {
-    const widgetStore = get(this.images).widgets[widgetId];
+    const widgetStore = get(this).widgets[widgetId];
     if (!widgetStore || !widgetStore.lastRefreshed) {
       return true; // First time, needs refresh
     }
@@ -110,7 +104,7 @@ class ImageStoreImpl {
    * @param widgetId - Widget identifier
    */
   private markAsRefreshed(widgetId: string) {
-    this.images.update((store) => {
+    this.update((store) => {
       if (store.widgets[widgetId]) {
         store.widgets[widgetId].lastRefreshed = Date.now();
       }
@@ -151,14 +145,14 @@ class ImageStoreImpl {
     }
 
     // Ensure widget store exists
-    this.images.update((store) => {
+    this.update((store) => {
       if (!store.widgets[widgetId]) {
         store.widgets[widgetId] = { ...defaultWidgetState };
       }
       return store;
     });
 
-    const widgetStore = get(this.images).widgets[widgetId];
+    const widgetStore = get(this).widgets[widgetId];
     
     // Check if we need to refresh based on interval
     const refreshInterval = settings.refreshInterval || "10 min";
@@ -184,14 +178,14 @@ class ImageStoreImpl {
         return engine.getRandom(tag, count, options);
       },
       onItemsChange: (items: ImageResponse[]) => {
-        this.images.update((imgs) => {
+        this.update((imgs) => {
           if (!imgs.widgets[widgetId]) imgs.widgets[widgetId] = { ...defaultWidgetState };
           imgs.widgets[widgetId].magazine = items;
           return imgs;
         });
       },
       onTimesAccessedChange: (timesAccessed: number) => {
-        this.images.update((imgs) => {
+        this.update((imgs) => {
           if (!imgs.widgets[widgetId]) imgs.widgets[widgetId] = { ...defaultWidgetState };
           imgs.widgets[widgetId].timesAccessed = timesAccessed;
           return imgs;
@@ -236,7 +230,7 @@ class ImageStoreImpl {
     }
 
     // Remove from store
-    this.images.update((store) => {
+    this.update((store) => {
       delete store.widgets[widgetId];
       return store;
     });
@@ -249,7 +243,7 @@ class ImageStoreImpl {
     widgetId: string,
     image: T
   ) {
-    this.images.update((store) => {
+    this.update((store) => {
       if (!store.widgets[widgetId]) {
         store.widgets[widgetId] = { ...defaultWidgetState };
       }
@@ -265,7 +259,7 @@ class ImageStoreImpl {
    * Remove an image from favorites for a specific widget
    */
   public removeFromFavorites(widgetId: string, imageId: string) {
-    this.images.update((store) => {
+    this.update((store) => {
       if (store.widgets[widgetId]) {
         store.widgets[widgetId].favorites = store.widgets[widgetId].favorites.filter(
           (fav) => fav.id !== imageId
@@ -279,34 +273,14 @@ class ImageStoreImpl {
    * Check if an image is favorited for a specific widget
    */
   public isFavorited(widgetId: string, imageId: string): boolean {
-    const state = get(this.images);
+    const state = get(this);
     return state.widgets[widgetId]?.favorites.some((fav) => fav.id === imageId) ?? false;
   }
 
-  /**
-   * Wait for the store to finish loading from storage
-   */
-  public async init(): Promise<void> {
-    return this.initPromise;
-  }
-
-  public destroy() {
-    this.unsubscribe();
+  public override destroy() {
+    super.destroy();
+    this.cleanupOrphansUnsubscribe();
     this.settingsUnsubscribes.forEach((unsubscribe) => unsubscribe());
-  }
-
-  private async loadFromStorage(): Promise<void> {
-    const stored = await storage.getJSON<TImageStore>("imageStore");
-
-    if (stored) {
-      this.images.set(stored);
-    }
-
-    this.isInitialized = true;
-  }
-
-  private async saveToStorage(value: TImageStore): Promise<void> {
-    await storage.setJSON("imageStore", value);
   }
 }
 

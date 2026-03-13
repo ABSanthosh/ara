@@ -1,7 +1,7 @@
 import { mount } from "svelte";
 import App from "./App.svelte";
 import { SettingStore } from "@/lib/modules/settings/settings.store";
-import { CatStore } from "@/lib/modules/cats/cats.stores";
+import { CatStore } from "@/lib/modules/cats/cats.store";
 import { AppStateStore } from "@/lib/modules/settings/appState.store";
 
 // Initialize all stores before mounting the app

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount, onDestroy } from "svelte";
   import { CatEngine } from "@/lib/modules/cats/cats.engine";
-  import { CatStore } from "@/lib/modules/cats/cats.stores";
+  import { CatStore } from "@/lib/modules/cats/cats.store";
   import BlurredSpinner from "../Spinner/BlurredSpinner.svelte";
   import { draggable } from "@/lib/modules/widgets/utils/draggable.svelte";
   import { resizable } from "@/lib/modules/widgets/utils/resizable.svelte";

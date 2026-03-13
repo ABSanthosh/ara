@@ -1,8 +1,8 @@
 import { CatEngine } from "./cats.engine";
 import { Magazine } from "@/lib/utils/magazine";
-import { get, Writable, writable } from "svelte/store";
+import { get } from "svelte/store";
 import { SettingStore } from "../settings/settings.store";
-import { storage } from "@/lib/utils/storage";
+import { StoreImpl } from "@/lib/utils/store";
 
 export type TCatItem = {
   title: string;
@@ -36,49 +36,43 @@ const defaultStore: TCatStore = {
   widgets: {},
 };
 
-class CatStoreImpl {
-  public cats = writable<TCatStore>(defaultStore);
+class CatStoreImpl extends StoreImpl<TCatStore> {
+  protected readonly storageKey = "catStore";
   public magazines: Map<string, Magazine<TCatItem>> = new Map();
-  private unsubscribe: () => void = () => {};
   private settingsUnsubscribes: Map<string, () => void> = new Map();
-  private initPromise: Promise<void>;
-  private isInitialized = false;
-
-  public subscribe: Writable<TCatStore>["subscribe"] = (...args) =>
-    this.cats.subscribe(...args);
-  public set: Writable<TCatStore>["set"] = (...args) => this.cats.set(...args);
-  public update: Writable<TCatStore>["update"] = (...args) =>
-    this.cats.update(...args);
+  private cleanupOrphansUnsubscribe: () => void = () => {};
 
   constructor() {
-    // Initialize async loading
-    this.initPromise = this.loadFromStorage();
-
-    // Subscribe to changes and save to storage
-    this.unsubscribe = this.cats.subscribe((value) => {
-      // Only save after initial load to avoid overwriting with defaults
-      if (this.isInitialized) {
-        this.saveToStorage(value);
-      }
-    });
+    super(defaultStore);
 
     // Clean up orphaned widget data (widgets that exist in CatStore but not in SettingStore)
     // This prevents memory leaks from deleted widgets
-    const cleanupOrphans = () => {
-      const settings = get(SettingStore);
-      const catStoreState = get(this.cats);
-      
-      Object.keys(catStoreState.widgets).forEach((widgetId) => {
-        if (!settings.widgets[widgetId]) {
-          // Widget was deleted but its data remains in CatStore
-          this.removeMagazine(widgetId);
-        }
-      });
-    };
+    this.cleanupOrphansUnsubscribe = SettingStore.subscribe(() => {
+      this.cleanupOrphans();
+    });
+  }
 
-    // Run cleanup on initialization and when settings change
-    cleanupOrphans();
-    SettingStore.subscribe(cleanupOrphans);
+  protected override normalize(value: TCatStore): TCatStore {
+    return {
+      ...value,
+      widgets: value.widgets ?? {},
+    };
+  }
+
+  public override async init(): Promise<void> {
+    await super.init();
+    this.cleanupOrphans();
+  }
+
+  private cleanupOrphans() {
+    const settings = get(SettingStore);
+    const catStoreState = get(this);
+
+    Object.keys(catStoreState.widgets).forEach((widgetId) => {
+      if (!settings.widgets[widgetId]) {
+        this.removeMagazine(widgetId);
+      }
+    });
   }
 
   /**
@@ -91,7 +85,7 @@ class CatStoreImpl {
     widgetId: string,
     refreshInterval: "newTab" | "24 hr" | "10 min" | "30 min" = "10 min"
   ): boolean {
-    const widgetStore = get(this.cats).widgets[widgetId];
+    const widgetStore = get(this).widgets[widgetId];
     if (!widgetStore || !widgetStore.lastRefreshed) {
       return true; // First time, needs refresh
     }
@@ -118,7 +112,7 @@ class CatStoreImpl {
    * @param widgetId - Widget identifier
    */
   private markAsRefreshed(widgetId: string) {
-    this.cats.update((store) => {
+    this.update((store) => {
       if (store.widgets[widgetId]) {
         store.widgets[widgetId].lastRefreshed = Date.now();
       }
@@ -150,14 +144,14 @@ class CatStoreImpl {
     }
 
     // Ensure widget store exists
-    this.cats.update((store) => {
+    this.update((store) => {
       if (!store.widgets[widgetId]) {
         store.widgets[widgetId] = { ...defaultWidgetState };
       }
       return store;
     });
 
-    const widgetStore = get(this.cats).widgets[widgetId];
+    const widgetStore = get(this).widgets[widgetId];
     
     // Check if we need to refresh based on interval
     const refreshInterval = settings.refreshInterval || "10 min";
@@ -179,14 +173,14 @@ class CatStoreImpl {
       preloadTimesAccessed: preloadTimesAccessed,
       fetchNewItem: async (count) => CatEngine.getNRandomCats(count),
       onItemsChange: (items: TCatItem[]) => {
-        this.cats.update((cats) => {
+        this.update((cats) => {
           if (!cats.widgets[widgetId]) cats.widgets[widgetId] = { ...defaultWidgetState };
           cats.widgets[widgetId].magazine = items;
           return cats;
         });
       },
       onTimesAccessedChange: (timesAccessed: number) => {
-        this.cats.update((cats) => {
+        this.update((cats) => {
           if (!cats.widgets[widgetId]) cats.widgets[widgetId] = { ...defaultWidgetState };
           cats.widgets[widgetId].timesAccessed = timesAccessed;
           return cats;
@@ -228,7 +222,7 @@ class CatStoreImpl {
     }
 
     // Remove from store
-    this.cats.update((store) => {
+    this.update((store) => {
       delete store.widgets[widgetId];
       return store;
     });
@@ -237,27 +231,10 @@ class CatStoreImpl {
   /**
    * Wait for the store to finish loading from storage
    */
-  public async init(): Promise<void> {
-    return this.initPromise;
-  }
-
-  public destroy() {
-    this.unsubscribe();
+  public override destroy() {
+    super.destroy();
+    this.cleanupOrphansUnsubscribe();
     this.settingsUnsubscribes.forEach((unsubscribe) => unsubscribe());
-  }
-
-  private async loadFromStorage(): Promise<void> {
-    const stored = await storage.getJSON<TCatStore>("catStore");
-
-    if (stored) {
-      this.cats.set(stored);
-    }
-
-    this.isInitialized = true;
-  }
-
-  private async saveToStorage(value: TCatStore): Promise<void> {
-    await storage.setJSON("catStore", value);
   }
 }
 
