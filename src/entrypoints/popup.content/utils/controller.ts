@@ -1,4 +1,5 @@
 import type { ShadowRootContentScriptUi } from "#imports";
+import { PopupStore } from "@/lib/modules/popup/popup.store";
 
 // ─── Message Types ───────────────────────────────────────────────────────────
 
@@ -43,6 +44,10 @@ class PopupControllerImpl {
     this.ui.mount();
     this.isOpen = true;
     this.attachPageListeners();
+    PopupStore.update((store) => {
+      store.internal.isOpen = true;
+      return store;
+    });
   }
 
   close(): void {
@@ -52,6 +57,10 @@ class PopupControllerImpl {
 
     this.ui.remove();
     sendToBackground({ type: "POPUP_CLOSED" }).catch(() => {});
+    PopupStore.update((store) => {
+      store.internal.isOpen = false;
+      return store;
+    });
   }
 
   // ─── Page Listeners ─────────────────────────────────────────────────────

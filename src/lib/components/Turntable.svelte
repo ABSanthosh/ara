@@ -1,94 +1,92 @@
 <script lang="ts">
   import { Square, Play } from "@lucide/svelte";
-  import { fade } from "svelte/transition";
+  import { PopupStore } from "../modules/popup/popup.store";
+  import type { TTrack, TTrackItem } from "../modules/popup/popup.types";
 
-  const tracks = [
-    {
-      type: "track",
-      name: "Rain",
-      src: "https://s.ambiph.one/sounds/heavy-rain.flac",
-      image: "https://content.mycutegraphics.com/graphics/rain/rain-cloud.png",
+  const tracks: TTrack = {
+    noise: {
+      rain: {
+        type: "noise",
+        name: "Rain",
+        src: "https://s.ambiph.one/sounds/heavy-rain.flac",
+        image:
+          "https://content.mycutegraphics.com/graphics/rain/rain-cloud.png",
+      },
+      ocean: {
+        type: "noise",
+        name: "Ocean",
+        src: "https://s.ambiph.one/sounds/ocean.wav",
+        image:
+          "https://content.mycutegraphics.com/graphics/water/ocean-wave.png",
+      },
+      fire: {
+        type: "noise",
+        name: "Fire",
+        src: "https://s.ambiph.one/sounds/fire.wav",
+        image: "https://content.mycutegraphics.com/graphics/fire/fire.png",
+      },
+      noise: {
+        type: "noise",
+        name: "Bright Noise",
+        src: "https://s.ambiph.one/sounds/bright-noise.wav",
+        image:
+          "https://content.mycutegraphics.com/graphics/noise/white-noise.png",
+      },
+      dark: {
+        type: "noise",
+        name: "Dark Noise",
+        src: "https://s.ambiph.one/sounds/dark-noise.wav",
+        image:
+          "https://content.mycutegraphics.com/graphics/noise/black-noise.png",
+      },
+      balanced: {
+        type: "noise",
+        name: "Balanced Noise",
+        src: "https://s.ambiph.one/sounds/balanced-noise.wav",
+        image:
+          "https://content.mycutegraphics.com/graphics/noise/balanced-noise.png",
+      },
+      brown: {
+        type: "noise",
+        name: "Brown Noise",
+        src: "https://s.ambiph.one/sounds/brown-noise.wav",
+        image:
+          "https://content.mycutegraphics.com/graphics/noise/brown-noise.png",
+      },
     },
-    // balanced noise, bright noise, dark noise, brown noise, ocean, rain, rain stream night, fire and some binural sounds
-    {
-      type: "track",
-      name: "Ocean",
-      src: "https://s.ambiph.one/sounds/ocean.wav",
-      image: "https://content.mycutegraphics.com/graphics/water/ocean-wave.png",
+    binaural: {
+      delta: {
+        type: "binaural",
+        name: "Delta",
+        src: "https://s.ambiph.one/sounds/delta.wav",
+        image: "https://content.mycutegraphics.com/graphics/binaural/delta.png",
+      },
+      theta: {
+        type: "binaural",
+        name: "Theta",
+        src: "https://s.ambiph.one/sounds/theta.wav",
+        image: "https://content.mycutegraphics.com/graphics/binaural/theta.png",
+      },
+      alpha: {
+        type: "binaural",
+        name: "Alpha",
+        src: "https://s.ambiph.one/sounds/alpha.wav",
+        image: "https://content.mycutegraphics.com/graphics/binaural/alpha.png",
+      },
+      beta: {
+        type: "binaural",
+        name: "Beta",
+        src: "https://s.ambiph.one/sounds/beta.wav",
+        image: "https://content.mycutegraphics.com/graphics/binaural/beta.png",
+      },
     },
-    {
-      type: "track",
-      name: "Fire",
-      src: "https://s.ambiph.one/sounds/fire.wav",
-      image: "https://content.mycutegraphics.com/graphics/fire/fire.png",
-    },
-    {
-      type: "track",
-      name: "Bright Noise",
-      src: "https://s.ambiph.one/sounds/bright-noise.wav",
-      image:
-        "https://content.mycutegraphics.com/graphics/noise/white-noise.png",
-    },
-    {
-      type: "track",
-      name: "Dark Noise",
-      src: "https://s.ambiph.one/sounds/dark-noise.wav",
-      image:
-        "https://content.mycutegraphics.com/graphics/noise/black-noise.png",
-    },
-    {
-      type: "track",
-      name: "Balanced Noise",
-      src: "https://s.ambiph.one/sounds/balanced-noise.wav",
-      image:
-        "https://content.mycutegraphics.com/graphics/noise/balanced-noise.png",
-    },
-    {
-      type: "track",
-      name: "Brown Noise",
-      src: "https://s.ambiph.one/sounds/brown-noise.wav",
-      image:
-        "https://content.mycutegraphics.com/graphics/noise/brown-noise.png",
-    },
-    {
-      type: "hr",
-      name: "Binaural Beats",
-    },
-    {
-      type: "track",
-      name: "Delta",
-      src: "https://s.ambiph.one/sounds/delta.wav",
-      image: "https://content.mycutegraphics.com/graphics/binaural/delta.png",
-    },
-    {
-      type: "track",
-      name: "Theta",
-      src: "https://s.ambiph.one/sounds/theta.wav",
-      image: "https://content.mycutegraphics.com/graphics/binaural/theta.png",
-    },
-    {
-      type: "track",
-      name: "Alpha",
-      src: "https://s.ambiph.one/sounds/alpha.wav",
-      image: "https://content.mycutegraphics.com/graphics/binaural/alpha.png",
-    },
-    {
-      type: "track",
-      name: "Beta",
-      src: "https://s.ambiph.one/sounds/beta.wav",
-      image: "https://content.mycutegraphics.com/graphics/binaural/beta.png",
-    },
-  ] as const;
+  };
 
-  type TrackItem = Extract<(typeof tracks)[number], { type: "track" }>;
-
-  const playableTracks = tracks.filter(
-    (t): t is TrackItem => t.type === "track",
+  let popupStore = $state(PopupStore);
+  let isPlaying = $state($popupStore.apps.turntable.isPlaying);
+  let selectedTrack = $state<TTrackItem | null>(
+    $popupStore.apps.turntable.currentTrack,
   );
-
-  let isPlaying = $state(false);
-  // svelte-ignore state_referenced_locally
-  let selectedTrack = $state<TrackItem | null>(playableTracks[0] ?? null);
 </script>
 
 <div class="Turntable">
@@ -426,7 +424,7 @@
       </svg>
 
       <!-- Album art label -->
-      {#if selectedTrack && selectedTrack.type === "track"}
+      {#if selectedTrack}
         <img
           class="Turntable__disk--art"
           class:isPlaying
@@ -1348,45 +1346,60 @@
       </svg>
     </div>
   </div>
-  <div class="Turntable__controls">
+  <div
+    class="Turntable__controls"
+    data-test={`${selectedTrack?.type}-${selectedTrack?.name.toLocaleLowerCase().split(" ")[0]}`}
+  >
     <select
       class="CrispSelect"
       name="track"
-      value={selectedTrack?.src}
+      value={`${selectedTrack?.type}-${selectedTrack?.name.toLocaleLowerCase().split(" ")[0]}`}
       onchange={(event) => {
-        const selectedSrc = (event.currentTarget as HTMLSelectElement).value;
-        const nextTrack = playableTracks.find(
-          (track) => track.src === selectedSrc,
-        );
-
-        if (nextTrack) {
-          selectedTrack = nextTrack;
+        const tmpSelectedTrack = (event.currentTarget as HTMLSelectElement)
+          .value;
+        const [type, track] = tmpSelectedTrack.split("-");
+        if (type === "noise") {
+          selectedTrack = tracks.noise[track];
+          PopupStore.update((state) => {
+            state.apps.turntable.currentTrack = selectedTrack;
+            return state;
+          });
+        } else {
+          selectedTrack = tracks.binaural[track];
+          PopupStore.update((state) => {
+            state.apps.turntable.currentTrack = selectedTrack;
+            return state;
+          });
         }
       }}
     >
-      {#each tracks as track}
-        {#if track.type === "hr"}
-          <hr />
-        {:else}
-          <option value={track.src}>{track.name}</option>
-        {/if}
+      {#each Object.keys(tracks.noise) as track}
+        <option value={`noise-${track}`}>{tracks.noise[track].name}</option>
+      {/each}
+      <hr />
+      {#each Object.keys(tracks.binaural) as track}
+        <option value={`binaural-${track}`}>
+          {tracks.binaural[track].name}
+        </option>
       {/each}
     </select>
-    {#key isPlaying}
-      <button
-        transition:fade
-        class="CrispButton"
-        onclick={() => {
-          isPlaying = !isPlaying;
-        }}
-      >
-        {#if isPlaying}
-          <Square size={18} />
-        {:else}
-          <Play size={18} />
-        {/if}
-      </button>
-    {/key}
+
+    <button
+      class="CrispButton"
+      onclick={() => {
+        isPlaying = !isPlaying;
+        PopupStore.update((state) => {
+          state.apps.turntable.isPlaying = isPlaying;
+          return state;
+        });
+      }}
+    >
+      {#if isPlaying}
+        <Square size={18} />
+      {:else}
+        <Play size={18} />
+      {/if}
+    </button>
   </div>
 </div>
 

@@ -1,5 +1,6 @@
 // lib/background-popup.ts
 
+import { PopupStore } from "@/lib/modules/popup/popup.store";
 import { sendToTab, type ExtensionMessage } from "./controller";
 
 // ─── BackgroundPopupManager ──────────────────────────────────────────────────
@@ -10,6 +11,7 @@ class BackgroundPopupManagerImpl {
   // ─── Setup ────────────────────────────────────────────────────────────────
 
   init(): this {
+    PopupStore.init();
     this.listenForActionClick();
     this.listenForPopupClosed();
     this.listenForTabRemoved();

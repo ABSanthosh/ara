@@ -1,11 +1,10 @@
-
 import { StoreImpl } from "@/lib/utils/store";
 
-interface AppState {
+type AppState = {
   wallpaper: {
     isWallpaperLoading: boolean;
   };
-}
+};
 
 const defaultAppState: AppState = {
   wallpaper: {

@@ -3,11 +3,13 @@ import "../../styles/popup/index.scss";
 import { mount, unmount } from "svelte";
 import { ContentScriptContext } from "#imports";
 import { PopupController } from "./utils/controller";
+import { PopupStore } from "@/lib/modules/popup/popup.store";
 
 export default defineContentScript({
   matches: ["<all_urls>"],
   cssInjectionMode: "ui",
   async main(ctx: ContentScriptContext) {
+    PopupStore.init();
     const ui = await createShadowRootUi(ctx, {
       anchor: "html",
       name: "popup-ui",

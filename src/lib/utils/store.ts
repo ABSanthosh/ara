@@ -69,8 +69,12 @@ export abstract class StoreImpl<T extends object> {
   // ─── Serialization ────────────────────────────────────────────────────────
 
   private isSerializable(value: unknown): boolean {
+    const hasElementCtor = typeof Element !== "undefined";
+    const hasHTMLElementCtor = typeof HTMLElement !== "undefined";
+
     return (
-      !(value instanceof Element || value instanceof HTMLElement) &&
+      !(hasElementCtor && value instanceof Element) &&
+      !(hasHTMLElementCtor && value instanceof HTMLElement) &&
       typeof value !== "function"
     );
   }
