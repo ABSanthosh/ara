@@ -122,37 +122,47 @@
   appearance: base-select;
 }
 
-::picker(select) {
-  margin-top: 8px;
-  border: var(--crp-select-border);
-  background: var(--crp-select-bg);
-  color: var(--crp-select-color);
-  outline: none;
-  border-radius: calc(var(--crp-select-radius) - 4px);
-  transition:
-    opacity 0.2s ease,
-    transform 0.2s var(--ease-out-3),
-    display 0.2s allow-discrete,
-    overlay 0.2s allow-discrete;
-  @supports (corner-shape: squircle) {
-    border-radius: calc(var(--crp-select-radius) + 8px);
-    corner-shape: squircle;
-  }
-}
-
 .CrispSelect {
+  hr {
+    border: 0;
+    width: 90%;
+    margin: 6px auto;
+    border: var(--crp-select-border);
+    // border: 0.2px solid rgba(255, 255, 255, 0.13);
+  }
+
   option {
-    outline: none;
-    height: var(--crp-select-height);
+    gap: 4px;
+    border: 0;
+    line-height: 1;
+    cursor: pointer;
+    font-size: 16px;
+    min-height: 18px;
+    text-align: left;
+    padding: 5px 12px;
+    border-radius: 6px;
+
+    @supports (corner-shape: squircle) {
+      border-radius: 20px;
+      corner-shape: squircle;
+    }
+    background: transparent;
     color: var(--crp-select-color);
-    background: var(--crp-select-bg);
+
+    &:active,
+    &:hover {
+      // color: #fff;
+      background: var(--crp-select-bg-hover);
+    }
+
+    &:focus-visible {
+      outline-offset: 2px;
+      outline: 2px solid rgba(74, 144, 226, 0.95);
+    }
     transition: background 0.2s ease;
     &::checkmark {
       padding-left: 8px;
       color: var(--crp-select-color);
-    }
-    &:hover {
-      background: var(--crp-select-bg-hover);
     }
   }
 
@@ -161,8 +171,51 @@
     transform: scale(0.95);
   }
 
+  &:open::picker(select) {
+    opacity: 1;
+    transform: scale(1);
+  }
+
   &::picker-icon {
     content: "";
-		display: none;
+    display: none;
+  }
+
+  &::picker(select) {
+    padding: 8px;
+    outline: none;
+    margin-top: 8px;
+
+    border-radius: 10px;
+    color: var(--crp-select-color);
+    background: var(--crp-select-bg);
+
+    @supports (corner-shape: squircle) {
+      border-radius: 30px;
+      corner-shape: squircle;
+    }
+
+    border: var(--crp-select-border);
+    // box-shadow: 0 6px 14px rgba(0, 0, 0, 0.18);
+
+    -webkit-font-smoothing: antialiased;
+    transition:
+      opacity 0.2s ease,
+      transform 0.2s var(--ease-out-3),
+      display 0.2s allow-discrete,
+      overlay 0.2s allow-discrete;
+  }
+
+  selectedcontent > * {
+    transition:
+      transform 1s var(--ease-spring-4),
+      display 1s allow-discrete,
+      opacity 1s;
+
+    @starting-style {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    opacity: 1;
   }
 }

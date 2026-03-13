@@ -391,7 +391,7 @@
         & > button.CrispButton {
           --crp-button-radius: 10px;
           --crp-button-width: 32px;
-          --crp-button-padding-x: 6px;
+          --crp-button-padding: 6px 8px;
         }
 
         &:has(input:checked) {

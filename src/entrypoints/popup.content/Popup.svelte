@@ -1,8 +1,9 @@
 <script lang="ts">
+  import Turntable from "@/lib/components/Turntable.svelte";
 </script>
 
 <main class="Popup">
-  <!-- content -->
+  <Turntable />
 </main>
 
 <style lang="scss">
@@ -11,6 +12,7 @@
     right: 15px;
     z-index: 99999999;
     position: fixed;
+    padding: 5px;
     border-radius: 15px;
     background-color: #fff;
     @include box(325px, 500px);

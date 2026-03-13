@@ -200,8 +200,7 @@
         position: absolute;
         @include box(30px, 30px);
         --crp-button-radius: 10px;
-        --crp-button-padding-x: 4px;
-        --crp-button-padding-y: 4px;
+        --crp-button-padding: 4px;
         --crp-button-corner-shape: round;
         color: var(--vibrant-labels-primary);
       }
