@@ -1,0 +1,55 @@
+// $scrollbarWidth: 4px;
+
+// * {
+//   margin: 0;
+//   padding: 0;
+//   transition: color 0.1s ease-in-out;
+
+//   font-style: normal;
+//   font-optical-sizing: auto;
+//   font-family: "Inter", sans-serif;
+//   // color: var(--vibrant-fills-secondary);
+// }
+
+// *,
+// *::before,
+// *::after {
+//   box-sizing: inherit;
+// }
+
+// html {
+//   max-width: 886px;
+//   // width: 323px;
+//   // height: 592px;
+//   @include box(325px, 500px);
+// }
+
+// body {
+//   @include box();
+//   @include make-flex($just: flex-start);
+
+//   #popup {
+//     padding: 5px;
+//     @include box(100%, 100%);
+//     background-color: #fff;
+//     @include make-flex($just: flex-start);
+//   }
+// }
+
+// ::-webkit-scrollbar {
+//   background: transparent;
+//   @include box($scrollbarWidth, $scrollbarWidth);
+// }
+
+// ::-webkit-scrollbar-thumb {
+//   background: #d3d1cb;
+//   border-radius: 10px;
+// }
+
+// ::-webkit-scrollbar-track {
+//   background: transparent;
+// }
+
+// ::selection {
+//   background: #2daadb4d;
+// }

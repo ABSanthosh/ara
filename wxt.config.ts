@@ -39,5 +39,6 @@ export default defineConfig({
       "activeTab",
     ],
     host_permissions: ["<all_urls>"],
+    action: {},
   },
 });

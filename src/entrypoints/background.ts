@@ -1,10 +1,13 @@
-import { ActivityEngineImpl } from "@/lib/modules/activity/activity.engine";
+// entrypoints/background.ts
+
+import { BackgroundPopupManager } from "./popup.content/utils/background";
+// import { ActivityEngineImpl } from "@/lib/modules/activity/activity.engine";
 
 export default defineBackground(() => {
-  console.log("Background script initialized");
-  // const ActivityEngine = new ActivityEngineImpl();
+  BackgroundPopupManager.init();
+  // const activityEngine = new ActivityEngineImpl();
 
   return () => {
-    // ActivityEngine.destroy();
+    // activityEngine.destroy();
   };
 });

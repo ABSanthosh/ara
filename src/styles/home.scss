@@ -1,0 +1,108 @@
+@use "../styles/mixins" as *;
+
+.WallpaperTools {
+  position: absolute;
+  @include make-flex($dir: row, $gap: 8px);
+
+  bottom: 7px;
+  right: 10px;
+  z-index: 15;
+
+  & > .CrispButton {
+    padding: 5px;
+    border-radius: 8px;
+    @include make-flex();
+    @include box(30px, 30px);
+    --crp-button-bg-hover: var(--views-regular);
+
+    & > p {
+      mix-blend-mode: luminosity;
+      color: var(--vibrant-labels-tertiary);
+      filter: invert(1) contrast(1.3);
+    }
+
+    &:hover {
+      color: var(--views-thicker);
+
+      & > svg {
+        filter: unset;
+        fill: var(--views-thicker);
+        stroke: var(--views-thicker);
+      }
+    }
+
+    &.SpinnerButton .IoSpinnerWrapper.loader-ios {
+      --svg-fill-color: var(--views-thicker) !important;
+      --svg-pulse-color: var(--views-regular) !important;
+      --svg-pulse-fade-color: var(--separator-secondary) !important;
+
+      & > svg {
+        filter: invert(1) contrast(1.3);
+      }
+    }
+
+    & > svg {
+      stroke: var(--vibrant-labels-tertiary);
+      filter: invert(1) contrast(1.3);
+      mix-blend-mode: luminosity;
+
+      transition:
+        color 0.25s ease,
+        fill 0.25s ease,
+        stroke 0.25s ease,
+        filter 0.25s ease;
+    }
+    &.pinned > svg {
+      filter: unset;
+      fill: var(--colors-blue);
+      color: var(--colors-blue);
+      stroke: var(--colors-blue);
+    }
+
+    &.favorited > svg {
+      filter: unset;
+      fill: var(--colors-red);
+      stroke: var(--colors-red);
+      color: var(--colors-red);
+    }
+  }
+}
+
+.NasaWallpaperInfoModal {
+  &.ModalWrapper {
+    align-items: flex-end !important;
+    justify-content: flex-end !important;
+
+    & > .Modal {
+      margin-bottom: 7px;
+      margin-right: 10px;
+      animation: none;
+    }
+  }
+}
+
+.WallpaperDetails {
+  color: white;
+  font-size: 14px;
+  border-radius: 10px 10px 0 0;
+  @include make-flex($dir: column, $align: flex-start, $gap: 8px);
+
+  &--calltoaction {
+    @include box(100%, auto);
+    @include make-flex($dir: row, $just: flex-end, $gap: 10px);
+    a {
+      color: #ccc;
+      text-decoration: underline;
+      font-size: 13px;
+
+      &:hover {
+        color: white;
+        text-decoration: underline;
+      }
+    }
+  }
+  p {
+    font-size: 15px;
+    line-height: 1.5;
+  }
+}

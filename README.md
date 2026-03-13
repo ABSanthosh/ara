@@ -31,6 +31,7 @@ npm run build        # Build for production
 
 - Settings page for adding and removing Widgets
 - Widgets
+  - Widget setting flip UI is not polished yet.
   - ~~Todo List~~
   - QR Code Generator: generate, copy qr etc
   - whimsical Website blocking: Something to plan what to do and not let you visit distracting websites till you finish your tasks, kinda like zen mode and pomodoro timer
