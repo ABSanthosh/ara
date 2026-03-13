@@ -1,6 +1,7 @@
 import { get } from "svelte/store";
-import { SettingStore } from "../../settings/settings.store";
 import { WidgetEngine } from "../widgets.engine";
+import { RuntimeStore } from "../../settings/runtime.store";
+import { SettingStore } from "../../settings/settings.store";
 
 /**
  * Mental model:
@@ -87,7 +88,10 @@ export function draggable(
   });
 
   const getWidget = () => settings.widgets[options.widgetId];
-  const getGrid = () => settings.internal.grid;
+  const getGrid = () => ({
+    ...settings.internal.grid,
+    element: get(RuntimeStore).internal.grid.element,
+  });
 
   /* ---------------------------------- */
   /* Drag state                         */

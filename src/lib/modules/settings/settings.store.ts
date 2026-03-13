@@ -1,7 +1,6 @@
-import { Widgets } from "../widgets/widgets.types";
+import { writable } from "svelte/store";
+import type { Unsubscriber, Writable } from "svelte/store";
 import { SettingsTabs, TSettingStore } from "./settings.types";
-import { writable, type Writable } from "svelte/store";
-import { storage } from "@/lib/utils/storage";
 
 const defaultStore: TSettingStore = {
   internal: {
@@ -10,7 +9,6 @@ const defaultStore: TSettingStore = {
       cols: -1,
       cellSize: -1,
       gap: -1,
-      element: document.createElement("div"),
       occupiedCells: new Set<string>(),
     },
     settings: {
@@ -77,41 +75,62 @@ const defaultStore: TSettingStore = {
 };
 
 class SettingStoreImpl {
-  public state = writable<TSettingStore>(defaultStore);
-  private saveTimer: NodeJS.Timeout | null = null;
-  private unsubscribe: () => void = () => {};
-  private initPromise: Promise<void>;
+  public set!: Writable<TSettingStore>["set"];
+  public update!: Writable<TSettingStore>["update"];
+  public subscribe!: Writable<TSettingStore>["subscribe"];
+  public unsubscribe!: Unsubscriber;
+
   private isInitialized = false;
 
-  public subscribe: Writable<TSettingStore>["subscribe"] = (...args) =>
-    this.state.subscribe(...args);
-  public set: Writable<TSettingStore>["set"] = (...args) =>
-    this.state.set(...args);
-  public update: Writable<TSettingStore>["update"] = (...args) =>
-    this.state.update(...args);
+  private saveTimer: NodeJS.Timeout | null = null;
+  private DEBOUNCE_DELAY = 2000; // 2 second debounce for saving to storage
+
+  private settingsItem = storage.defineItem<TSettingStore>("local:settings", {
+    version: 1,
+    fallback: defaultStore,
+  });
 
   constructor() {
-    // Initialize async loading
-    this.initPromise = this.loadFromStorage();
-
-    // Subscribe to changes and save to storage
-    this.unsubscribe = this.state.subscribe((value) => {
-      // Only save after initial load to avoid overwriting with defaults
-      if (this.isInitialized) {
-        this.saveToStorage(value);
-      }
-    });
+    const { subscribe, set, update } = writable<TSettingStore>(defaultStore);
+    this.set = set;
+    this.update = update;
+    this.subscribe = subscribe;
   }
 
-  /**
-   * Wait for the store to finish loading from storage
-   */
   public async init(): Promise<void> {
-    return this.initPromise;
+    if (this.isInitialized) return;
+
+    // initial load
+    this.settingsItem.getValue().then((value) => {
+      this.set(
+        this.normalizeSettings(this.deserialize(value) as TSettingStore),
+      );
+    });
+
+    // react to external storage updates
+    this.unsubscribe = this.settingsItem.watch((value) => {
+      this.set(this.deserialize(value) as TSettingStore);
+    });
+
+    // save to storage on changes
+    this.subscribe((value) => {
+      if (this.saveTimer !== null) {
+        clearTimeout(this.saveTimer);
+      }
+
+      this.saveTimer = setTimeout(() => {
+        this.settingsItem.setValue(this.serialize(value));
+      }, this.DEBOUNCE_DELAY);
+    });
+
+    this.isInitialized = true;
   }
 
   public destroy() {
     this.unsubscribe();
+    if (this.saveTimer !== null) {
+      clearTimeout(this.saveTimer);
+    }
   }
 
   /**
@@ -141,25 +160,101 @@ class SettingStoreImpl {
     });
   }
 
-  private async loadFromStorage(): Promise<void> {
-    const stored = await storage.getJSON<any>("settingStore");
-
-    if (stored) {
-      // On every load, we reset these flags to false
-      stored.options.isDraggable = false;
-      stored.options.isResizable = false;
-      stored.options.showGrid = false;
-
-      this.state.set(stored as TSettingStore);
-    }
-
-    this.isInitialized = true;
+  private normalizeSettings(value: TSettingStore): TSettingStore {
+    return {
+      ...value,
+      options: {
+        ...value.options,
+        isDraggable: false,
+        isResizable: false,
+        showGrid: false,
+      },
+    };
   }
 
-  private async saveToStorage(value: TSettingStore): Promise<void> {
-    // The storage layer now handles filtering non-serializable properties automatically
-    // Sets are converted to arrays and DOM elements/functions are skipped
-    await storage.setJSON("settingStore", value);
+  private isSerializable(value: any): boolean {
+    // Skip DOM elements
+    if (value instanceof Element || value instanceof HTMLElement) {
+      return false;
+    }
+
+    // Skip functions
+    if (typeof value === "function") {
+      return false;
+    }
+
+    // Allow null, primitives, objects, arrays
+    return true;
+  }
+
+  private serialize(value: any): any {
+    // possible times for now: Date, Set
+    if (value instanceof Date) {
+      return {
+        __type: "Date",
+        __value: value.toISOString(),
+      };
+    }
+
+    // Convert Set to array with type marker
+    if (value instanceof Set) {
+      return {
+        __type: "Set",
+        __value: Array.from(value),
+      };
+    }
+
+    if (!this.isSerializable(value)) {
+      return undefined;
+    }
+
+    if (Array.isArray(value)) {
+      return value
+        .map((item) => this.serialize(item))
+        .filter((item) => item !== undefined);
+    }
+
+    if (value && typeof value === "object") {
+      const output: Record<string, any> = {};
+
+      Object.entries(value).forEach(([key, nestedValue]) => {
+        const serializedValue = this.serialize(nestedValue);
+        if (serializedValue !== undefined) {
+          output[key] = serializedValue;
+        }
+      });
+
+      return output;
+    }
+
+    return value;
+  }
+
+  private deserialize(value: any): any {
+    if (Array.isArray(value)) {
+      return value.map((item) => this.deserialize(item));
+    }
+
+    if (value && typeof value === "object") {
+      // Restore Date from ISO string
+      if (value.__type === "Date") {
+        return new Date(value.__value);
+      }
+
+      // Restore Set from array
+      if (value.__type === "Set") {
+        return new Set(value.__value);
+      }
+
+      const output: Record<string, any> = {};
+      Object.entries(value).forEach(([key, nestedValue]) => {
+        output[key] = this.deserialize(nestedValue);
+      });
+
+      return output;
+    }
+
+    return value;
   }
 }
 

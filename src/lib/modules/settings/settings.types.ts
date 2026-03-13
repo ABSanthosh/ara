@@ -16,7 +16,6 @@ export type TSettingStore = {
       cols: number;
       gap: number;
       cellSize: number;
-      element: HTMLElement;
       occupiedCells: Set<string>;
     };
     settings: {

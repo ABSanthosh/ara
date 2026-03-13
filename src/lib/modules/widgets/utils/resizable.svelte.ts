@@ -1,13 +1,7 @@
 import { get } from "svelte/store";
+import { WidgetSpans } from "../widgets.types";
+import { RuntimeStore } from "../../settings/runtime.store";
 import { SettingStore } from "../../settings/settings.store";
-import {
-  ClockWidgetClassicAnalogSpan,
-  CalendarSpan,
-  CatSpan,
-  ChecklistSpan,
-  ClockWidgetFlipSpan,
-  WidgetSpans,
-} from "../widgets.types";
 
 /**
  * Mental model:
@@ -52,7 +46,7 @@ export function resizable(
   resizedWidget: HTMLElement,
   options: {
     widgetId: string;
-    spans: WidgetSpans[]
+    spans: WidgetSpans[];
     onResize?: (newSpan: { x: number; y: number }) => void;
     onResizeStateChange?: (resizeState: ResizeState) => void;
     isDemo?: boolean;
@@ -104,7 +98,10 @@ export function resizable(
   });
 
   const getWidget = () => settings.widgets[options.widgetId];
-  const getGrid = () => settings.internal.grid;
+  const getGrid = () => ({
+    ...settings.internal.grid,
+    element: get(RuntimeStore).internal.grid.element,
+  });
 
   /* ---------------------------------- */
   /* Resize state                       */
@@ -174,7 +171,11 @@ export function resizable(
     const targetIsValid = isValid(w.pos.row, w.pos.col, newX, newY);
 
     // If using allowed sizes, use cached valid spans (calculated on resize start)
-    if (options.spans && options.spans.length > 0 && cachedValidSpans.length > 0) {
+    if (
+      options.spans &&
+      options.spans.length > 0 &&
+      cachedValidSpans.length > 0
+    ) {
       let best = initial;
       let bestDist = Infinity;
       let foundValid = false;

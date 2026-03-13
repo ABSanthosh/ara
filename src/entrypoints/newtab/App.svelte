@@ -12,6 +12,7 @@
   import Settings from "@/lib/components/Settings/Settings.svelte";
   import TestWidget from "@/lib/components/widgets/TestWidget.svelte";
   import { SettingStore } from "@/lib/modules/settings/settings.store";
+  import { RuntimeStore } from "@/lib/modules/settings/runtime.store";
   import { AppStateStore } from "@/lib/modules/settings/appState.store";
   import { WallpaperManager } from "@/lib/modules/wallpaper/wallpaper.manager";
   import Checklist from "@/lib/components/widgets/Checklist.svelte";
@@ -21,7 +22,7 @@
   import ArtGallery from "@/lib/components/widgets/ArtGallery.svelte";
 
   // Init modules
-  const settingState = $state(SettingStore.state);
+  const settingState = $state(SettingStore);
   const appState = $derived(AppStateStore);
 
   let showSettingModal = $state(false);
@@ -108,12 +109,16 @@
     cellSize: number;
     grid: HTMLElement;
   }) => {
+    RuntimeStore.update((store) => {
+      store.internal.grid.element = gridInfo.grid;
+      return store;
+    });
+
     SettingStore.update((store) => {
       store.internal.grid.rows = gridInfo.rows;
       store.internal.grid.cols = gridInfo.cols;
       store.internal.grid.gap = gridInfo.gap;
       store.internal.grid.cellSize = gridInfo.cellSize;
-      store.internal.grid.element = gridInfo.grid;
 
       return store;
     });
