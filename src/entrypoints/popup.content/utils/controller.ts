@@ -1,12 +1,6 @@
 import type { ShadowRootContentScriptUi } from "#imports";
 import { PopupStore } from "@/lib/modules/popup/popup.store";
-
-// ─── Message Types ───────────────────────────────────────────────────────────
-
-export type ExtensionMessage =
-  | { type: "OPEN_POPUP" }
-  | { type: "CLOSE_POPUP" }
-  | { type: "POPUP_CLOSED" };
+import type { ExtensionMessage } from "@/lib/modules/popup/popup.messages";
 
 // ─── Raw Messaging Helpers ───────────────────────────────────────────────────
 

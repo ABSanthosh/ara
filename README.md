@@ -53,3 +53,5 @@ npm run build        # Build for production
 <!-- Errors in /tmp/tmp-web-ext-* -->
 <!-- If the EPIPE error ever comes back, run this first to kill any stuck Chrome processes: -->
 <!-- pkill -f "chromium.*remote-debugging" 2>/dev/null; pkill -f "chromium.*load-extension" 2>/dev/null -->
+
+

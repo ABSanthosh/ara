@@ -3,6 +3,7 @@ import App from "./App.svelte";
 import { SettingStore } from "@/lib/modules/settings/settings.store";
 import { CatStore } from "@/lib/modules/cats/cats.store";
 import { AppStateStore } from "@/lib/modules/settings/appState.store";
+import { PopupStore } from "@/lib/modules/popup/popup.store";
 
 // Initialize all stores before mounting the app
 async function initializeApp() {
@@ -11,6 +12,7 @@ async function initializeApp() {
     SettingStore.init(),
     AppStateStore.init(),
     CatStore.init(),
+    PopupStore.init(),
   ]);
 
   // Mount the app after stores are initialized

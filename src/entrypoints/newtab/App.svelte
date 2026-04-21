@@ -1,10 +1,13 @@
 <script lang="ts">
   import "../../styles/index.scss";
 
-  import { onDestroy } from "svelte";
+  import "../../styles/popup/index.scss";
+
+  import { onDestroy, onMount } from "svelte";
   import Grid from "@/lib/components/Grid.svelte";
   import Modal from "@/lib/components/Modal.svelte";
   import { Heart, Pin, PinOff } from "@lucide/svelte";
+  import Popup from "../popup.content/Popup.svelte";
   import Cat from "@/lib/components/widgets/Cat.svelte";
   import ContextMenu from "@/lib/components/ContextMenu.svelte";
   import Spinner from "@/lib/components/Spinner/Spinner.svelte";
@@ -15,6 +18,7 @@
   import { RuntimeStore } from "@/lib/modules/settings/runtime.store";
   import { AppStateStore } from "@/lib/modules/settings/appState.store";
   import { WallpaperManager } from "@/lib/modules/wallpaper/wallpaper.manager";
+  import type { ExtensionMessage } from "@/lib/modules/popup/popup.messages";
   import Checklist from "@/lib/components/widgets/Checklist.svelte";
   import ClockFlip from "@/lib/components/widgets/Clock/ClockFlip.svelte";
   import ClockClassicAnalog from "@/lib/components/widgets/Clock/ClockClassicAnalog.svelte";
@@ -27,6 +31,67 @@
 
   let showSettingModal = $state(false);
   let showWallpaperInfo = $state(false);
+  let showActionPopup = $state(false);
+  let currentTabId = $state<number | null>(null);
+
+  function setActionPopup(isOpen: boolean) {
+    showActionPopup = isOpen;
+  }
+
+  async function resolveCurrentTabId() {
+    const currentTab = await browser.tabs.getCurrent();
+    if (currentTab?.id) return currentTab.id;
+
+    const [activeTab] = await browser.tabs.query({
+      active: true,
+      currentWindow: true,
+    });
+
+    return activeTab?.id ?? null;
+  }
+
+  async function closeActionPopup() {
+    if (!showActionPopup) return;
+
+    showActionPopup = false;
+
+    await browser.runtime
+      .sendMessage({
+        type: "POPUP_CLOSED",
+        tabId: currentTabId ?? undefined,
+      } satisfies ExtensionMessage)
+      .catch(() => {});
+  }
+
+  function handlePopupMessage(message: ExtensionMessage) {
+    if (!currentTabId) return;
+
+    if (
+      message.type === "OPEN_NEWTAB_POPUP" &&
+      message.tabId === currentTabId
+    ) {
+      setActionPopup(true);
+    }
+
+    if (
+      message.type === "CLOSE_NEWTAB_POPUP" &&
+      message.tabId === currentTabId
+    ) {
+      setActionPopup(false);
+    }
+  }
+
+  onMount(() => {
+    void resolveCurrentTabId().then((tabId) => {
+      currentTabId = tabId;
+    });
+
+    browser.runtime.onMessage.addListener(handlePopupMessage);
+
+    return () => {
+      browser.runtime.onMessage.removeListener(handlePopupMessage);
+    };
+  });
 
   onDestroy(() => {
     SettingStore.destroy();
@@ -62,7 +127,27 @@
         $settingState.wallpaper.plugins.nasa.metadata!.date,
       ),
   );
+
+  function handleWindowMouseDown(event: MouseEvent) {
+    if (!showActionPopup) return;
+
+    const target = event.target as HTMLElement | null;
+    if (target?.closest(".Popup")) return;
+
+    void closeActionPopup();
+  }
+
+  function handleWindowKeyDown(event: KeyboardEvent) {
+    if (event.key !== "Escape") return;
+
+    void closeActionPopup();
+  }
 </script>
+
+<svelte:window
+  onmousedown={handleWindowMouseDown}
+  onkeydown={handleWindowKeyDown}
+/>
 
 <ContextMenu
   menuItems={[
@@ -71,6 +156,7 @@
       onClick: () => (showSettingModal = true),
       displayText: "Settings",
     },
+    
     {
       name: "showGrid",
       onClick: () => {
@@ -321,4 +407,8 @@
       {/if}
     {/if}
   {/if}
+{/if}
+
+{#if showActionPopup}
+  <Popup />
 {/if}
