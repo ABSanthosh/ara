@@ -1,5 +1,4 @@
 import { get } from "svelte/store";
-import { WidgetEngine } from "../widgets.engine";
 import { RuntimeStore } from "../../settings/runtime.store";
 import { SettingStore } from "../../settings/settings.store";
 
@@ -19,14 +18,12 @@ function createDragShadow() {
   return el;
 }
 
-function makeRemoveButton(widgetId: string) {
+function makeRemoveButton(onRemove: () => void) {
   const btn = document.createElement("button");
   btn.innerHTML = `&times;`;
   btn.className = "widget-remove";
   btn.setAttribute("data-drag-ignore", "true");
-  btn.onclick = () => {
-    WidgetEngine.removeWidget(widgetId);
-  };
+  btn.onclick = onRemove;
   return btn;
 }
 
@@ -40,7 +37,11 @@ type DragState =
 
 export function draggable(
   draggedWidget: HTMLElement,
-  options: { widgetId: string; isDemo?: boolean },
+  options: {
+    widgetId: string;
+    isDemo?: boolean;
+    onRemove?: () => void;
+  },
 ) {
   // If demo mode, do nothing
   if (options.isDemo) {
@@ -53,7 +54,7 @@ export function draggable(
   /* Store + derived state               */
   /* ---------------------------------- */
 
-  const removeButton = makeRemoveButton(options.widgetId);
+  const removeButton = makeRemoveButton(options.onRemove ?? (() => {}));
 
   function attachRemoveButton() {
     if (!draggedWidget.contains(removeButton)) {

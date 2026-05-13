@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { draggable } from "@/lib/modules/widgets/utils/draggable.svelte";
+  import { dissolvable } from "@/lib/modules/widgets/utils/dissolvable.svelte";
   import { resizable } from "@/lib/modules/widgets/utils/resizable.svelte";
   import { flippable } from "@/lib/modules/widgets/utils/flippable.svelte";
   import type {
@@ -20,6 +21,7 @@
 
   // svelte-ignore state_referenced_locally
   const widgetId = widget.id!;
+  let removed = $state(false);
 
   let date = $state(dayjs());
   const timeFormats = $derived({
@@ -251,7 +253,11 @@
 
 <div
   data-size={config.size}
-  use:draggable={{ widgetId: widget.id!, isDemo: widget.isDemo }}
+  use:draggable={{
+    widgetId: widget.id!,
+    isDemo: widget.isDemo,
+    onRemove: () => (removed = true),
+  }}
   class="SemiDigital blur-thin"
   use:resizable={{
     widgetId: widget.id!,
@@ -269,6 +275,10 @@
     isDemo: widget.isDemo,
     onFlip: () => (isFlipped = true),
     onFlipBack: () => (isFlipped = false),
+  }}
+  use:dissolvable={{
+    removed,
+    onRemoved: () => WidgetEngine.removeWidget(widget.id!),
   }}
   style="
     grid-area: {widget.pos.row} / {widget.pos.col} / {widget.pos.row +
